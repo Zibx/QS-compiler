@@ -1,0 +1,48 @@
+def UIComponent Slider: 5
+
+   public Event end: {{to==value}} // event would be fired when value == to
+
+
+   public Event leaveEnd
+     @description: fires when the silder leaves endpoint
+
+   .end: ()->
+     states.goto('end')
+
+   Event: {{to!==value}}
+     .on: ()-> states.goto('somewhere')
+
+
+   StateMachine states
+     start
+     somewhere
+     end
+       .leave: ()->
+         that.fire('leaveEnd')
+
+   String url: http://ya.ru
+   public Number from: 0
+     @description: Minimum slider value
+
+   public Number to: 100
+     @description: Maximum slider value
+
+   Number current as public value: 0
+     @description: current position of the slider
+     set: (val)->
+        if(val < from || val > to)
+            cancel(Notice('Out of range'))
+
+   Number delta: {{to-from}}
+
+   Circle
+     left: {{
+        (that.width-this.width)/delta * // width per unit
+        (current-from)/delta // units in value
+        + this.width/2 //
+        }}%
+     top: 0
+     origin
+       x: 50%
+       y: 50%
+     free: true // TODO поспорить о синтаксисе вынимания компонента из потока рендеринга

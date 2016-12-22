@@ -1,0 +1,20 @@
+{
+  "name": "quokka-script",
+  "version": "0.1.0",
+  "description": "quokka script compiler",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "jison": "*",
+    "source-map": "^0.5.6"
+  },
+  "devDependencies": {
+    "chai": "*",
+    "mocha": "*",
+    "istanbul": "*"
+  },
+  "author": "Quokka inc",
+  "license": "MPL-2.0"
+}
