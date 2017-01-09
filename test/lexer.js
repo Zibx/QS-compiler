@@ -10,23 +10,17 @@ module.exports = (function () {
     'use strict';
     var assert = require('chai').assert;
     var tokenizer = require('../Core/Tokenizer'),
+        lexer = require('../Core/Lexer'),
         fs = require('fs');
 
-    var getToken = function (tokens, row, col) {
-        var result = tokens.filter(function(token){
-            var pointer = token.pointer;
-            return pointer.row === row && pointer.col === col;
-        });
-        return result.length ? result[0] : {data: null, cursor: {}};
-    };
-    describe('Tokenizer', function() {
+    describe('Lexer', function() {
 
         it('tokenize', function () {
             var data = fs.readFileSync('test/qs/example.qs')+'',
-                tokens = tokenizer(data, 'example.qs');
+                tokens = tokenizer(data, 'example.qs'),
+                lex = lexer(tokens);
 
-            assert.equal(getToken(tokens, 20, 8).type, 'DOT');
-            assert.equal(getToken(tokens, 20, 9).data, 'leave');
+
         })
     });
 })();
