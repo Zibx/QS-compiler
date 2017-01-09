@@ -24,7 +24,7 @@ module.exports = (function () {
         it('tokenize', function () {
             var data = fs.readFileSync('test/qs/example.qs')+'',
                 tokens = tokenizer(data, 'example.qs');
-
+console.log(tokens)
             assert.equal(getToken(tokens, 20, 8).type, 'DOT');
             assert.equal(getToken(tokens, 20, 9).data, 'leave');
         })

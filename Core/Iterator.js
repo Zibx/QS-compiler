@@ -17,7 +17,7 @@ module.exports = (function () {
         last: true,
         lastLeaf: true,
         way: null,
-        next: function () {
+        next: function ( stay ) {
             var ast = this.ast,
                 pointer = this.pointer;
             if(this.way === null){
@@ -32,28 +32,57 @@ module.exports = (function () {
 
             }
         },
-        nextLeaf: function () {
-            var ast = this.ast,
-                pointer = this.pointer,
+        isNext: function(){
+            return !!this.next(true);
+        },
+        nextLeaf: function (stay) {
+            var pointer = this.pointer,
                 way = this.way,
-                domain, item;
+                domain;
+
             if(way){
+                domain = way[way.length - 1];
+                pointer = domain.pointer;
+                while(way.length) {
 
-                item = way[way.length - 1];
-                domain = way[way.length - 2];
+                    if (!pointer.leaf) {
+                        if (pointer instanceof Array) {
+                            if (pointer.length > domain.index + 1) {
+                                domain.index++;
+                                pointer = pointer[domain.index];
+                            } else {
+                                if(way.length === 2){
+                                    return false;
+                                }
+                                way.pop();
+                                domain = way[way.length - 1];
+                                pointer = domain.pointer;
 
-                while(!item.pointer.leaf){
-                    domain = item.pointer.tokens;
-                    item = item.pointer.tokens[0]
+                            }
 
+                        } else {
+                            while (!pointer.leaf) {
+                                domain = {index: 0, pointer: pointer.tokens};
+                                way.push(domain);
+                                pointer = domain.pointer[domain.index];
+                            }
+                            return pointer;
+                        }
+                    }else{
+                        return pointer;
+                    }
                 }
+                //console.log(way, pointer)
 
             }
-            console.log(this.pointer)
+            return false;
+        },
+        isNextLeaf: function(){
+            return !!this.nextLeaf(true);
         },
         init: function () {
-            this.last = !this.next();
-            this.lastLeaf = !this.nextLeaf();
+            this.last = !this.isNext();
+            this.lastLeaf = !this.isNextLeaf();
         }
     };
     return Iterator;
