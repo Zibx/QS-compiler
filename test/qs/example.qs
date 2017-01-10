@@ -7,14 +7,14 @@ def UIComponent Slider: 5
      @description: fires when the silder leaves endpoint
 
    .end: ()->
-     states.goto('end')
+     states.goto('e n d')
 
    Event: {{to!==value}}
      .on: ()-> states.goto('somewhere')
 ""''
 
    StateMachine states
-     """start"""
+     """st"art"""
      somewhere
      end
        .leave: ()->

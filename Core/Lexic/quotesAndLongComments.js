@@ -35,7 +35,7 @@ module.exports = (function(){
 
                 if (count % 2 === 0) {
                     // open and close
-                    var d, trash = tokens.splice(start, count, d={
+                    tokens.splice(start, count, {
                         type: 'Quote',
                         tokens: tokens.slice(start, start+count),
                         data: '',
@@ -53,8 +53,17 @@ module.exports = (function(){
                         if (token.data === quoteType) {
                             count++;
                             if(count === need) {
+                                var ts = tokens.splice(start, i-start+1, {
+                                    type: 'Quote',
+                                    tokens: tokens.slice(start+need, i+1-need),
+                                    data: tokens.slice(start+need, i+1-need).map(getData).join(''),
+                                    _info: tokens.slice(start, need).map(getData).join('')
+                                });
 
-                                console.log(tokens.slice(start,i+1).map(getData).join(''))
+                                //todo check this
+                                i -= i-start+1;
+                                _i -= i-start+1;
+
                                 break;
                             }
                         } else {
