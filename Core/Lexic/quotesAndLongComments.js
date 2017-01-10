@@ -6,51 +6,69 @@
 
 module.exports = (function(){
     'use strict';
+    var getData = function(item){
+        return item.data;
+    };
+    var quotes = {'\'': 1, '"': 1};
+    var process = function (tokens) {
 
-    var process = function (ast) {
+        var i, _i, token, data, count, quoteType,
+            start, need;
 
-        var iterator = ast.getIterator(),
-            token, data, count, quotes = {'\'':1, '"': 1}, quoteType;
-        while(token = iterator.nextLeaf()){
+        for (i = 0, _i = tokens.length; i < _i; i++) {
+            token = tokens[i];
             data = token.data;
-            if(quotes[data]){
+            if (quotes[data]) {
                 quoteType = data;
                 count = 1;
-                while(token = iterator.nextLeaf()){
+                start = i;
+
+                for (i++; i < _i; i++) {
+                    token = tokens[i];
                     if (token.data === quoteType) {
                         count++;
                     } else {
+                        i--;
                         break;
                     }
                 }
-                if(count % 2 === 0){
+
+                if (count % 2 === 0) {
                     // open and close
-                }else{
-                    
+                    var d, trash = tokens.splice(start, count, d={
+                        type: 'Quote',
+                        tokens: tokens.slice(start, start+count),
+                        data: '',
+                        _info: tokens.slice(start, start+count/2).map(getData).join('')
+                    });
+                    i -= count;
+                    _i -= count;
+
+                } else {
+                    need = count;
+                    count = 0;
+
+                    for (i++; i < _i; i++) {
+                        token = tokens[i];
+                        if (token.data === quoteType) {
+                            count++;
+                            if(count === need) {
+
+                                console.log(tokens.slice(start,i+1).map(getData).join(''))
+                                break;
+                            }
+                        } else {
+                            i -= count;
+                            count = 0;
+                        }
+                    }
+                    console.log(count);
                 }
 
-                console.log(count);
             }
+
         }
 
-return;
-
-        var out = '',it;
-        for(var i = 0; i < 545; i++) {
-            it = iterator.nextLeaf()
-            out += it.type === 'Line'?'\n':it.data;
-        }
-        console.log(out)
-
-        console.log(iterator.nextLeaf());
-        console.log(iterator.nextLeaf());
-
-        return;
-        while( !iterator.lastLeaf ){
-
-            token = iterator.nextLeaf();
-            //console.log(token);
-        }
     };
 
     return process;

@@ -7,7 +7,7 @@
 module.exports = (function () {
     'use strict';
     var Tokens = require('./Tokens');
-
+    var Iterator = require('./Iterator');
     var lineSplitter = function (tokens) {
         var lines = new Tokens.Body(),
             line = new Tokens.Line(),
@@ -31,13 +31,13 @@ module.exports = (function () {
         indentation  = require('./Lexic/indentation');
     var lexer = function (tokens) {
 
-        var AST = lineSplitter(tokens);
-        AST = quotesAndLongComments(AST);
-        AST = shortCommentsAndURLs(AST);
-        AST = braces(AST);
-        AST = indentation(AST);
+        //var AST = lineSplitter(tokens);
+        tokens = quotesAndLongComments(tokens);
+        tokens = shortCommentsAndURLs(tokens);
+        tokens = braces(tokens);
+        tokens = indentation(tokens);
 
-        console.log(AST)
+        console.log(tokens)
 
     };
     return lexer;
