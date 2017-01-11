@@ -10,13 +10,16 @@ module.exports = (function(){
         return item.data;
     };
     var quotes = {'\'': 1, '"': 1};
+    // It is a hardcoded plain function for only one purpose
+    // Fuck the beauty, it just do the job
     var process = function (tokens) {
 
         var i, _i, token, data, count, quoteType,
-            start, need;
+            start, need, delta;
 
         for (i = 0, _i = tokens.length; i < _i; i++) {
             token = tokens[i];
+
             data = token.data;
             if (quotes[data]) {
                 quoteType = data;
@@ -41,8 +44,9 @@ module.exports = (function(){
                         data: '',
                         _info: tokens.slice(start, start+count/2).map(getData).join('')
                     });
+
                     i -= count;
-                    _i -= count;
+                    _i -= count-1;
 
                 } else {
                     need = count;
@@ -53,17 +57,17 @@ module.exports = (function(){
                         if (token.data === quoteType) {
                             count++;
                             if(count === need) {
-                                var ts = tokens.splice(start, i-start+1, {
+                                delta = i-start;
+                                tokens.splice(start, delta+1, {
                                     type: 'Quote',
                                     tokens: tokens.slice(start+need, i+1-need),
                                     data: tokens.slice(start+need, i+1-need).map(getData).join(''),
-                                    _info: tokens.slice(start, need).map(getData).join('')
+                                    _info: tokens.slice(start, start+need).map(getData).join('')
                                 });
 
                                 //todo check this
-                                i -= i-start+1;
-                                _i -= i-start+1;
-
+                                i -= delta+1;
+                                _i -= delta;
                                 break;
                             }
                         } else {
@@ -71,13 +75,34 @@ module.exports = (function(){
                             count = 0;
                         }
                     }
-                    console.log(count);
                 }
 
+            }else if(data === '/' && i < _i - 1 && tokens[i+1].data === '*'){
+                // long comment case
+                start = i;
+                for (i++; i < _i; i++) {
+                    token = tokens[i];
+                    if (token.data === '*' && tokens[i+1].data === '/') {
+                        // this is the end
+                        delta = i - start+2;
+
+                        tokens.splice(start, delta, {
+                            type: 'Comment',
+                            tokens: tokens.slice(start, start + delta),
+                            data: tokens.slice(start+2, start+delta-2).map(getData).join(''),
+                            _info: 'multiline'
+                        });
+                        i-=delta-1;
+                        _i-=delta-1;
+
+                        break;
+                    }
+                }
             }
 
         }
 
+        return tokens;
     };
 
     return process;

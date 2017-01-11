@@ -1,7 +1,7 @@
 def UIComponent Slider: 5
-
+/*
    public Event end: {{to==value}} // event would be fired when value == to
-
+*/
 
    public Event leaveEnd
      @description: fires when the silder leaves endpoint
