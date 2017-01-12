@@ -50,5 +50,9 @@ module.exports = (function () {
         console.log(tokens)
 
     };
+    lexer.quotesAndLongComments = quotesAndLongComments;
+    lexer.shortCommentsAndURLs = shortCommentsAndURLs;
+    lexer.braces = braces;
+    lexer.indentation = indentation;
     return lexer;
 })();

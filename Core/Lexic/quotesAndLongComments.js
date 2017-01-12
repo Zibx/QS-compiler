@@ -51,9 +51,13 @@ module.exports = (function(){
                 } else {
                     need = count;
                     count = 0;
-
+                    var escapes = {};
                     for (i++; i < _i; i++) {
                         token = tokens[i];
+                        if(token.data === '\\') {
+                            escapes[i-start+need-2] = true;
+                            i++;
+                        }
                         if (token.data === quoteType) {
                             count++;
                             if(count === need) {
@@ -61,7 +65,7 @@ module.exports = (function(){
                                 tokens.splice(start, delta+1, {
                                     type: 'Quote',
                                     tokens: tokens.slice(start+need, i+1-need),
-                                    data: tokens.slice(start+need, i+1-need).map(getData).join(''),
+                                    data: tokens.slice(start+need, i+1-need).filter(function(el,i){return !(i in escapes);}).map(getData).join(''),
                                     _info: tokens.slice(start, start+need).map(getData).join('')
                                 });
 

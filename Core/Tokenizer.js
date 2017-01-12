@@ -22,6 +22,7 @@ module.exports = (function () {
         '\t': 'SPACE',
         ' ': 'SPACE',
         '"\'': 'QUOTE',
+        '\\': 'ESCAPE',
         '.': 'DOT',
         ',': 'COMMA',
         '?': 'QUESTION',

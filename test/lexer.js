@@ -21,6 +21,38 @@ module.exports = (function () {
                 lex = lexer(tokens);
 
 
+        });
+        it('quotes', function () {
+            var getTokens = function(text){
+                var tokens = tokenizer(text, 'example.qs');
+                return lexer.quotesAndLongComments(tokens);
+            };
+
+            var token = getTokens('"HA!"')[0];
+            assert.equal(token.data,'HA!');
+            assert.equal(token.type,'Quote');
+
+            token = getTokens('"HA!" ')[0];
+            assert.equal(token.data,'HA!');
+            assert.equal(token.type,'Quote');
+
+            token = getTokens(' "HA!" ')[1];
+            assert.equal(token.data,'HA!');
+            assert.equal(token.type,'Quote');
+
+            token = getTokens(' \'HA!\' ')[1];
+            assert.equal(token.data,'HA!');
+            assert.equal(token.type,'Quote');
+
+            token = getTokens(' """H"A!""" ')[1];
+            assert.equal(token.data,'H"A!');
+            assert.equal(token.type,'Quote');
+
+            token = getTokens(' "H\\"A!" ')[1];
+            assert.equal(token.data,'H"A!');
+            assert.equal(token.type,'Quote');
+
+
         })
     });
 })();
