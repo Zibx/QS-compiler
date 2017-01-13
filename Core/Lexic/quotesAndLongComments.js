@@ -42,7 +42,8 @@ module.exports = (function(){
                         type: 'Quote',
                         tokens: tokens.slice(start, start+count),
                         data: '',
-                        _info: tokens.slice(start, start+count/2).map(getData).join('')
+                        _info: tokens.slice(start, start+count/2).map(getData).join(''),
+                        pointer: tokens[start].pointer
                     });
 
                     i -= count;
@@ -66,7 +67,8 @@ module.exports = (function(){
                                     type: 'Quote',
                                     tokens: tokens.slice(start+need, i+1-need),
                                     data: tokens.slice(start+need, i+1-need).filter(function(el,i){return !(i in escapes);}).map(getData).join(''),
-                                    _info: tokens.slice(start, start+need).map(getData).join('')
+                                    _info: tokens.slice(start, start+need).map(getData).join(''),
+                                    pointer: tokens[start].pointer
                                 });
 
                                 //todo check this
@@ -94,7 +96,8 @@ module.exports = (function(){
                             type: 'Comment',
                             tokens: tokens.slice(start, start + delta),
                             data: tokens.slice(start+2, start+delta-2).map(getData).join(''),
-                            _info: 'multiline'
+                            _info: 'multiline',
+                            pointer: tokens[start].pointer
                         });
                         i-=delta-1;
                         _i-=delta-1;

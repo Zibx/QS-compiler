@@ -45,7 +45,8 @@ module.exports = (function(){
                             info: last.info,
                             _info: last.wait,
                             data: tokens.slice(last.start, i+1).map(getData).join(''),
-                            tokens: tokens.slice(last.start, i+1)
+                            tokens: tokens.slice(last.start, i+1),
+                            pointer: tokens[last.start].pointer
                         });
                         i -= delta;
                         _i -= delta - 1;

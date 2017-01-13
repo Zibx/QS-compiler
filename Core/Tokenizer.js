@@ -80,6 +80,9 @@ module.exports = (function () {
 
             if(symbol === '\n'){
                 cursor = cursor.nextLine();
+            }else if(symbol === '\t') {
+                // stable magic spell
+                cursor = cursor.add(((((cursor.col-1)/4)|0)+1)*4+2-cursor.col);
             }else{
                 cursor = cursor.add(1);
             }

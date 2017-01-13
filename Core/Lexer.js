@@ -47,7 +47,7 @@ module.exports = (function () {
         tokens = braces(tokens);
         tokens = indentation(tokens);
 
-        console.log(tokens)
+        //console.log(tokens)
 
     };
     lexer.quotesAndLongComments = quotesAndLongComments;

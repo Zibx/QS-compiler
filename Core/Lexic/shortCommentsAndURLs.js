@@ -63,7 +63,8 @@ module.exports = (function(){
                         tokens.splice(begin, end - begin, {
                             type: 'URI',
                             tokens: tokens.slice(begin, end),
-                            data: tokens.slice(begin, end).map(getData).join('')
+                            data: tokens.slice(begin, end).map(getData).join(''),
+                            pointer: tokens[begin].pointer
                         });
                         delta = end-i-1;
                         i -= delta;
@@ -82,7 +83,8 @@ module.exports = (function(){
                         type: 'Comment',
                         tokens: tokens.slice(start, end),
                         data: tokens.slice(start+2, end).map(getData).join(''),
-                        _info: 'singleline'
+                        _info: 'singleline',
+                        pointer: tokens[start].pointer
                     });
 
                     delta = i - start;

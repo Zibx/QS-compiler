@@ -1,13 +1,15 @@
 def UIComponent Slider: 5
-/*
+
    public Event end: {{to==value}} // event would be fired when value == to
+/*
+   public Event 2end: {{to==value}} // event would be fired when value == to
 */
 
    public Event leaveEnd
-     @description: fires when the silder leaves endpoint
+    @description: fires when the silder leaves endpoint
 
    .end: ()->
-     states.goto('e n d')
+  	states.goto('e n d')
 
    Event: {{to!==value}}
      .on: ()-> states.goto('somewhere')
@@ -15,7 +17,7 @@ def UIComponent Slider: 5
 
    StateMachine states
      """st"art"""
-     somewhere
+/* */somewhere
      end
        .leave: ()->
          that.fire('leaveEnd')
