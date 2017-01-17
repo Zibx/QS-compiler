@@ -9,6 +9,13 @@ module.exports = (function(){
     var getData = function(item){
         return item.data;
     };
+
+    var clean = function( item ){
+        delete item.parent;
+        delete item.first;
+        item.items && item.items.map(clean);
+    };
+
     // It is a hardcoded plain function for only one purpose
     // Fuck the beauty, it just do the job
     var process = function (tokens) {
@@ -39,8 +46,9 @@ module.exports = (function(){
             if(type==='NEWLINE') {
                 if(newLine === false) {
                     lines.push({
+                        type: 'Line',
                         pointer: tokens[lineStart].pointer,
-                        tokens: tokens.slice(lineStart, i).map(getData).join('')
+                        tokens: tokens.slice(lineStart, i)//.map(getData).join('')
                     });
                 }
 
@@ -51,8 +59,41 @@ module.exports = (function(){
             }
 
         }
-        console.log(lines)
-        return tokens;
+        var line,
+            padding, lastPadding = 0, j,
+            root = {tokens: [], pointer:{col: 0}, type: 'AST'},
+            stack = [root], head = root, col;
+
+        for( i = 0, _i = lines.length; i < _i; i++ ){
+            line = lines[i];
+            col = line.pointer.col;
+            if (col !== void 0) {
+                padding = col;
+
+                /** searching for parent by itterating over stack.
+                 * stops when parent indent is less than current line indent */
+
+                if(padding<=lastPadding) {
+                    for(j = stack.length - 1; j;)
+                        if((head = stack[--j]).pointer.col < padding)
+                            break;
+
+                    stack.length = j + 1;
+                    head = stack[j];
+                }
+
+                /** clean circular links. we do not need them any more */
+                clean(line);
+
+                (head.tokens || (head.tokens = [])).push(line);
+                stack.push(line);
+                head = line;
+
+                lastPadding = padding;
+            }
+        }
+
+        return root;
     };
     return process;
 })();
