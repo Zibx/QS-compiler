@@ -61,7 +61,7 @@ module.exports = (function(){
         }
         var line,
             padding, lastPadding = 0, j,
-            root = {tokens: [], pointer:{col: 0}, type: 'AST'},
+            root = {tokens: [], pointer:{col: 0}, type: 'AST', children: []},
             stack = [root], head = root, col;
 
         for( i = 0, _i = lines.length; i < _i; i++ ){
@@ -85,7 +85,7 @@ module.exports = (function(){
                 /** clean circular links. we do not need them any more */
                 clean(line);
 
-                (head.tokens || (head.tokens = [])).push(line);
+                (head.children || (head.children = [])).push(line);
                 stack.push(line);
                 head = line;
 

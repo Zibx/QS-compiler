@@ -13,7 +13,7 @@ def UIComponent Slider: 5
 
    Event: {{to!==value}}
      .on: ()-> states.goto('somewhere')
-""''
+     ""''
 
    StateMachine states
      """st"art"""
