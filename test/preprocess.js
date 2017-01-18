@@ -10,10 +10,10 @@ module.exports = (function () {
     'use strict';
     var assert = require('chai').assert;
     var tokenizer = require('../Core/Tokenizer'),
-        lexer = require('../Core/Lexer'),
+        lexer = require('../Core/Preprocess'),
         fs = require('fs');
 
-    describe('Lexer', function() {
+    describe('Preprocessor', function() {
 
         it('tokenize', function () {
             var data = fs.readFileSync('test/qs/example.qs')+'',

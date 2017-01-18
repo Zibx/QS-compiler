@@ -28,13 +28,14 @@ module.exports = (function () {
         quotesAndLongComments = require('./Lexic/quotesAndLongComments'),
         shortCommentsAndURLs  = require('./Lexic/shortCommentsAndURLs'),
         braces  = require('./Lexic/braces'),
-        indentation  = require('./Lexic/indentation');
+        indentation  = require('./Lexic/indentation'),
+        ast = require('./Lexic/ast');
 
     var getData2 = function(item){
         return item.data+'|'+item.type;
     };
 
-    var lexer = function (tokens) {
+    var preprocess = function (tokens) {
 
         //var AST = lineSplitter(tokens);
         tokens = quotesAndLongComments(tokens);//* +
@@ -46,13 +47,17 @@ module.exports = (function () {
 
         tokens = braces(tokens);
         tokens = indentation(tokens);
+        tokens = ast(tokens);
 
-        //console.log(tokens)
+        return tokens;
 
     };
-    lexer.quotesAndLongComments = quotesAndLongComments;
-    lexer.shortCommentsAndURLs = shortCommentsAndURLs;
-    lexer.braces = braces;
-    lexer.indentation = indentation;
-    return lexer;
+
+    preprocess.quotesAndLongComments = quotesAndLongComments;
+    preprocess.shortCommentsAndURLs = shortCommentsAndURLs;
+    preprocess.braces = braces;
+    preprocess.indentation = indentation;
+    preprocess.ast = ast;
+
+    return preprocess;
 })();

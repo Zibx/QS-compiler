@@ -1,4 +1,4 @@
-def UIComponent Slider: 5
+ def UIComponent   Slider, mumu
 
    public Event end: {{to==value}} // event would be fired when value == to
 /*
@@ -48,3 +48,5 @@ def UIComponent Slider: 5
        x: 50%
        y: 50%
      free: true // TODO поспорить о синтаксисе -ния компонента из потока рендеринга
+
+def OtherSlider: UIComponent

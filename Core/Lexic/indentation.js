@@ -59,9 +59,18 @@ module.exports = (function(){
             }
 
         }
+        
+        if(newLine === false) {
+            lines.push({
+                type: 'Line',
+                pointer: tokens[lineStart].pointer,
+                tokens: tokens.slice(lineStart, i)//.map(getData).join('')
+            });
+        }
+
         var line,
             padding, lastPadding = 0, j,
-            root = {tokens: [], pointer:{col: 0}, type: 'AST', children: []},
+            root = {tokens: [], pointer:lines[0].pointer, type: 'AST', children: []},
             stack = [root], head = root, col;
 
         for( i = 0, _i = lines.length; i < _i; i++ ){
@@ -73,7 +82,7 @@ module.exports = (function(){
                 /** searching for parent by itterating over stack.
                  * stops when parent indent is less than current line indent */
 
-                if(padding<=lastPadding) {
+                if(padding <= lastPadding) {
                     for(j = stack.length - 1; j;)
                         if((head = stack[--j]).pointer.col < padding)
                             break;
