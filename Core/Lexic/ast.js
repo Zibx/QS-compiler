@@ -16,14 +16,72 @@ module.exports = (function(){
             {type: 'WORD', data: 'def'},
             {type: 'WORD', put: 'name'},
             {type: 'WORD', put: '*extend'},
-            [
+            {type: 'maybe', data: [
                 {type: 'COMMA', data: ','},
                 {type: 'WORD', put: '*extend'}
-            ]
+            ]}
         ]
     };
-    var defineMatcher = function(child, store){
-        
+    var match = function(type, child, store){
+        var out = {},
+            should = matchers[type],
+
+            i, _i, tokens = child.tokens, token,
+            //rule, rulePointer = 0,
+            rules = [{list: should, pointer: 0}], rule,
+            suit,
+            putKey, multiple;
+
+        if(!should)
+            throw new Error('Unknown matcher');
+
+        //rule = should[rulePointer];
+
+        for( i = 0, _i = tokens.length; i < _i; i++ ){
+            token = tokens[i];
+
+
+
+            if(token.type !== 'SPACE'){
+
+                while(true){
+
+                    suit = true;
+                    if ('type' in rule)
+                        if (token.type !== rule.type)
+                            suit = false;
+
+                    if ('data' in rule)
+                        if (token.data !== rule.data)
+                            suit = false;
+
+                    if (!suit)
+                        throw new Error('Not a costume', token, rule);
+
+                    break;
+                }
+
+                if('put' in rule){
+
+                    putKey = rule.put;
+                    multiple = putKey[0] === '*';
+
+                    if(multiple) {
+                        putKey = putKey.substr(1);
+                        out[putKey] || (out[putKey] = []);
+                        out[putKey].push(token)
+                    }else{
+                        out[putKey] = token;
+                    }
+                }
+                rulePointer++;
+                rule = should[rulePointer];
+
+            }
+
+        }
+
+
     };
 
     // It is a hardcoded plain function for only one purpose
@@ -43,7 +101,7 @@ module.exports = (function(){
                 current = {type: 'DEFINE'};
                 ast.push(current);
                 
-                defineMatcher(child, current);
+                match('DEFINE', child, current);
                 
             }
             tree = tree.children[0];
