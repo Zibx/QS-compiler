@@ -16,7 +16,7 @@ module.exports = (function(){
             {type: 'WORD', data: 'def'},
             {type: 'WORD', put: 'name'},
             {type: 'WORD', put: '*extend'},
-            {type: 'maybe', data: [
+            {type: 'may be', data: [
                 {type: 'COMMA', data: ','},
                 {type: 'WORD', put: '*extend'}
             ]}
@@ -28,7 +28,9 @@ module.exports = (function(){
 
             i, _i, tokens = child.tokens, token,
             //rule, rulePointer = 0,
-            rules = [{list: should, pointer: 0}], rule,
+            rules = [{list: should, pointer: 0, store: {}}],
+            rule, ruleHolder, nextRules,
+            j,
             suit,
             putKey, multiple;
 
@@ -43,10 +45,15 @@ module.exports = (function(){
 
 
             if(token.type !== 'SPACE'){
-
-                while(true){
-
+                nextRules = [];
+                for(j = rules.length; j;){
+                    ruleHolder = rules[--j];
+                    rule = ruleHolder.list[ruleHolder.pointer];
                     suit = true;
+                    if(rule.type === 'may be'){
+                        
+                        rule = ruleHolder.list[ruleHolder.pointer+1];
+                    }
                     if ('type' in rule)
                         if (token.type !== rule.type)
                             suit = false;
@@ -55,27 +62,28 @@ module.exports = (function(){
                         if (token.data !== rule.data)
                             suit = false;
 
-                    if (!suit)
-                        throw new Error('Not a costume', token, rule);
+                    if (suit){
+                        nextRules.push(ruleHolder);
 
-                    break;
-                }
+                        if('put' in rule){
 
-                if('put' in rule){
+                            putKey = rule.put;
+                            multiple = putKey[0] === '*';
 
-                    putKey = rule.put;
-                    multiple = putKey[0] === '*';
-
-                    if(multiple) {
-                        putKey = putKey.substr(1);
-                        out[putKey] || (out[putKey] = []);
-                        out[putKey].push(token)
-                    }else{
-                        out[putKey] = token;
+                            if(multiple) {
+                                putKey = putKey.substr(1);
+                                out[putKey] || (out[putKey] = []);
+                                out[putKey].push(token)
+                            }else{
+                                out[putKey] = token;
+                            }
+                        }
                     }
+
+
                 }
-                rulePointer++;
-                rule = should[rulePointer];
+
+
 
             }
 
