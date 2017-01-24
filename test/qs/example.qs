@@ -1,4 +1,4 @@
- def UIComponent   Slider, mumu
+ define UIComponent   Slider, mumu, chuchu
 
    public Event end: {{to==value}} // event would be fired when value == to
 /*
