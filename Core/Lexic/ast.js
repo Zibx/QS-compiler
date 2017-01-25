@@ -21,7 +21,7 @@ module.exports = (function(){
             {type: 'WORD', data: ['def', 'define', 'class']},
             {type: 'WORD', put: 'name'},
             {type: 'WORD', put: '*extend'},
-            {type: 'may be', count: 'any', items: [
+            {type: '*', count: 'any', items: [
                 {type: 'COMMA', data: ','},
                 {type: 'WORD', put: '*extend'}
             ]}
@@ -31,29 +31,27 @@ module.exports = (function(){
             {type: 'WORD', put: 'name'},
             {type: 'SEMICOLON', data: ':'},
             {type: 'WORD', put: '*extend'},
-            {type: 'may be', items: [
+            {type: '*', items: [
                 {type: 'COMMA', data: ','},
                 {type: 'WORD', put: '*extend'}
             ]}
         ],
         'property': [
-            //{type: 'may be', items: [
+            //{type: '*', items: [
                 {type: 'WORD', data: ['pub', 'public']},
             //]},
             {type: 'WORD', put: 'type'},
             {type: 'WORD', put: 'name'},
-            {type: 'may be', items: [
+            {type: '*', items: [
                 {type: 'SEMICOLON', data: ':'},
                 {type: 'ALL', put: 'value'}
             ]}
         ],
         'event': [
-            //{type: 'may be', items: [
-            {type: 'WORD', data: ['pub', 'public']},
-            //]},
-            {type: 'WORD', put: 'type'},
+            //{type: '*', items: [
+            {type: 'DOT'},
             {type: 'WORD', put: 'name'},
-            {type: 'may be', items: [
+            {type: '*', items: [
                 {type: 'SEMICOLON', data: ':'},
                 {type: 'ALL', put: 'value'}
             ]}
@@ -64,13 +62,16 @@ module.exports = (function(){
 
             pointer = ruleHolder.pointer,
             node = ruleHolder,
-            dimensions = [], possibility, rule, newRule;
+            dimensions = [], dimensionsHolders = [],
+            possibility, rule, newRule;
 
         for( i = 0, _i = pointer.length; i < _i; i++ ){
+            dimensionsHolders.push(node);
             if( node instanceof Array ){
                 dimensions.push(node.length);
                 node = node[pointer[i]];
             }else{
+
                 dimensions.push(node.items.length);
                 node = node.items[pointer[i]];
             }
@@ -82,18 +83,27 @@ module.exports = (function(){
                 // GOTCHA
                 possibility = pointer.slice(0,i).concat(pointer[i] + 1);
                 break;
+            }else if(dimensionsHolders[i].type === '*'){
+                store.push({
+                    items: ruleHolder.items,
+                    pointer: pointer.slice(0,i).concat(0),
+                    store: Object.create(ruleHolder.store)
+                });
             }
         }
 
 
 
         if(possibility) {
-            newRule = {items: ruleHolder.items, pointer: possibility, store: Object.create(ruleHolder.store)};
+            newRule = {
+                items: ruleHolder.items,
+                pointer: possibility,
+                store: Object.create(ruleHolder.store)
+            };
             rule = getRule(newRule);
 
-            if (rule.type === 'may be') {
+            if (rule.type === '*') {
                 // step over
-
                 nextRuleCursor(newRule, store);
 
                 //get into
@@ -103,6 +113,7 @@ module.exports = (function(){
                 store.push(newRule)
             }
         }else{
+
             store.push({type: 'END', store: ruleHolder.store})
         }
         /*
@@ -113,7 +124,7 @@ module.exports = (function(){
 
         newRule.pointer[newRule.pointer.length-1] = newRule.pointer[newRule.pointer.length-1] + 1;
         rule = getRule(ruleHolder);
-        if(rule.type === 'may be'){
+        if(rule.type === '*'){
             newRule.pointer.push(0);
         }
 
@@ -247,6 +258,6 @@ module.exports = (function(){
 
         return ast;
     };
-
+console.log(new Date())
     return process;
 })();
