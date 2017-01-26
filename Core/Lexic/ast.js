@@ -36,13 +36,15 @@ module.exports = (function(){
                 {type: 'WORD', put: '*extend'}
             ]}
         ],
-        'property': [
+        'PROPERTY': [
             //{type: '*', items: [
-                {type: 'WORD', data: ['pub', 'public']},
+            {type: '?', items: [
+                {type: 'WORD', data: ['pub', 'public', 'private'], put: 'define'}
+            ]},
             //]},
-            {type: 'WORD', put: 'type'},
+            {type: 'WORD', put: 'class'},
             {type: 'WORD', put: 'name'},
-            {type: '*', items: [
+            {type: '?', items: [
                 {type: 'SEMICOLON', data: ':'},
                 {type: 'ALL', put: 'value'}
             ]}
@@ -55,7 +57,7 @@ module.exports = (function(){
                 {type: 'SEMICOLON', data: ':'},
                 {type: 'ALL', put: 'value'}
             ]}
-        ],
+        ]
     };
     var nextRuleCursor = function(ruleHolder, store){
         var i, _i,
@@ -102,7 +104,7 @@ module.exports = (function(){
             };
             rule = getRule(newRule);
 
-            if (rule.type === '*') {
+            if (rule.type === '*' || rule.type === '?') {
                 // step over
                 nextRuleCursor(newRule, store);
 
@@ -142,11 +144,16 @@ module.exports = (function(){
 
             i, _i, tokens = child.tokens, token,
             //rule, rulePointer = 0,
-            rules = [{items: should, pointer: [0], store: {}}],
+            rules = [],//[{items: should, pointer: [0], store: {}}],
             rule, ruleHolder, nextRules,
             j,
             suit,
-            putKey, multiple, store;
+            putKey, multiple, store, whatever = false;
+
+        // if first rule is complex - we need to get into it,
+        // so I add invisible first rule 'START' and use mechanics
+        // of normal rule iterating
+        nextRuleCursor({items: [{type: 'START'}].concat(should), pointer: [0], store: {}}, rules);
 
         if(!should)
             throw new Error('Unknown matcher');
@@ -168,13 +175,19 @@ module.exports = (function(){
                         continue;
 
                     rule = getRule(ruleHolder);
+
+                    whatever = false;
                     suit = true;
 
                     store = ruleHolder.store;
 
-                    if ('type' in rule)
+                    if ('type' in rule) {
+                        if(rule.type === 'ALL')
+                            whatever = true;
+
                         if (token.type !== rule.type)
                             suit = false;
+                    }
 
                     if ('data' in rule) {
                         if(typeof rule.data === 'string') {
@@ -188,8 +201,18 @@ module.exports = (function(){
                                 suit = false;
                         }
                     }
+                    if(whatever){
+                        if('put' in rule){
 
-                    if (suit){
+                            putKey = rule.put;
+
+                            store[putKey] = tokens.slice(i);
+
+                        }
+                        break;
+                    }
+                    if (suit ){
+
                         nextRuleCursor(ruleHolder, nextRules);
 
                         if('put' in rule){
@@ -205,17 +228,21 @@ module.exports = (function(){
                                 store[putKey] = token;
                             }
                         }
-                    }/*else{
+
+                    }else{
                         console.log('NO', rule, token)
-                    }*/
+                    }
                 }
+
                 rules = nextRules;
+                if(whatever)
+                    break;                
             }
 
         }
         if(rules.length) {
             var out = rules.filter(function(rule){
-                return rule.type === 'END';
+                return rule.type === 'ALL' || rule.type === 'END';
             }).map(function(item){
                 var out = {},
                     store = item.store, i;
@@ -235,7 +262,8 @@ module.exports = (function(){
     // Fuck the beauty, it just do the job
     var process = function (tree) {
         var i, _i, children, child,
-            ast = [], current, info;
+            ast = [], current, info,
+            definition, inner;
         if(tree.type==='AST'){
             if(!tree.children.length){
                 throw 'no defs'
@@ -245,10 +273,28 @@ module.exports = (function(){
                 child = children[i];
                 // should be define
 
-                current = {type: 'DEFINE'};
-                ast.push(current);
+                definition = match('DEFINE', child) || match('DEFINE#', child);
+                if(definition){
+                    current = Object.assign({
+                        type: 'DEFINE',
+                        public: {},
+                        private: {},
+                        events: {},
+                        metadata: {}
+                    }, definition);
+                    ast.push(current);
+                    inner = child.children;
+                    inner.forEach(function(item){
+                        var m = match('PROPERTY', item);
+                        console.log(m)
+                    });
 
-                info = match('DEFINE', child, current) || match('DEFINE#', child, current);
+                    console.log(current)
+                    console.log()
+
+                }else{
+                    throw new Error('ololo')
+                }
                 console.log(info)
             }
             tree = tree.children[0];
@@ -258,6 +304,6 @@ module.exports = (function(){
 
         return ast;
     };
-console.log(new Date())
+
     return process;
 })();
