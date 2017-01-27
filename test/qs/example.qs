@@ -1,5 +1,5 @@
- define UIComponent   Slider, mumu, chuchu
-
+ define UIComponent, mumu, chuchu Slider
+   @zalupa
    public Event end: {{to==value}} // event would be fired when value == to
 /*
    public Event 2end: {{to==value}} // event would be fired when value == to
@@ -8,7 +8,7 @@
    public Event leaveEnd
     @description: fires when the silder leaves endpoint
 
-   .end: ()->
+   .end: (a,b)-=>
   	states.goto('e n d')
 
    Event: {{to!==value}}

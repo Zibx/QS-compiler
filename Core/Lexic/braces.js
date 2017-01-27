@@ -50,7 +50,7 @@ module.exports = (function(){
                         });
                         i -= delta;
                         _i -= delta - 1;
-                        if(_i!== tokens.length)debugger;
+                        //if(_i!== tokens.length)debugger;
                         last = stack[stack.length - 1];
                     }else{
                         throw new Error('NET')
@@ -59,8 +59,25 @@ module.exports = (function(){
             }
         }
         if(stack.length)
-            throw new Error('MNOGO')
-        return tokens;
+            throw new Error('MNOGO');
+
+
+        return tokens.map(function(token){
+            var subToken;
+
+            if(token.type === 'Brace' && token.info === '{' && token.tokens.length === 3){
+                subToken = token.tokens[1];
+                if(subToken.type === 'Brace' && subToken.info === '{'){
+                    return {
+                        type: 'PIPE',
+                        tokens: subToken.tokens.slice(1, subToken.tokens.length - 2),
+                        pointer: token.pointer,
+                        data: subToken.data.substr(1, subToken.data.length - 2)
+                    };
+                }
+            }
+            return token;
+        });
     };
 
     return process;
