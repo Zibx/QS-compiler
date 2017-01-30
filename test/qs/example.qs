@@ -8,7 +8,7 @@
    public Event leaveEnd
     @description: fires when the silder leaves endpoint
 
-   .end: (a,b)-=>
+   .endEvt: (a,b)->
   	states.goto('e n d')
 
    Event: {{to!==value}}

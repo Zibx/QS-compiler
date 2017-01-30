@@ -15,7 +15,7 @@ module.exports = function (matchers) {
         }, {});
     };
     var nextRuleCursor = function(ruleHolder, store){
-        var i, _i,
+        var i, _i, j,
 
             pointer = ruleHolder.pointer,
             node = ruleHolder,
@@ -46,7 +46,17 @@ module.exports = function (matchers) {
                     pointer: pointer.slice(0,i).concat(0),
                     store: Object.create(ruleHolder.store)
                 });
-            }
+            }/*else if(dimensionsHolders[i].type === 'OR'){
+                for( j = dimensionsHolders[i].type.items.length; j;){
+                    --j;
+                    nextRuleCursor(Object.assign({}, {
+                        items: ruleHolder.items,
+                        pointer: pointer.slice(0,i).concat(j),
+                        store: Object.create(ruleHolder.store)
+                    }), store);
+                }
+                break;
+            }*/
         }
 
 
@@ -66,7 +76,14 @@ module.exports = function (matchers) {
                 //get into
                 possibility.push(0);
                 store.push(newRule)
-            } else {
+            } else if (rule.type === 'OR') {
+                for( i = rule.items.length; i;){
+                    --i;
+                    nextRuleCursor(Object.assign({}, newRule,{pointer: possibility.slice().concat(i-1)}), store);
+                }
+
+
+            }else{
                 store.push(newRule)
             }
         }else{
@@ -142,6 +159,11 @@ module.exports = function (matchers) {
                             whatever = true;
 
                         if (token.type !== rule.type)
+                            suit = false;
+                    }
+
+                    if ('info' in rule) {
+                        if (token.info !== rule.info)
                             suit = false;
                     }
 

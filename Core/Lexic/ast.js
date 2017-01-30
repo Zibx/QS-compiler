@@ -47,7 +47,8 @@ module.exports = (function(){
                 parent.unclassified.push(item);
             }else{
                 if(matched.value){
-                    console.log(match('FUNCTION', {tokens: matched.value}),!!matched.value);
+                    var fn = match('FUNCTION', {tokens: matched.value});
+                    console.log(fn)
                 }
                 if(item.children){
                     Object.assign(matched, {
@@ -99,13 +100,13 @@ module.exports = (function(){
                     inner = child.children;
                     inner && inner.forEach(subMatcher(current));
 
-                    console.log(current)
-                    console.log('----')
+                    //console.log(current)
+                    //console.log('----')
 
                 }else{
                     throw new Error('ololo')
                 }
-                console.log(info)
+                //console.log(info)
             }
             tree = tree.children[0];
         }

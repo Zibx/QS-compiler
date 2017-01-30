@@ -71,7 +71,16 @@ module.exports = (function () {
                     ]},
                     {type: 'COMPARE', data: '>'}
                 ],
-                {type: 'Brace', info: '{', put: 'body'}
+                [
+                    {type: '?', items: [
+                        {type: 'OR', items: [
+                            {type: 'OPERATION', data: '-'},
+                            {type: 'COMPARE', data: '='}
+                        ]},
+                        {type: 'COMPARE', data: '>'}
+                    ]},
+                    {type: 'Brace', info: '{', put: 'body'}
+                ]
             ]}
         ]
 
