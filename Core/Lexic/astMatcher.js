@@ -34,6 +34,12 @@ module.exports = function (matchers) {
             }
         }
 
+        /*if(node instanceof Array){
+
+        }else if(node.items){
+
+        }*/
+
         for( i = dimensions.length; i;){
             --i;
             if(dimensions[i] - 1 > pointer[i]){
@@ -78,8 +84,13 @@ module.exports = function (matchers) {
                 store.push(newRule)
             } else if (rule.type === 'OR') {
                 for( i = rule.items.length; i;){
+
                     --i;
-                    nextRuleCursor(Object.assign({}, newRule,{pointer: possibility.slice().concat(i-1)}), store);
+                    if(rule.items[i] instanceof Array){
+                        nextRuleCursor(Object.assign({}, newRule, {pointer: possibility.slice().concat(i , -1)}), store);
+                    }else {
+                        nextRuleCursor(Object.assign({}, newRule, {pointer: possibility.slice().concat(i - 1)}), store);
+                    }
                 }
 
 
@@ -87,7 +98,6 @@ module.exports = function (matchers) {
                 store.push(newRule)
             }
         }else{
-
             store.push({type: 'END', store: ruleHolder.store})
         }
         /*

@@ -69,7 +69,10 @@ module.exports = (function () {
                         {type: 'OPERATION', data: '-'},
                         {type: 'COMPARE', data: '='}
                     ]},
-                    {type: 'COMPARE', data: '>'}
+                    {type: 'COMPARE', data: '>'},
+                    {type: '?', items: [
+                        {type: 'ALL', put: 'body'}
+                    ]}
                 ],
                 [
                     {type: '?', items: [
