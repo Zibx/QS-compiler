@@ -48,7 +48,20 @@ module.exports = (function(){
             }else{
                 if(matched.value){
                     var fn = match('FUNCTION', {tokens: matched.value});
-                    console.log(fn)
+
+                    var fnBody = fn.body;
+                    //console.log(fnBody[0])
+                    if(fnBody && fnBody.length && fnBody[0] && fnBody[0].type === 'Brace' && fnBody[0].info === '{'){
+                        // braced function body
+                        var bodyTokens = fnBody[0].tokens;
+                        bodyTokens = bodyTokens.slice(1,bodyTokens.length-1);
+                        console.log(bodyTokens);
+                    }else{
+
+
+                    }
+
+                    item.children
                 }
                 if(item.children){
                     Object.assign(matched, {

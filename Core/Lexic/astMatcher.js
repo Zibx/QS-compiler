@@ -26,46 +26,29 @@ module.exports = function (matchers) {
             dimensionsHolders.push(node);
             if( node instanceof Array ){
                 dimensions.push(node.length);
-                node = node[pointer[i]];
+                node = node[pointer[i].value];
             }else{
 
                 dimensions.push(node.items.length);
-                node = node.items[pointer[i]];
+                node = node.items[pointer[i].value];
             }
         }
 
-        /*if(node instanceof Array){
-
-        }else if(node.items){
-
-        }*/
-
         for( i = dimensions.length; i;){
             --i;
-            if(dimensions[i] - 1 > pointer[i]){
+            if(dimensions[i] - 1 > pointer[i].value || (dimensions[i] > pointer[i].value && pointer[i].pick === true)){
                 // GOTCHA
-                possibility = pointer.slice(0,i).concat(pointer[i] + 1);
+                if(!pointer[i].pick && pointer[i].stop)continue;
+                possibility = pointer.slice(0,i).concat({value: pointer[i].value + (pointer[i].pick?0:1), stop: pointer[i].stop});
                 break;
             }else if(dimensionsHolders[i].type === '*'){
                 store.push({
                     items: ruleHolder.items,
-                    pointer: pointer.slice(0,i).concat(0),
+                    pointer: pointer.slice(0,i).concat({value: 0}),
                     store: Object.create(ruleHolder.store)
                 });
-            }/*else if(dimensionsHolders[i].type === 'OR'){
-                for( j = dimensionsHolders[i].type.items.length; j;){
-                    --j;
-                    nextRuleCursor(Object.assign({}, {
-                        items: ruleHolder.items,
-                        pointer: pointer.slice(0,i).concat(j),
-                        store: Object.create(ruleHolder.store)
-                    }), store);
-                }
-                break;
-            }*/
+            }
         }
-
-
 
         if(possibility) {
             newRule = {
@@ -80,49 +63,41 @@ module.exports = function (matchers) {
                 nextRuleCursor(newRule, store);
 
                 //get into
-                possibility.push(0);
-                store.push(newRule)
+                possibility.push({value:0, pick: true});
+                if(newRule.type === 'OR')debugger;
+                nextRuleCursor(newRule, store);
             } else if (rule.type === 'OR') {
                 for( i = rule.items.length; i;){
 
                     --i;
                     if(rule.items[i] instanceof Array){
-                        nextRuleCursor(Object.assign({}, newRule, {pointer: possibility.slice().concat(i , -1)}), store);
+                        nextRuleCursor(
+                            Object.assign(
+                                {},
+                                newRule,
+                                {pointer: possibility.slice().concat({value: i, stop: true},{value: 0, pick: true})}
+                            ), store);
                     }else {
-                        nextRuleCursor(Object.assign({}, newRule, {pointer: possibility.slice().concat(i - 1)}), store);
+                        nextRuleCursor(Object.assign({}, newRule, {pointer: possibility.slice().concat({value: i, pick: true, stop: true})}), store);
                     }
                 }
 
 
             }else{
+                if(newRule.type === 'OR')debugger;
                 store.push(newRule)
             }
         }else{
-            store.push({type: 'END', store: ruleHolder.store})
+            store.push({type: 'END', store: ruleHolder.store, pointer: []})
         }
-        /*
-         debugger;
-
-
-         var newRule = {items: ruleHolder.items, pointer: ruleHolder.pointer.slice(), store: Object.create(store)};
-
-         newRule.pointer[newRule.pointer.length-1] = newRule.pointer[newRule.pointer.length-1] + 1;
-         rule = getRule(ruleHolder);
-         if(rule.type === '*'){
-         newRule.pointer.push(0);
-         }
-
-
-         store.push(newRule)
-         */
     };
     var getRule = function(ruleHolder){
         return ruleHolder.pointer.reduce(function(items, a){
-            return items instanceof Array ? items[a] : items.items[a];
+            return items instanceof Array ? items[a.value] : items.items[a.value];
         }, ruleHolder.items);
     };
 
-    var match = function(type, child){
+    var match = function(type, child, debug){
         var should = matchers[type],
 
             i, _i, tokens = child.tokens, token,
@@ -136,7 +111,15 @@ module.exports = function (matchers) {
         // if first rule is complex - we need to get into it,
         // so I add invisible first rule 'START' and use mechanics
         // of normal rule iterating
-        nextRuleCursor({items: [{type: 'START'}].concat(should), pointer: [0], store: {}}, rules);
+        nextRuleCursor({items: [{type: 'START'}].concat(should), pointer: [{value:0}], store: {}}, rules);
+
+        if(debug) {
+            console.log('--- STEP ---');
+            var list = rules.map(function (item) {
+                return getRule(item);
+            });
+            console.log(list)
+        }
 
         if(!should)
             throw new Error('Unknown matcher');
@@ -147,6 +130,9 @@ module.exports = function (matchers) {
             token = tokens[i];
 
             if(token.type !== 'SPACE'){
+                if(debug){
+                    console.log('TOKEN: '+JSON.stringify({type: token.type, data: token.data, info: token.info})+'')
+                }
                 nextRules = [];
                 if(!rules.length)
                     return false;
@@ -195,12 +181,12 @@ module.exports = function (matchers) {
                             putKey = rule.put;
 
                             store[putKey] = tokens.slice(i);
-                            nextRules = [{type: 'END', store: store}];
+                            nextRules = [{type: 'END', store: store, pointer: []}];
                         }
                         break;
                     }
                     if (suit ){
-
+                        //if(token.data === '>')debugger;
                         nextRuleCursor(ruleHolder, nextRules);
 
                         if('put' in rule){
@@ -223,6 +209,14 @@ module.exports = function (matchers) {
                 }
 
                 rules = nextRules;
+                if(debug) {
+                    console.log('--- STEP ---');
+                    var list = rules.map(function (item) {
+                        return getRule(item);
+                    });
+                    console.log(list)
+
+                }
                 if(whatever)
                     break;
             }

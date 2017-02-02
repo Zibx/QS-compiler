@@ -20,7 +20,7 @@ module.exports = (function () {
                 tokens = tokenizer(data, 'example.qs'),
                 lex = lexer(tokens);
 
-
+            console.log(lex)
         });
         it('quotes', function () {
             var getTokens = function(text){

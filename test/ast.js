@@ -19,12 +19,12 @@ module.exports = (function () {
         it('function', function () {
             var data =
                 'define UIComponent Slider\n'+
-                '   .endEvt: (a,b)=>{dwda}\n'+
+                '   .endEvt: (a,b)=>{dwda=2}\n'+
                 '       states.goto("state2")\n';
 
 
             var ast = lexer(tokenizer(data, 'astFunctions.qs'));
-            console.log(ast[0].events.endEvt[0].body)
+            //console.log(ast[0].events.endEvt[0])
         })
     });
 })();
