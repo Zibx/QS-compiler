@@ -19,8 +19,9 @@ module.exports = (function () {
         it('function', function () {
             var data =
                 'define UIComponent Slider\n'+
-                '   .endEvt: (a,b)=>{dwda=2}\n'+
-                '       states.goto("state2")\n';
+                '   .endEvt: (a, b)=>dwda=2;\n'+
+                '       states.goto("state2");\n' +
+                '       dadw\n';
 
 
             var ast = lexer(tokenizer(data, 'astFunctions.qs'));

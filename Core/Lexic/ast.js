@@ -12,7 +12,8 @@ module.exports = (function(){
     var quotes = {'\'': 1, '"': 1};
 
     var matchers = require('./astRules'),
-        match = require('./astMatcher')(matchers);
+        match = require('./astMatcher')(matchers),
+        tTools = require('../tokenTools');
     
     var subMatcher = function(parent){
         return function(item){
@@ -48,20 +49,30 @@ module.exports = (function(){
             }else{
                 if(matched.value){
                     var fn = match('FUNCTION', {tokens: matched.value});
+                    if(fn) {
+                        // yep, it's function!
+                        var fnBody = fn.body;
+                        //console.log(fnBody[0])
+                        if (fnBody && fnBody.length && fnBody[0] && fnBody[0].type === 'Brace' && fnBody[0].info === '{') {
+                            // braced function body
+                            var bodyTokens = fnBody[0].tokens;
+                            bodyTokens = bodyTokens.slice(1, bodyTokens.length - 1);
+                        } else {
+                            bodyTokens = fnBody;
+                        }
+                        bodyTokens = bodyTokens || [];
 
-                    var fnBody = fn.body;
-                    //console.log(fnBody[0])
-                    if(fnBody && fnBody.length && fnBody[0] && fnBody[0].type === 'Brace' && fnBody[0].info === '{'){
-                        // braced function body
-                        var bodyTokens = fnBody[0].tokens;
-                        bodyTokens = bodyTokens.slice(1,bodyTokens.length-1);
+                        bodyTokens = bodyTokens.concat(item.children);
                         console.log(bodyTokens);
-                    }else{
-
-
+                        matched.value = {
+                            type: 'FUNCTION',
+                            arguments: tTools.split(
+                                fn.arguments.tokens.slice(1,fn.arguments.tokens.length-1), {type: 'COMMA'}
+                            ).map(tTools.trim),
+                            body: tTools.toString(bodyTokens)
+                        };
+                        console.log(matched.value)
                     }
-
-                    item.children
                 }
                 if(item.children){
                     Object.assign(matched, {
