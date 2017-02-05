@@ -25,7 +25,7 @@ module.exports = (function () {
 
 
             var ast = lexer(tokenizer(data, 'astFunctions.qs'));
-            //console.log(ast[0].events.endEvt[0])
+            console.log(ast[0].events.endEvt[0].value)
         })
     });
 })();

@@ -63,7 +63,7 @@ module.exports = (function(){
                         bodyTokens = bodyTokens || [];
 
                         bodyTokens = bodyTokens.concat(item.children);
-                        console.log(bodyTokens);
+                        //console.log(bodyTokens);
                         matched.value = {
                             type: 'FUNCTION',
                             arguments: tTools.split(
@@ -71,8 +71,13 @@ module.exports = (function(){
                             ).map(tTools.trim),
                             body: tTools.toString(bodyTokens)
                         };
-                        console.log(matched.value)
+                        matched.value.arguments = matched.value.arguments.map(function(item){
+                            // argument info extraction
+                            return {name: item[0].data, pointer: item[0].pointer};
+                        });
+                        //console.log(matched.value.arguments[0]);
                     }
+
                 }
                 if(item.children){
                     Object.assign(matched, {
