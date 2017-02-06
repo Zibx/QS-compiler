@@ -21,11 +21,11 @@ module.exports = (function () {
                 'define UIComponent Slider\n'+
                 '   .endEvt: (a, b)=>dwda=2;\n'+
                 '       states.goto("state2");\n' +
-                '       dadw\n';
+                '       "dadw"\n';
 
 
             var ast = lexer(tokenizer(data, 'astFunctions.qs'));
-            console.log(ast[0].events.endEvt[0].value)
+            console.log(ast[0].events.endEvt[0].value.body.data)
         })
     });
 })();

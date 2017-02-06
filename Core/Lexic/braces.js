@@ -19,7 +19,7 @@ module.exports = (function(){
         CURVED_BRACE: true
     };
     var getData = function(item){
-        return item.data;
+        return '_data' in item ? item._data:item.data;
     };
     // It is a hardcoded plain function for only one purpose
     // Fuck the beauty, it just do the job

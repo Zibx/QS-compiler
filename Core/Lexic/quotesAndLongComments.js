@@ -43,7 +43,8 @@ module.exports = (function(){
                         tokens: tokens.slice(start, start+count),
                         data: '',
                         _info: tokens.slice(start, start+count/2).map(getData).join(''),
-                        pointer: tokens[start].pointer
+                        pointer: tokens[start].pointer,
+                        _data: tokens.slice(start, start+count).map(getData).join('')
                     });
 
                     i -= count;
@@ -68,7 +69,8 @@ module.exports = (function(){
                                     tokens: tokens.slice(start+need, i+1-need),
                                     data: tokens.slice(start+need, i+1-need).filter(function(el,i){return !(i in escapes);}).map(getData).join(''),
                                     _info: tokens.slice(start, start+need).map(getData).join(''),
-                                    pointer: tokens[start].pointer
+                                    pointer: tokens[start].pointer,
+                                    _data: tokens.slice(start, i+1).map(getData).join('')
                                 });
 
                                 //todo check this

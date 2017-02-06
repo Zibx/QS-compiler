@@ -96,7 +96,7 @@ module.exports = (function () {
                 line;
             for(var i = 0, _i = tokens.length; i < _i; i++){
                 token = tokens[i];
-                if('data' in token) {
+                if('data' in token || '_data' in token) {
                     insertInLine = token.pointer.row - firstLine;
                     tokenCol = token.pointer.col;
                     if(!(insertInLine in lines))
@@ -104,7 +104,7 @@ module.exports = (function () {
 
                     line = lines[insertInLine];
 
-                    lines[insertInLine] = insertIntoString(line,token.data, tokenCol);
+                    lines[insertInLine] = insertIntoString(line,'_data' in token ? token._data : token.data, tokenCol);
 
                 }else{
                     tools.toString(token.tokens, lines, firstLine);
