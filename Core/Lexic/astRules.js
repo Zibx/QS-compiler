@@ -35,7 +35,7 @@ module.exports = (function () {
             ]},
             //]},
             {type: 'WORD', put: 'class'},
-            {type: 'WORD', put: 'name'},
+            {type: '?', items: [ {type: 'WORD', put: 'name'}]},
             {type: '?', items: [
                 {type: 'SEMICOLON', data: ':'},
                 {type: 'ALL', put: 'value'}

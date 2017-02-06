@@ -41,9 +41,9 @@ module.exports = (function () {
         tokens = quotesAndLongComments(tokens);//* +
         tokens = shortCommentsAndURLs(tokens);
 
-        console.log(tokens.filter(function(item){
+        /*console.log(tokens.filter(function(item){
             return item.type==='URI'
-        }).map(getData2));
+        }).map(getData2));*/
 
         tokens = braces(tokens);
         tokens = indentation(tokens);
