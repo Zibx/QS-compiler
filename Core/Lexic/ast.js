@@ -38,8 +38,8 @@ module.exports = (function(){
                 (parent.events[matched.name.data] = []))
                     .push(matched);
             }else if(matched = match('METADATA', item)){
-                (parent.metadata[matched.name.data] ||
-                (parent.metadata[matched.name.data] = []))
+                (parent.tags[matched.name.data] ||
+                (parent.tags[matched.name.data] = []))
                     .push(matched);
             }
 
@@ -62,16 +62,18 @@ module.exports = (function(){
                         }
                         bodyTokens = bodyTokens || [];
 
-                        bodyTokens = bodyTokens.concat(item.children);
+                        if(item.children)
+                            bodyTokens = bodyTokens.concat(item.children);
+
                         //console.log(bodyTokens);
                         matched.value = {
                             type: 'FUNCTION',
-                            arguments: tTools.split(
+                            arguments: fn.arguments.tokens.length < 3 ? [] : tTools.split(
                                 fn.arguments.tokens.slice(1,fn.arguments.tokens.length-1), {type: 'COMMA'}
                             ).map(tTools.trim),
                             body: tTools.toString(bodyTokens)
                         };
-                        matched.value.arguments = matched.value.arguments.map(function(item){
+                        matched.value['arguments'] = matched.value['arguments'].map(function(item){
                             // argument info extraction
                             return {name: item[0].data, pointer: item[0].pointer};
                         });
@@ -85,7 +87,7 @@ module.exports = (function(){
                         public: {},
                         private: {},
                         events: {},
-                        metadata: {},
+                        tags: {},
                         items: [],
                         raw: [],
                         unclassified: []
@@ -120,7 +122,7 @@ module.exports = (function(){
                         public: {},
                         private: {},
                         events: {},
-                        metadata: {},
+                        tags: {},
                         items: [],
                         raw: [],
                         unclassified: []

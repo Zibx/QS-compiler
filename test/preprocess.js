@@ -19,7 +19,9 @@ module.exports = (function () {
             var data = fs.readFileSync('test/qs/example.qs')+'',
                 tokens = tokenizer(data, 'example.qs'),
                 lex = lexer(tokens);
-debugger;
+
+
+
             console.log(lex)
         });
         it('quotes', function () {
