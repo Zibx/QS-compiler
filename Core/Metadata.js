@@ -16,6 +16,7 @@ module.exports = (function () {
             require: {},
             exports: {}
         };
+
         for(i in ast.public) {
             prop = ast.public[i];
             propClass = prop.class;
@@ -23,13 +24,17 @@ module.exports = (function () {
             //(info.require[propClass.data] || (info.require[propClass.data] = [])).push(prop);
         }
 
+        info.exports[ast.name.data] = ast.name;
+
         for(i in ast.items) {
             prop = ast.items[i];
             propClass = prop.class;
             //info.exports[i] = prop;
             (info.require[propClass.data] || (info.require[propClass.data] = [])).push(prop);
         }
-
+        ast.extend.forEach(function(item){
+            (info.require[item.data] || (info.require[item.data] = [])).push(item);
+        });
         return info;
     };
     return extractor;
