@@ -1,5 +1,6 @@
  define UIComponent, mumu, chuchu Slider
-   @zalupa
+   @namespace: Quokka
+   @description: Slider visual component
    public Event end: {{to==value}} // event would be fired when value == to
 /*
    public Event 2end: {{to==value}} // event would be fired when value == to
@@ -9,7 +10,9 @@
     @description: fires when the silder leaves endpoint
 
    .endEvt: (a,b)->
+    var x;
   	states.goto('e n d')
+  	x = 2;
 
    Event: {{to!==value}}
      .on: ()-> states.goto('somewhere')

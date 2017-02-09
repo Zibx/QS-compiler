@@ -10,7 +10,7 @@ module.exports = (function () {
     'use strict';
     var extractor = function(ast){
         //debugger;
-        var i, prop, propClass;
+        var i, prop, propClass, item, itemClass;
 
         var info = {
             require: {},
@@ -27,14 +27,27 @@ module.exports = (function () {
         info.exports[ast.name.data] = ast.name;
 
         for(i in ast.items) {
-            prop = ast.items[i];
-            propClass = prop.class;
+            item = ast.items[i];
+            itemClass = item.class;
             //info.exports[i] = prop;
-            (info.require[propClass.data] || (info.require[propClass.data] = [])).push(prop);
+            (info.require[itemClass.data] || (info.require[itemClass.data] = [])).push(item);
+            // TODO items public props to exports
+
         }
         ast.extend.forEach(function(item){
             (info.require[item.data] || (info.require[item.data] = [])).push(item);
         });
+
+
+
+        for( i in ast.events ){
+            ast.events[i].forEach(function(event){
+                // TODO substract event body variables from locals.
+                // otherwise - store as unknown required
+            });
+        }
+        //console.log(ast.unclassified[0].tokens);
+        console.log(ast.events.endEvt[0].value);
         return info;
     };
     return extractor;

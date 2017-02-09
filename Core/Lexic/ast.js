@@ -13,8 +13,21 @@ module.exports = (function(){
 
     var matchers = require('./astRules'),
         match = require('./astMatcher')(matchers),
-        tTools = require('../tokenTools');
-    
+        tTools = require('../tokenTools'),
+        VariableExtractor = require('../JS/VariableExtractor');
+    var bodyParser = function(body){
+        var vars = {};
+        try {
+            vars = VariableExtractor.parse(body.data).getFullUnDefined();
+        }catch(e){
+            body.pointer.error(e.description, {
+                col: e.column,
+                row: e.lineNumber - 1 + body.pointer.row
+            });
+        }
+        body.vars = vars;
+    };
+
     var subMatcher = function(parent){
         return function(item){
             var matched,
@@ -73,6 +86,9 @@ module.exports = (function(){
                             ).map(tTools.trim),
                             body: tTools.toString(bodyTokens)
                         };
+                        console.log(matched.value.body)
+                        bodyParser(matched.value.body)
+
                         matched.value['arguments'] = matched.value['arguments'].map(function(item){
                             // argument info extraction
                             return {name: item[0].data, pointer: item[0].pointer};

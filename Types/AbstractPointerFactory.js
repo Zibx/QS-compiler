@@ -16,6 +16,7 @@ module.exports = (function () {
             }
         };
         PointerFactory.prototype = {
+            errors: [],
             source: source,
             col: 1,
             row: 1,
@@ -32,6 +33,13 @@ module.exports = (function () {
                     this.col += i;
 
                 return this;
+            },
+            error: function(description, info){
+                this.errors.push({
+                    description: description,
+                    col: info && info.col !== void 0 ? info.col : this.col,
+                    row: info && info.row !== void 0 ? info.row : this.row
+                })
             }
         };
 
