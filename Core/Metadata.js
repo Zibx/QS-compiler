@@ -8,9 +8,14 @@
 
 module.exports = (function () {
     'use strict';
-    var extractor = function(ast){
+    var get = function(){
+
+    };
+    var extract = function(ast){
         //debugger;
         var i, prop, propClass, item, itemClass;
+
+        var metadata = {};
 
         var info = {
             require: {},
@@ -25,14 +30,15 @@ module.exports = (function () {
         }
 
         info.exports[ast.name.data] = ast.name;
-
+        var localVars = {};
         for(i in ast.items) {
             item = ast.items[i];
             itemClass = item.class;
             //info.exports[i] = prop;
             (info.require[itemClass.data] || (info.require[itemClass.data] = [])).push(item);
             // TODO items public props to exports
-
+            if(item.name)
+                localVars[item.name.data] = item.name;
         }
         ast.extend.forEach(function(item){
             (info.require[item.data] || (info.require[item.data] = [])).push(item);
@@ -42,13 +48,26 @@ module.exports = (function () {
 
         for( i in ast.events ){
             ast.events[i].forEach(function(event){
+                if(event.value.type === 'FUNCTION'){
+                    var vars = event.value.body.vars;
+
+                    for(var j in vars) {
+                        !localVars[j] && (info.require[j] || (info.require[j] = [])).push(vars[j]);
+                    }
+                }
+
+
                 // TODO substract event body variables from locals.
                 // otherwise - store as unknown required
             });
         }
+
+        if(info.exports.value === void 0){
+            info.exports.value = {};
+        }
         //console.log(ast.unclassified[0].tokens);
-        console.log(ast.events.endEvt[0].value);
+        //console.log(ast.events.endEvt[0].value);
         return info;
     };
-    return extractor;
+    return {extract: extract, get: get};
 })();

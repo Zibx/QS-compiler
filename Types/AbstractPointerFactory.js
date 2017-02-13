@@ -39,7 +39,7 @@ module.exports = (function () {
                     description: description,
                     col: info && info.col !== void 0 ? info.col : this.col,
                     row: info && info.row !== void 0 ? info.row : this.row
-                })
+                });
             }
         };
 

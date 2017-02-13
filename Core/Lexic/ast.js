@@ -66,9 +66,9 @@ module.exports = (function(){
                         // yep, it's function!
                         var fnBody = fn.body;
                         //console.log(fnBody[0])
-                        if (fnBody && fnBody.length && fnBody[0] && fnBody[0].type === 'Brace' && fnBody[0].info === '{') {
+                        if (fnBody && fnBody.tokens && fnBody.tokens.length && fnBody.type === 'Brace' && fnBody.info === '{') {
                             // braced function body
-                            var bodyTokens = fnBody[0].tokens;
+                            var bodyTokens = fnBody.tokens;
                             bodyTokens = bodyTokens.slice(1, bodyTokens.length - 1);
                         } else {
                             bodyTokens = fnBody;

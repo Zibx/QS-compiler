@@ -17,8 +17,8 @@ module.exports = (function () {
     describe('Metadata', function() {
 
         it('extract', function () {
-            var data = fs.readFileSync('test/qs/example.qs') + '',
-                tokens = tokenizer(data, 'example.qs'),
+            var data = fs.readFileSync('test/qs/screen.qs') + '',
+                tokens = tokenizer(data, 'screen.qs'),
                 lex = lexer(tokens);
             lex.forEach(function(item){
                 item.metadata = metadata.extract(item);
