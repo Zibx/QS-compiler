@@ -8,6 +8,12 @@
 
 module.exports = (function () {
     'use strict';
+
+    /* TODO: transform it to linker. we can not collect metadata,
+       TODO: it is a recursive operation in quokkaScript
+       TODO: we do not know how to traverse a node until
+       TODO: we know how to do it
+     */
     var get = function(){
 
     };
