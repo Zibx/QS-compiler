@@ -14,6 +14,7 @@ module.exports = (function () {
        TODO: we do not know how to traverse a node until
        TODO: we know how to do it
      */
+
     var get = function(){
 
     };
@@ -75,5 +76,48 @@ module.exports = (function () {
         //console.log(ast.events.endEvt[0].value);
         return info;
     };
-    return {extract: extract, get: get};
+    //return {extract: extract, get: get};
+    var system = [
+        {
+
+        }
+    ];
+
+    var Compiler = function(){
+        var _self = this;
+        system.forEach(function(cls){
+            _self.add(cls);
+        });
+
+    };
+    Compiler.prototype = {
+        world: {},// known metadata
+        waiting: { // key - waiting for class, value - waiting class
+
+        },
+        // key - waiting class, value - Array of waiting for classes
+        wait: {
+
+        },
+        /**
+         * takes ast
+         */
+        add: function(ast){
+            var info = {
+                    require: {},
+                    exports: {},
+                    ast: ast,
+                    ready: false
+                },
+                name = ast.name.data;
+
+            this.world[name] = info;
+            
+            ast.extend.forEach(function(item){
+                (info.require[item.data] || (info.require[item.data] = [])).push(item);
+            });
+
+        }
+    };
+    return Compiler;
 })();

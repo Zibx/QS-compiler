@@ -11,7 +11,7 @@ module.exports = (function () {
     var assert = require('chai').assert;
     var tokenizer = require('../Core/Tokenizer'),
         lexer = require('../Core/Preprocess'),
-        metadata = require('../Core/Metadata'),
+        Compiler = require('../Core/Compile/Compiler'),
         fs = require('fs');
 
     describe('Metadata', function() {
@@ -20,8 +20,12 @@ module.exports = (function () {
             var data = fs.readFileSync('test/qs/screen.qs') + '',
                 tokens = tokenizer(data, 'screen.qs'),
                 lex = lexer(tokens);
+
+            var compiler  = new Compiler();
+
             lex.forEach(function(item){
-                item.metadata = metadata.extract(item);
+                compiler.add(item);
+                //item.metadata = metadata.extract(item);
             });
 
             console.log(lex[0])

@@ -11,7 +11,7 @@ module.exports = (function () {
     var assert = require('chai').assert;
     var tokenizer = require('../Core/Tokenizer'),
         lexer = require('../Core/Preprocess'),
-        metadata = require('../Core/Metadata'),
+        metadata = require('../Core/Compile/Metadata'),
         fs = require('fs');
 
     describe('Metadata', function() {
