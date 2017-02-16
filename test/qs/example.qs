@@ -52,4 +52,11 @@
        y: 50%
      free: true // TODO поспорить о синтаксисе -ния компонента из потока рендеринга
 
+   public Function randomize
+     @description: function sets slider to the random position
+     value: function(from, to){
+        that.value = Math.random()*(to-from)+from;
+     }
+
+
 def OtherSlider: UIComponent

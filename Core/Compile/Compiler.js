@@ -78,9 +78,7 @@ module.exports = (function () {
     };
     //return {extract: extract, get: get};
     var system = [
-        {
 
-        }
     ];
 
     var Compiler = function(){
@@ -92,7 +90,7 @@ module.exports = (function () {
     };
     Compiler.prototype = {
         world: {},// known metadata
-        waiting: { // key - waiting for class, value - waiting class
+        waitingFor: { // key - waiting for class, value - Array of waiting classes
 
         },
         // key - waiting class, value - Array of waiting for classes
@@ -109,14 +107,55 @@ module.exports = (function () {
                     ast: ast,
                     ready: false
                 },
-                name = ast.name.data;
+                name = ast.name.data,
+                world = this.world;
 
             this.world[name] = info;
-            
+
+            var waitingFor = this.waitingFor,
+                wait = this.wait[name] = [];
+
             ast.extend.forEach(function(item){
+                if(world[item.data] === void 0 || !world[item.data].ready) {
+                    (waitingFor[item.data] || (waitingFor[item.data] = [])).push(name);
+                    wait.push(item.data);
+                }
+
                 (info.require[item.data] || (info.require[item.data] = [])).push(item);
             });
 
+            this.tryInspect(name);
+
+        },
+        tryInspect: function(name){
+            // collecting metadata and compiling are possible only after all
+            // dependences are resolved
+
+            if(this.wait[name].length === 0){
+                console.log(1)
+            }else{
+                console.log(this.wait[name])
+            }
+
+            if(this.world[name].ready){
+                this.loaded(name);
+            }
+        },
+        loaded: function(name){
+            var i, _i, waitingForList = this.waitingFor[name], waitList,
+                j;
+            if(waitingForList){
+                for(i = 0, _i = waitingForList.length; i < _i; i++){
+                    // remove class from wait list
+                    waitList = this.wait[waitingForList[i]];
+                    for(j = waitList.length; j;)
+                        if(waitList[--j] === name)
+                            waitList.splice(j,1);
+                    if(waitList.length === 0)
+                        this.tryInspect(waitingForList[i]);
+                }
+                delete this.waitingFor[name];
+            }
         }
     };
     return Compiler;
