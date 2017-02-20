@@ -121,7 +121,7 @@ module.exports = (function(){
     var process = function (tree) {
         var i, _i, children, child,
             ast = [], current, info,
-            definition, inner;
+            definition, inner, matched, tags = {};
         if(tree.type==='AST'){
             if(!tree.children.length){
                 throw 'no defs'
@@ -138,7 +138,7 @@ module.exports = (function(){
                         public: {},
                         private: {},
                         events: {},
-                        tags: {},
+                        tags: tags,
                         items: [],
                         raw: [],
                         unclassified: []
@@ -149,7 +149,11 @@ module.exports = (function(){
 
                     //console.log(current)
                     //console.log('----')
-
+                    tags = {};
+                }else if(matched = match('METADATA', child)){
+                    (tags[matched.name.data] ||
+                    (tags[matched.name.data] = []))
+                        .push(matched);
                 }else{
                     throw new Error('ololo')
                 }

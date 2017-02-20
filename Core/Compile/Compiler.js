@@ -77,14 +77,28 @@ module.exports = (function () {
         return info;
     };
     //return {extract: extract, get: get};
-    var system = [
 
+    var tokenizer = require('../Tokenizer'),
+        lexer = require('../Preprocess'),
+        fs = require('fs'),
+        systemQS = function(name){
+            var fileName = './Core/Classes/'+name+'.qs';
+            var data = fs.readFileSync(fileName) + '',
+                tokens = tokenizer(data, fileName);
+            return lexer(tokens);
+        };
+
+    var system = [
+        systemQS('Page'),
+        systemQS('UIComponent')
     ];
 
     var Compiler = function(){
         var _self = this;
-        system.forEach(function(cls){
-            _self.add(cls);
+        system.forEach(function(clses){
+            clses.forEach(function(cls){
+                _self.add(cls);
+            });
         });
 
     };
