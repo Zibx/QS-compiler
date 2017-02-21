@@ -86,11 +86,19 @@ module.exports = (function () {
             var data = fs.readFileSync(fileName) + '',
                 tokens = tokenizer(data, fileName);
             return lexer(tokens);
+        },
+        systemJS = function(name){
+            var obj = require('../Classes/'+name);
+            obj.ready = true;
+            obj.js = true;
+            obj.name = {data: name};//'Classes/'+name+'.js'};
+            return [obj];
         };
 
     var system = [
         systemQS('Page'),
-        systemQS('UIComponent')
+        systemQS('UIComponent'),
+        systemJS('Class')
     ];
 
     var Compiler = function(){
@@ -128,15 +136,17 @@ module.exports = (function () {
 
             var waitingFor = this.waitingFor,
                 wait = this.wait[name] = [];
+            if(ast.js)
+                info.ready = true;
+            else
+                ast.extend.forEach(function(item){
+                    if(world[item.data] === void 0 || !world[item.data].ready) {
+                        (waitingFor[item.data] || (waitingFor[item.data] = [])).push(name);
+                        wait.push(item.data);
+                    }
 
-            ast.extend.forEach(function(item){
-                if(world[item.data] === void 0 || !world[item.data].ready) {
-                    (waitingFor[item.data] || (waitingFor[item.data] = [])).push(name);
-                    wait.push(item.data);
-                }
-
-                (info.require[item.data] || (info.require[item.data] = [])).push(item);
-            });
+                    (info.require[item.data] || (info.require[item.data] = [])).push(item);
+                });
 
             this.tryInspect(name);
 
@@ -146,7 +156,7 @@ module.exports = (function () {
             // dependences are resolved
 
             if(this.wait[name].length === 0){
-                console.log(1)
+                console.log('LOADED', name)
             }else{
                 console.log(this.wait[name])
             }
