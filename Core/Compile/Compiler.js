@@ -87,18 +87,55 @@ module.exports = (function () {
                 tokens = tokenizer(data, fileName);
             return lexer(tokens);
         },
-        systemJS = function(name){
-            var obj = require('../Classes/'+name);
-            obj.ready = true;
-            obj.js = true;
-            obj.name = {data: name};//'Classes/'+name+'.js'};
-            return [obj];
+        systemJS = function(name, multiple){
+            var obj = require('../Classes/'+name), i, out, item;
+            if(multiple){
+                out = [];
+                for( i in obj ){
+                    item = {
+                        ready: true,
+                        js: true,
+                        name: {data: i}
+                    };
+                    if(obj[i].public)
+                        item.public = obj[i].public;
+
+                    out.push(item);
+                }
+            }else{
+                obj.ready = true;
+                obj.js = true;
+                obj.name = {data: name};//'Classes/'+name+'.js'};
+                out = [obj];
+            }
+
+            return out;
         };
 
+    var convertAST = function(item, additional){
+
+        // already converted
+        if(!item.class)
+            return item;
+
+        var out = {type: item.class.data}, i;
+        if(item.tags){
+            out.tags = {};
+            for(i in item.tags);
+                out.tags[i] = item.tags[i].map(function(el){
+                    return el.value[0].data;
+                });
+        }
+        if(additional)
+            out = Object.assign({}, additional, out);
+        return out;
+    };
     var system = [
+        systemJS('Class'),
+        systemJS('Primitives', true),
         systemQS('Page'),
-        systemQS('UIComponent'),
-        systemJS('Class')
+        systemQS('UIComponent')
+
     ];
 
     var Compiler = function(){
@@ -112,6 +149,7 @@ module.exports = (function () {
     };
     Compiler.prototype = {
         world: {},// known metadata
+        _world: {},// known metadata with garbage
         waitingFor: { // key - waiting for class, value - Array of waiting classes
 
         },
@@ -130,9 +168,9 @@ module.exports = (function () {
                     ready: false
                 },
                 name = ast.name.data,
-                world = this.world;
+                _world = this._world;
 
-            this.world[name] = info;
+            this._world[name] = info;
 
             var waitingFor = this.waitingFor,
                 wait = this.wait[name] = [];
@@ -140,7 +178,7 @@ module.exports = (function () {
                 info.ready = true;
             else
                 ast.extend.forEach(function(item){
-                    if(world[item.data] === void 0 || !world[item.data].ready) {
+                    if(_world[item.data] === void 0 || !_world[item.data].ready) {
                         (waitingFor[item.data] || (waitingFor[item.data] = [])).push(name);
                         wait.push(item.data);
                     }
@@ -151,17 +189,55 @@ module.exports = (function () {
             this.tryInspect(name);
 
         },
+        applyAST: function(to, from, additional){
+            var i;
+            for(i in from){
+                to[i] = convertAST(from[i], additional);
+            }
+        },
+        define: function(name){
+            var info = this._world[name],
+                ast = info.ast, i, _i, extend, mixed = {public: {}, private: {}}, clsInfo;
+
+            if(!ast.js){
+                extend = ast.extend;
+                for(i = 0, _i = extend.length; i < _i; i++){
+                    clsInfo = this.world[extend[i].data];
+                    if(!clsInfo.public) {
+                        clsInfo.public = {};
+                    }
+                    if(!clsInfo.private) {
+                        clsInfo.private = {};
+                    }
+                    this.applyAST(mixed.public, clsInfo.public, {defined: extend[i].data});
+                    this.applyAST(mixed.private, clsInfo.private, {defined: extend[i].data});
+                }
+                this.applyAST(mixed.public, info.ast.public);
+                this.applyAST(mixed.private, info.ast.private);
+
+                // TODO if(no other deps)
+                this.world[name] = mixed;
+                info.ready = true;
+                //debugger
+            }else{
+                //debugger;
+                this.world[name] = info.ast;
+            }
+
+        },
         tryInspect: function(name){
             // collecting metadata and compiling are possible only after all
             // dependences are resolved
 
             if(this.wait[name].length === 0){
-                console.log('LOADED', name)
+                console.log('LOADED', name);//, this._world[name])
+                this.define(name);
+
             }else{
-                console.log(this.wait[name])
+                //console.log(this.wait[name])
             }
 
-            if(this.world[name].ready){
+            if(this._world[name].ready){
                 this.loaded(name);
             }
         },

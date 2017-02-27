@@ -14,7 +14,7 @@ module.exports = (function () {
         Compiler = require('../Core/Compile/Compiler'),
         fs = require('fs');
 
-    describe('Metadata', function() {
+    describe('Compile', function() {
 
         it('extract', function () {
             var data = fs.readFileSync('test/qs/screen.qs') + '',

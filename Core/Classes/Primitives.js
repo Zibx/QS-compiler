@@ -8,13 +8,18 @@
 
 module.exports = (function () {
     'use strict';
+    var Property = function (type, text) {
+        this.type = type;
+        this._description = text;
+    };
+
     var p = function(type, description){
         return new Property(type, description);
     };
 
     return {
         String: {
-            description: 'String class (primitive)',
+            _description: 'String class (primitive)',
             public: {
                 length: p('Number', 'Length of string'),
                 value: p('String')
@@ -29,13 +34,13 @@ module.exports = (function () {
             public: {
                 value: p('Number')
             }
-        },
+        }/*,
         UIComponent: {
             public: {
                 opacity: p('Number'),
                 background: p('String')
             }
-        }
+        }*/
 
     };
 })();
