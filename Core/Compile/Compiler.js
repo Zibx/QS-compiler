@@ -212,8 +212,8 @@ module.exports = (function () {
                     this.applyAST(mixed.public, clsInfo.public, {defined: extend[i].data});
                     this.applyAST(mixed.private, clsInfo.private, {defined: extend[i].data});
                 }
-                this.applyAST(mixed.public, info.ast.public);
-                this.applyAST(mixed.private, info.ast.private);
+                this.applyAST(mixed.public, info.ast.public, {defined: name});
+                this.applyAST(mixed.private, info.ast.private, {defined: name});
 
                 // TODO if(no other deps)
                 this.world[name] = mixed;

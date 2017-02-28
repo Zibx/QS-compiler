@@ -28,7 +28,8 @@ module.exports = (function () {
                 //item.metadata = metadata.extract(item);
             });
 
-            console.log(lex[0])
+            //console.log(lex[0])
+            console.log(compiler.world.main.public)
         });
     });
 
