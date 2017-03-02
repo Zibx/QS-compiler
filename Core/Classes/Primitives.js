@@ -34,6 +34,16 @@ module.exports = (function () {
             public: {
                 value: p('Number')
             }
+        },
+        Variant: {
+            public: {
+                value: p('Variant')
+            }
+        },
+        Function: {
+            public: {
+                value: p('Function')
+            }
         }/*,
         UIComponent: {
             public: {

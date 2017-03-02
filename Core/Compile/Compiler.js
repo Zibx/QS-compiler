@@ -121,10 +121,11 @@ module.exports = (function () {
         var out = {type: item.class.data}, i;
         if(item.tags){
             out.tags = {};
-            for(i in item.tags);
-                out.tags[i] = item.tags[i].map(function(el){
+            for(i in item.tags) {
+                out.tags[i] = item.tags[i].map(function (el) {
                     return el.value[0].data;
                 });
+            }
         }
         if(additional)
             out = Object.assign({}, additional, out);
@@ -134,7 +135,9 @@ module.exports = (function () {
         systemJS('Class'),
         systemJS('Primitives', true),
         systemQS('Page'),
-        systemQS('UIComponent')
+        systemQS('UIComponent'),
+        systemQS('VBox'),
+        systemQS('Timer')
 
     ];
 
@@ -157,6 +160,21 @@ module.exports = (function () {
         wait: {
 
         },
+        addDependency: function(who, item){
+            var _world = this._world,
+                waitingFor = this.waitingFor,
+                wait = this.wait[who],
+                info = _world[who],
+                what = item.data;
+
+            if(_world[what] === void 0 || !_world[what].ready) {
+                (waitingFor[what] || (waitingFor[what] = [])).push(who);
+                if(wait.indexOf(what) === -1)
+                    wait.push(what);
+            }
+
+            (info.require[what] || (info.require[what] = [])).push(item);
+        },
         /**
          * takes ast
          */
@@ -167,24 +185,17 @@ module.exports = (function () {
                     ast: ast,
                     ready: false
                 },
-                name = ast.name.data,
-                _world = this._world;
+                name = ast.name.data;
 
             this._world[name] = info;
 
-            var waitingFor = this.waitingFor,
-                wait = this.wait[name] = [];
+            this.wait[name] = [];
+
             if(ast.js)
                 info.ready = true;
             else
-                ast.extend.forEach(function(item){
-                    if(_world[item.data] === void 0 || !_world[item.data].ready) {
-                        (waitingFor[item.data] || (waitingFor[item.data] = [])).push(name);
-                        wait.push(item.data);
-                    }
-
-                    (info.require[item.data] || (info.require[item.data] = [])).push(item);
-                });
+                ast.extend
+                    .forEach(this.addDependency.bind(this, name));
 
             this.tryInspect(name);
 
@@ -197,20 +208,53 @@ module.exports = (function () {
         },
         define: function(name){
             var info = this._world[name],
-                ast = info.ast, i, _i, extend, mixed = {public: {}, private: {}}, clsInfo;
+                ast = info.ast, i, _i, extend,
+                mixed = info.mixed = info.mixed || {
+                    public: {},
+                    private: {},
+                    values: {}
+                },
+                clsInfo,
+                items, item, itemName,
+                moreDependencies = false;
 
             if(!ast.js){
                 extend = ast.extend;
-                for(i = 0, _i = extend.length; i < _i; i++){
-                    clsInfo = this.world[extend[i].data];
-                    if(!clsInfo.public) {
-                        clsInfo.public = {};
+                if(!info.isMixed) {
+                    for (i = 0, _i = extend.length; i < _i; i++) {
+                        clsInfo = this.world[extend[i].data];
+                        if (!clsInfo.public) {
+                            clsInfo.public = {};
+                        }
+                        if (!clsInfo.private) {
+                            clsInfo.private = {};
+                        }
+                        this.applyAST(mixed.public, clsInfo.public, {defined: extend[i].data});
+                        this.applyAST(mixed.private, clsInfo.private, {defined: extend[i].data});
                     }
-                    if(!clsInfo.private) {
-                        clsInfo.private = {};
+                    info.isMixed = true;
+                }
+
+                items = info.ast.items;
+                for(i = 0, _i = items.length; i < _i; i++){
+                    item = items[i];
+                    itemName = (item.class && item.class.data) || (item.name && item.name.data);
+                    if(
+                        (itemName in mixed.public) ||
+                        (itemName in mixed.private)
+                    ){
+
+                    }else if(itemName in this.world){
+
+                    }else{
+                        moreDependencies = true;
+                        this.addDependency(name, item.class);
                     }
-                    this.applyAST(mixed.public, clsInfo.public, {defined: extend[i].data});
-                    this.applyAST(mixed.private, clsInfo.private, {defined: extend[i].data});
+                    mixed.values[itemName] = item.value;
+                }
+                if(moreDependencies) {
+                    console.log('More deps for `'+name+'`: '+this.wait[name])
+                    return;
                 }
                 this.applyAST(mixed.public, info.ast.public, {defined: name});
                 this.applyAST(mixed.private, info.ast.private, {defined: name});
