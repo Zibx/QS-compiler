@@ -252,6 +252,13 @@ module.exports = (function () {
                     }
                     mixed.values[itemName] = item.value;
                 }
+                /*
+                1) create named with not piped properties or inline pipes to properties that are already defined
+                2) create unnamed with inline pipes
+                3) create other pipes
+                4) add items as children
+                 */
+
                 if(moreDependencies) {
                     console.log('More deps for `'+name+'`: '+this.wait[name])
                     return;
