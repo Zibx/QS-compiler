@@ -29,7 +29,7 @@ module.exports = (function () {
             });
 
             //console.log(lex[0])
-            console.log(compiler.world.main.public)
+            console.log(JSON.stringify(compiler.world.main.require,null,2))
         });
     });
 

@@ -212,7 +212,8 @@ module.exports = (function () {
                 mixed = info.mixed = info.mixed || {
                     public: {},
                     private: {},
-                    values: {}
+                    values: {},
+                    require: info.require
                 },
                 clsInfo,
                 items, item, itemName,
