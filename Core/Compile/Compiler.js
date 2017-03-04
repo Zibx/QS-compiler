@@ -264,6 +264,22 @@ module.exports = (function () {
                     console.log('More deps for `'+name+'`: '+this.wait[name])
                     return;
                 }
+
+                // if deps are resolved - try collect information about props\children
+                var internals = [];
+                for(i = 0, _i = items.length; i < _i; i++) {
+                    item = items[i];
+                    itemName = (item.class && item.class.data) || (item.name && item.name.data);
+                    if(
+                        (itemName in mixed.public) ||
+                        (itemName in mixed.private)
+                    ){
+                        internals.push({type: 'property', name: itemName, item: item});
+                    }else if(itemName in this.world){
+                        internals.push({type: 'child', class: item.class.data, item: item});
+                    }
+                }
+                console.log(internals)
                 this.applyAST(mixed.public, info.ast.public, {defined: name});
                 this.applyAST(mixed.private, info.ast.private, {defined: name});
 

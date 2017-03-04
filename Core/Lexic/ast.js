@@ -34,9 +34,17 @@ module.exports = (function(){
                 isPublic,
                 currentPropHolder;
             if(matched = match('PROPERTY', item)){
+
                 parent.items.push(matched);
                 isPublic = matched.scope && {public: true, pub: true}[matched.scope.data];
+
+                /*if(matched.class && !matched.name){
+                    matched.name = matched.class;
+                    matched.class = void 0;
+                }
+                console.log({name: matched.name && matched.name.data, class: matched.class && matched.class.data})*/
                 if(matched.name) {
+
                     currentPropHolder = parent[isPublic ? 'public' : 'private'];
                     if(currentPropHolder[matched.name.data]){
                         throw new Error('prop already exists `'+matched.name.data+'`')
@@ -45,12 +53,15 @@ module.exports = (function(){
                     }
                 }else if(isPublic){
                     throw new Error('public property must be named');
+                }else{
+
                 }
             }else if(matched = match('EVENT', item)){
                 (parent.events[matched.name.data] ||
                 (parent.events[matched.name.data] = []))
                     .push(matched);
             }else if(matched = match('METADATA', item)){
+                // TODO: not parent, but next folowing prop
                 (parent.tags[matched.name.data] ||
                 (parent.tags[matched.name.data] = []))
                     .push(matched);
