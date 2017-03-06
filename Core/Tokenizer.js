@@ -26,7 +26,7 @@ module.exports = (function () {
         '.': 'DOT',
         ',': 'COMMA',
         '?': 'QUESTION',
-        '#$_;': 'SPECIAL'
+        '#$;': 'SPECIAL'
     };
     for(var i in tokens){
         if(i.length > 1 && !(i.length === 2 && i.charAt(0)==='\\')){

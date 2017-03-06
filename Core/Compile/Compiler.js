@@ -14,6 +14,7 @@ module.exports = (function () {
        TODO: we do not know how to traverse a node until
        TODO: we know how to do it
      */
+    var prefab = require('./prefab');
 
     var get = function(){
 
@@ -142,6 +143,10 @@ module.exports = (function () {
     ];
 
     var Compiler = function(){
+        this.world = {};
+        this._world = {};
+        this.wait = {};
+        this.waitingFor = {};
         var _self = this;
         system.forEach(function(clses){
             clses.forEach(function(cls){
@@ -213,7 +218,8 @@ module.exports = (function () {
                     public: {},
                     private: {},
                     values: {},
-                    require: info.require
+                    require: info.require,
+                    extend: []
                 },
                 clsInfo,
                 items, item, itemName,
@@ -221,6 +227,7 @@ module.exports = (function () {
 
             if(!ast.js){
                 extend = ast.extend;
+
                 if(!info.isMixed) {
                     for (i = 0, _i = extend.length; i < _i; i++) {
                         clsInfo = this.world[extend[i].data];
@@ -232,6 +239,7 @@ module.exports = (function () {
                         }
                         this.applyAST(mixed.public, clsInfo.public, {defined: extend[i].data});
                         this.applyAST(mixed.private, clsInfo.private, {defined: extend[i].data});
+                        mixed.extend.push(extend[i].data);
                     }
                     info.isMixed = true;
                 }
@@ -279,12 +287,18 @@ module.exports = (function () {
                         internals.push({type: 'child', class: item.class.data, item: item});
                     }
                 }
+
                 console.log(internals)
+
                 this.applyAST(mixed.public, info.ast.public, {defined: name});
                 this.applyAST(mixed.private, info.ast.private, {defined: name});
 
                 // TODO if(no other deps)
                 this.world[name] = mixed;
+                if(ast.tags){
+                    mixed.tags = ast.tags;
+                }
+                mixed.name = name;
                 info.ready = true;
                 //debugger
             }else{
@@ -308,6 +322,37 @@ module.exports = (function () {
             if(this._world[name].ready){
                 this.loaded(name);
             }
+        },
+        compile: function (name) {
+            return this.callMethod('__compile', this.world[name]);
+        },
+        findMethod: function(method, obj){
+            var i, _i, fn;
+
+            obj.public
+            obj.private
+            //if(obj.tags)
+              //  debugger;
+
+            if(!obj.extend)
+                return false;
+
+            for(i = 0, _i = obj.extend.length; i < _i; i++){
+                fn = this.findMethod(method, this.world[obj.extend[i]]);
+                if(fn)
+                    return fn;
+            }
+            return false;
+        },
+        callMethod: function(method, obj){
+            var fn = this.findMethod(method, obj);
+            if(fn === false){
+                fn = prefab[method];
+            }
+            if(fn === false){
+                throw new Error('NO WAY. UNKNOWN METHOD');
+            }
+            return fn.call(this, obj);
         },
         loaded: function(name){
             var i, _i, waitingForList = this.waitingFor[name], waitList,
