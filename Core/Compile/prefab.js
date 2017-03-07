@@ -12,23 +12,39 @@ module.exports = (function () {
         __compile: function(obj){
             var baseClassName = obj.extend[0];
             var source = [],
-                ending = [];
+                i, ctor = [], props = [], cfg;
 
 
 
             source.push('var '+ obj.name +' = '+ baseClassName +
                 '.extend(\'App'+baseClassName+'\', \''+obj.name+'\', {');
 
-            source.push('ctor: function(){');
 
-            source.push('}');
+            ctor.push('ctor: function(){');
+            
+            //obj.public
+            
+            ctor.push('}');
+            for(i in obj.public){
+                props.push(i+':{}')
+            }
+            ctor = ctor.join('\n');
+            props = '_prop: {\n'+props.join(',\n')+'\n}\n';
+
+
+
+            cfg = [ctor, props];
+
+            source.push(cfg.join(','));
+
+
 
             source.push('});');
 
 
 
 
-            console.log(source.concat(ending).join('\n'));
+            console.log(source.join('\n'));
             debugger;
         }
     };

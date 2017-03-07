@@ -284,12 +284,14 @@ module.exports = (function () {
                     ){
                         internals.push({type: 'property', name: itemName, item: item});
                     }else if(itemName in this.world){
-                        internals.push({type: 'child', class: item.class.data, item: item});
+                        var childItem = {type: 'child', class: item.class.data, item: item};
+                        if(item.name) childItem.name = item.name.data;
+                        internals.push(childItem);
                     }
                 }
 
                 console.log(internals)
-
+                mixed.items = internals;
                 this.applyAST(mixed.public, info.ast.public, {defined: name});
                 this.applyAST(mixed.private, info.ast.private, {defined: name});
 
