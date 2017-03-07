@@ -8,6 +8,9 @@
 
 module.exports = (function () {
     'use strict';
+    var esprima = require('esprima'),
+        escodegen = require('escodegen');
+
     return {
         __compile: function(obj){
             var baseClassName = obj.extend[0];
@@ -44,8 +47,37 @@ module.exports = (function () {
 
 
 
-            console.log(source.join('\n'));
-            debugger;
+            return escodegen.generate(
+                esprima.parse(source.join('\n'))
+            );
+        },
+        __dig: function(obj, collector) {
+            var item = obj.item,
+                data;
+            if(item.type === 'DEFINE'){
+
+                data = {
+                    class: item.class.data
+                };
+                if(!item.name){
+                    item.name = {data: this.getUID(item.class.name)};
+                }
+                data.name = item.name.data;
+                collector.variables[item.name.data] = data;
+
+                data.value = this.callMethod('__getValue', obj.value);
+
+                // if(obj.items) => recursively go around. store links to collector
+                // value: {val: value, deps: [o1, o2], type: function|raw|pipe}
+
+                if(obj.class === 'VBox'){
+
+                    debugger;
+                }
+            }else{
+
+            }
+
         }
     };
 })();

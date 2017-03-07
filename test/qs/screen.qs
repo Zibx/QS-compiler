@@ -3,7 +3,7 @@ def Page main
     opacity: {{opacity}}
     background: rgba({{s1|0}},{{s2}},{{s3}},1)
 
-    public VBox v1
+    public VBox v1:774
 
         Slider s1: 50
             from: 11

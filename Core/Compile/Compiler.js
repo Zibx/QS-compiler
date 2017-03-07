@@ -14,6 +14,7 @@ module.exports = (function () {
        TODO: we do not know how to traverse a node until
        TODO: we know how to do it
      */
+    var objectCounter = 0;
     var prefab = require('./prefab');
 
     var get = function(){
@@ -219,7 +220,10 @@ module.exports = (function () {
                     private: {},
                     values: {},
                     require: info.require,
-                    extend: []
+                    extend: [],
+                    name: name,
+                    variables: {},
+                    props: {}
                 },
                 clsInfo,
                 items, item, itemName,
@@ -243,64 +247,73 @@ module.exports = (function () {
                     }
                     info.isMixed = true;
                 }
+                if(!info.isInternalsGenerated) {
+                    items = info.ast.items;
+                    for (i = 0, _i = items.length; i < _i; i++) {
+                        item = items[i];
+                        itemName = (item.class && item.class.data) || (item.name && item.name.data);
+                        if (
+                            (itemName in mixed.public) ||
+                            (itemName in mixed.private)
+                        ) {
 
-                items = info.ast.items;
-                for(i = 0, _i = items.length; i < _i; i++){
-                    item = items[i];
-                    itemName = (item.class && item.class.data) || (item.name && item.name.data);
-                    if(
-                        (itemName in mixed.public) ||
-                        (itemName in mixed.private)
-                    ){
+                        } else if (itemName in this.world) {
 
-                    }else if(itemName in this.world){
-
-                    }else{
-                        moreDependencies = true;
-                        this.addDependency(name, item.class);
+                        } else {
+                            moreDependencies = true;
+                            this.addDependency(name, item.class);
+                        }
+                        mixed.values[itemName] = item.value;
                     }
-                    mixed.values[itemName] = item.value;
-                }
-                /*
-                1) create named with not piped properties or inline pipes to properties that are already defined
-                2) create unnamed with inline pipes
-                3) create other pipes
-                4) add items as children
-                 */
+                    /*
+                     1) create named with not piped properties or inline pipes to properties that are already defined
+                     2) create unnamed with inline pipes
+                     3) create other pipes
+                     4) add items as children
+                     */
 
-                if(moreDependencies) {
-                    console.log('More deps for `'+name+'`: '+this.wait[name])
-                    return;
-                }
-
-                // if deps are resolved - try collect information about props\children
-                var internals = [];
-                for(i = 0, _i = items.length; i < _i; i++) {
-                    item = items[i];
-                    itemName = (item.class && item.class.data) || (item.name && item.name.data);
-                    if(
-                        (itemName in mixed.public) ||
-                        (itemName in mixed.private)
-                    ){
-                        internals.push({type: 'property', name: itemName, item: item});
-                    }else if(itemName in this.world){
-                        var childItem = {type: 'child', class: item.class.data, item: item};
-                        if(item.name) childItem.name = item.name.data;
-                        internals.push(childItem);
+                    if (moreDependencies) {
+                        console.log('More deps for `' + name + '`: ' + this.wait[name])
+                        return;
                     }
+
+                    // if deps are resolved - try collect information about props\children
+                    var internals = [];
+                    for (i = 0, _i = items.length; i < _i; i++) {
+                        item = items[i];
+                        itemName = (item.class && item.class.data) || (item.name && item.name.data);
+                        if (
+                            (itemName in mixed.public) ||
+                            (itemName in mixed.private)
+                        ) {
+                            internals.push({type: 'property', name: itemName, item: item});
+                        } else if (itemName in this.world) {
+                            var childItem = {type: 'child', class: item.class.data, item: item};
+                            if (item.name){
+                                childItem.name = item.name.data;
+                            }else{
+                                childItem.name = this.getUID(childItem.class);
+                            }
+
+                            this.callMethod('__dig', childItem, mixed);
+
+                            internals.push(childItem);
+                        }
+                    }
+
+                    //console.log(internals)
+                    mixed.items = internals;
+
+                    this.applyAST(mixed.public, info.ast.public, {defined: name});
+                    this.applyAST(mixed.private, info.ast.private, {defined: name});
+                    info.isInternalsGenerated = true;
                 }
-
-                console.log(internals)
-                mixed.items = internals;
-                this.applyAST(mixed.public, info.ast.public, {defined: name});
-                this.applyAST(mixed.private, info.ast.private, {defined: name});
-
                 // TODO if(no other deps)
                 this.world[name] = mixed;
                 if(ast.tags){
                     mixed.tags = ast.tags;
                 }
-                mixed.name = name;
+
                 info.ready = true;
                 //debugger
             }else{
@@ -308,6 +321,9 @@ module.exports = (function () {
                 this.world[name] = info.ast;
             }
 
+        },
+        getUID: function(cls){
+            return cls+'_I'+(++objectCounter);
         },
         tryInspect: function(name){
             // collecting metadata and compiling are possible only after all
@@ -354,7 +370,7 @@ module.exports = (function () {
             if(fn === false){
                 throw new Error('NO WAY. UNKNOWN METHOD');
             }
-            return fn.call(this, obj);
+            return fn.apply(this, Array.prototype.slice.call(arguments,1));
         },
         loaded: function(name){
             var i, _i, waitingForList = this.waitingFor[name], waitList,
