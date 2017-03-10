@@ -223,7 +223,8 @@ module.exports = (function () {
                     extend: [],
                     name: name,
                     variables: {},
-                    props: {}
+                    props: {},
+                    ast: ast
                 },
                 clsInfo,
                 items, item, itemName,
@@ -248,61 +249,13 @@ module.exports = (function () {
                     info.isMixed = true;
                 }
                 if(!info.isInternalsGenerated) {
-                    items = info.ast.items;
-                    for (i = 0, _i = items.length; i < _i; i++) {
-                        item = items[i];
-                        itemName = (item.class && item.class.data) || (item.name && item.name.data);
-                        if (
-                            (itemName in mixed.public) ||
-                            (itemName in mixed.private)
-                        ) {
 
-                        } else if (itemName in this.world) {
-
-                        } else {
-                            moreDependencies = true;
-                            this.addDependency(name, item.class);
-                        }
-                        mixed.values[itemName] = item.value;
-                    }
-                    /*
-                     1) create named with not piped properties or inline pipes to properties that are already defined
-                     2) create unnamed with inline pipes
-                     3) create other pipes
-                     4) add items as children
-                     */
-
-                    if (moreDependencies) {
-                        console.log('More deps for `' + name + '`: ' + this.wait[name])
-                        return;
-                    }
 
                     // if deps are resolved - try collect information about props\children
-                    var internals = [];
-                    for (i = 0, _i = items.length; i < _i; i++) {
-                        item = items[i];
-                        itemName = (item.class && item.class.data) || (item.name && item.name.data);
-                        if (
-                            (itemName in mixed.public) ||
-                            (itemName in mixed.private)
-                        ) {
-                            internals.push({type: 'property', name: itemName, item: item});
-                        } else if (itemName in this.world) {
-                            var childItem = {type: 'child', class: item.class.data, item: item};
-                            if (item.name){
-                                childItem.name = item.name.data;
-                            }else{
-                                childItem.name = this.getUID(childItem.class);
-                            }
 
-                            this.callMethod('__dig', childItem, mixed);
-
-                            internals.push(childItem);
-                        }
-                    }
 
                     //console.log(internals)
-                    mixed.items = internals;
+                    this.callMethod('__dig', mixed, mixed);
 
                     this.applyAST(mixed.public, info.ast.public, {defined: name});
                     this.applyAST(mixed.private, info.ast.private, {defined: name});

@@ -51,24 +51,79 @@ module.exports = (function () {
                 esprima.parse(source.join('\n'))
             );
         },
-        __dig: function(obj, collector) {
-            var item = obj.item,
-                data;
+        __dig: function(obj, cls) {
+            var item = obj.ast,
+                data, itemName, i, _i, items,
+                moreDependencies = false;
+
             if(item.type === 'DEFINE'){
 
                 data = {
-                    class: item.class.data
+                    class: obj === cls ? item.name.data : item.class.data
                 };
                 if(!item.name){
                     item.name = {data: this.getUID(item.class.name)};
                 }
                 data.name = item.name.data;
-                collector.variables[item.name.data] = data;
+                cls.variables[item.name.data] = data;
 
                 data.value = this.callMethod('__getValue', obj.value);
 
                 // if(obj.items) => recursively go around. store links to collector
                 // value: {val: value, deps: [o1, o2], type: function|raw|pipe}
+
+                items = cls.ast.items;
+                for (i = 0, _i = items.length; i < _i; i++) {
+                    item = items[i];
+                    itemName = (item.class && item.class.data) || (item.name && item.name.data);
+                    if (
+                        (itemName in cls.public) ||
+                        (itemName in cls.private)
+                    ) {
+
+                    } else if (itemName in this.world) {
+
+                    } else {
+                        moreDependencies = true;
+                        this.addDependency(name, item.class);
+                    }
+                    cls.values[itemName] = item.value;
+                }
+                /*
+                 1) create named with not piped properties or inline pipes to properties that are already defined
+                 2) create unnamed with inline pipes
+                 3) create other pipes
+                 4) add items as children
+                 */
+
+                if (moreDependencies) {
+                    console.log('More deps for `' + name + '`: ' + this.wait[name])
+                    return;
+                }
+
+                var internals = [];
+                for (i = 0, _i = items.length; i < _i; i++) {
+                    item = items[i];
+                    itemName = (item.class && item.class.data) || (item.name && item.name.data);
+                    if (
+                        (itemName in cls.public) ||
+                        (itemName in cls.private)
+                    ) {
+                        internals.push({type: 'property', name: itemName, item: item});
+                    } else if (itemName in this.world) {
+                        var childItem = {type: 'child', class: item.class.data, item: item};
+                        if (item.name){
+                            childItem.name = item.name.data;
+                        }else{
+                            childItem.name = this.getUID(childItem.class);
+                        }
+
+                        this.callMethod('__dig', childItem, cls);
+
+                        internals.push(childItem);
+                    }
+                }
+                mixed.items = internals;
 
                 if(obj.class === 'VBox'){
 
