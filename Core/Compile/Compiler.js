@@ -249,8 +249,6 @@ module.exports = (function () {
                     info.isMixed = true;
                 }
                 if(!info.isInternalsGenerated) {
-
-
                     // if deps are resolved - try collect information about props\children
 
 

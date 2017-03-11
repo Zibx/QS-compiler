@@ -67,12 +67,16 @@ module.exports = (function () {
                 data.name = item.name.data;
                 cls.variables[item.name.data] = data;
 
-                data.value = this.callMethod('__getValue', obj.value);
+                if(obj.value) {
+                    data.value = this.callMethod('__getValue', obj.value);
+                }else{
+
+                }
 
                 // if(obj.items) => recursively go around. store links to collector
                 // value: {val: value, deps: [o1, o2], type: function|raw|pipe}
 
-                items = cls.ast.items;
+                items = obj.ast.items;
                 for (i = 0, _i = items.length; i < _i; i++) {
                     item = items[i];
                     itemName = (item.class && item.class.data) || (item.name && item.name.data);
@@ -85,7 +89,7 @@ module.exports = (function () {
 
                     } else {
                         moreDependencies = true;
-                        this.addDependency(name, item.class);
+                        this.addDependency(cls.name, item.class);
                     }
                     cls.values[itemName] = item.value;
                 }
@@ -97,7 +101,7 @@ module.exports = (function () {
                  */
 
                 if (moreDependencies) {
-                    console.log('More deps for `' + name + '`: ' + this.wait[name])
+                    console.log('More deps for `' + cls.name + '`: ' + this.wait[cls.name])
                     return;
                 }
 
@@ -109,21 +113,30 @@ module.exports = (function () {
                         (itemName in cls.public) ||
                         (itemName in cls.private)
                     ) {
-                        internals.push({type: 'property', name: itemName, item: item});
+                        internals.push({
+                            type: 'property',
+                            name: itemName,
+                            item: item
+                        });
                     } else if (itemName in this.world) {
-                        var childItem = {type: 'child', class: item.class.data, item: item};
+                        var childItem = {
+                            type: 'child',
+                            class: item.class.data,
+                            ast: item,
+                            name: itemName
+                        };
                         if (item.name){
                             childItem.name = item.name.data;
                         }else{
                             childItem.name = this.getUID(childItem.class);
                         }
-
+                        console.log(childItem.name)
                         this.callMethod('__dig', childItem, cls);
 
                         internals.push(childItem);
                     }
                 }
-                mixed.items = internals;
+                obj.items = internals;
 
                 if(obj.class === 'VBox'){
 
