@@ -24,7 +24,27 @@ module.exports = (function () {
 
 
             ctor.push('ctor: function(){');
-            
+
+            for(var where in obj.instances){
+                obj.instances[where].forEach(function (what) {
+                    ctor.push('var '+what.name+' = new '+what.class+'()');
+                });
+
+            }
+            for(var where in obj.instances) {
+                obj.instances[where].forEach(function (what) {
+                    ctor.push((where === '___this___' ? 'this' : where ) + '.addChild(' + what.name + ');');
+                });
+            }
+            for(var where in obj.values){
+                var properties = obj.values[where];
+                for(var propName in properties){
+                    var prop = properties[propName];
+                    ctor.push(
+                        (where === '___this___' ? 'this' : where ) + '.set(' + prop.name + ', '+ this.getPropertyValue(prop)+');');
+                };
+
+            }
             //obj.public
             
             ctor.push('}');
@@ -50,6 +70,21 @@ module.exports = (function () {
             return escodegen.generate(
                 esprima.parse(source.join('\n'))
             );
+        },
+        __isProperty: function (cls, prop) {
+            var info = this.world[cls.class || cls.name],
+                propInfo;
+            if(!info)
+                return false;
+
+            propInfo = info.public[prop] || info.private[prop];
+            if(propInfo)
+                return propInfo;
+
+            // TODO recursive go up
+
+            return false;
+            //debugger;
         },
         __dig: function(obj, cls) {
             var item = obj.ast,
@@ -80,10 +115,10 @@ module.exports = (function () {
                 for (i = 0, _i = items.length; i < _i; i++) {
                     item = items[i];
                     itemName = (item.class && item.class.data) || (item.name && item.name.data);
-                    if (
-                        (itemName in cls.public) ||
-                        (itemName in cls.private)
-                    ) {
+                    var prop = this.callMethod('__isProperty', obj, itemName);
+                    if (prop) {
+
+
 
                     } else if (itemName in this.world) {
 
@@ -91,7 +126,7 @@ module.exports = (function () {
                         moreDependencies = true;
                         this.addDependency(cls.name, item.class);
                     }
-                    cls.values[itemName] = item.value;
+                    //obj.values[itemName] = item.value;
                 }
                 /*
                  1) create named with not piped properties or inline pipes to properties that are already defined
@@ -109,21 +144,40 @@ module.exports = (function () {
                 for (i = 0, _i = items.length; i < _i; i++) {
                     item = items[i];
                     itemName = (item.class && item.class.data) || (item.name && item.name.data);
-                    if (
-                        (itemName in cls.public) ||
-                        (itemName in cls.private)
-                    ) {
-                        internals.push({
+
+                    var prop = this.callMethod('__isProperty', obj, itemName);
+
+                    var objectName = obj.name;
+                    if(obj === cls) {
+                        objectName = '___this___';
+                    }
+
+                    if (prop) {
+
+                        /*}
+                        if (
+                            (itemName in cls.public) ||
+                            (itemName in cls.private)
+                        ) {*/
+                        var value = {
                             type: 'property',
                             name: itemName,
                             item: item
-                        });
+                        };
+                        internals.push(value);
+
+                        if(!(obj.name in cls.values))
+                            cls.values[objectName] = {};
+
+                        cls.values[objectName][itemName] = value;
+
                     } else if (itemName in this.world) {
                         var childItem = {
                             type: 'child',
                             class: item.class.data,
                             ast: item,
-                            name: itemName
+                            name: itemName,
+                            values: {}
                         };
                         if (item.name){
                             childItem.name = item.name.data;
@@ -134,13 +188,20 @@ module.exports = (function () {
                         this.callMethod('__dig', childItem, cls);
 
                         internals.push(childItem);
+
+                        if(!('instances' in cls))
+                            cls.instances = {};
+
+                        (cls.instances[objectName] = cls.instances[objectName] || []).push(childItem);
+
+
                     }
                 }
                 obj.items = internals;
 
                 if(obj.class === 'VBox'){
 
-                    debugger;
+                    //debugger;
                 }
             }else{
 

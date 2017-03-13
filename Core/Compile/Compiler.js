@@ -139,7 +139,9 @@ module.exports = (function () {
         systemQS('Page'),
         systemQS('UIComponent'),
         systemQS('VBox'),
-        systemQS('Timer')
+        systemQS('Timer'),
+        systemQS('Slider'),
+        systemQS('Label')
 
     ];
 
@@ -212,10 +214,15 @@ module.exports = (function () {
                 to[i] = convertAST(from[i], additional);
             }
         },
+        getPropertyValue: function (item) {
+            return JSON.stringify(item.item.value.map(function (val) {
+                return val.data;
+            }).join(''));
+        },
         define: function(name){
             var info = this._world[name],
                 ast = info.ast, i, _i, extend,
-                mixed = info.mixed = info.mixed || {
+                mixed = this.world[name] = info.mixed = info.mixed || {
                     public: {},
                     private: {},
                     values: {},
@@ -260,7 +267,7 @@ module.exports = (function () {
                     info.isInternalsGenerated = true;
                 }
                 // TODO if(no other deps)
-                this.world[name] = mixed;
+                //this.world[name] = mixed;
                 if(ast.tags){
                     mixed.tags = ast.tags;
                 }

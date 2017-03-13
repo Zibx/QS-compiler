@@ -225,7 +225,12 @@ module.exports = function (matchers) {
         if(rules.length) {
             var out = rules.filter(function(rule){
                 return rule.type === 'END';
-            }).map(function(item){
+            });
+            
+            if(out.length>1)
+                debugger;
+
+            out = out.map(function(item){
                 var out = {},
                     store = item.store, i;
                 for( i in store ){
@@ -233,6 +238,7 @@ module.exports = function (matchers) {
                 }
                 return out;
             });
+
             if(out.length)
                 return out[0];
         }else
