@@ -225,10 +225,10 @@ module.exports = (function () {
 
                         if(item.value && item.value.length){
 
-                            objectName = childItem.name;
+                            var childObjectName = childItem.name;
 
                             if(!(objectName in cls.values))
-                                cls.values[objectName] = {};
+                                cls.values[childObjectName] = {};
 
                             prop = this.callMethod('__isProperty', item, 'value');
 
@@ -239,8 +239,17 @@ module.exports = (function () {
                                 info: prop
                             };
 
-                            cls.values[objectName].value = value;
+                            if(!(childObjectName in cls.values))
+                                cls.values[childObjectName] = {};
+
+                            cls.values[childObjectName].value = value;
                         }
+
+                        if(item.events && item.events.length){
+                            console.log('&',item.events)
+                        }
+
+
                     }
 
 

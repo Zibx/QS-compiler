@@ -5,7 +5,7 @@ def Page main
 
     public VBox v1:774
 
-        Slider s1: 50
+        Slider s1: {{s2}}
             from: 11
             to: 255
             fillColor: rgb({{s1|0}}, 0, 0)
