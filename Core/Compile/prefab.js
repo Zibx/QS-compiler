@@ -39,13 +39,20 @@ module.exports = (function () {
                     ctor.push(
                         (where === '___this___' ? 'this' : where ) + '.set(\'' + prop.name + '\', '+ this.getPropertyValue(prop)+');');
                 }
-
             }
 
             for(var where in obj.instances) {
                 obj.instances[where].forEach(function (what) {
                     ctor.push((where === '___this___' ? 'this' : where ) + '.addChild(' + what.name + ');');
                 });
+            }
+            var _self = this;
+            for(var who in obj.events) {
+                for(var whatHappens in obj.events[who]) {
+                    obj.events[who][whatHappens].forEach(function(evt){
+                        ctor.push((who === '___this___' ? 'this' : who ) + '.on(\'' + whatHappens + '\', '+_self.getPropertyValue(evt)+');');
+                    });
+                }
             }
             //obj.public
             
@@ -54,7 +61,7 @@ module.exports = (function () {
                 props.push(i+':{}')
             }
             ctor = ctor.join('\n');
-            props = '_prop: {\n'+props.join(',\n')+'\n}\n';
+            props = '_prop: {\n'+ props.join(',\n') +'\n}\n';
 
 
 
@@ -175,8 +182,6 @@ module.exports = (function () {
 
                     var prop = this.callMethod('__isProperty', obj, itemName);
 
-
-
                     if (prop) {
 
                         /*}
@@ -245,8 +250,37 @@ module.exports = (function () {
                             cls.values[childObjectName].value = value;
                         }
 
-                        if(item.events && item.events.length){
-                            console.log('&',item.events)
+                        if(item.events){
+
+                            for(var eventName in item.events){
+
+                                item.events[eventName].forEach(function (event) {
+
+                                    if(!('events' in cls)){
+                                        cls.events = {};
+                                    }
+                                    if(!(childItem.name in cls.events))
+                                        cls.events[childItem.name] = {};
+
+                                    var name = event.name.data;
+
+                                    (cls.events[childItem.name][name] ||
+                                    (cls.events[childItem.name][name] = []))
+                                        .push(event.value);
+
+                                });
+
+
+                                /*
+                                if(!(childObjectName in cls.values))
+                                    cls.values[childObjectName] = {};
+
+                                cls.values[childObjectName].value = value;
+                                */
+
+                            }
+                            //console.log('&',item.events);
+
                         }
 
 
@@ -256,10 +290,6 @@ module.exports = (function () {
                 }
                 obj.items = internals;
 
-                if(obj.class === 'VBox'){
-
-                    //debugger;
-                }
             }else{
 
             }

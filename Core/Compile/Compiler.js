@@ -216,9 +216,13 @@ module.exports = (function () {
         },
         getPropertyValue: function (item) {
             //console.log(item);
-            var info = item.info,
+            var info = item.info || item,
 
-                arr = item.item.value.map(function (val) {
+                arr;
+            if(info.type === 'FUNCTION'){
+                return 'function(){'+info.body.data+'}';
+            }
+            arr = item.item.value.map(function (val) {
                     return val.data;
                 });
             if(info && info.type === 'Number')
