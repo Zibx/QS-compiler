@@ -215,6 +215,9 @@ module.exports = (function () {
             }
         },
         getPropertyValue: function (item) {
+            console.log(item);
+
+
             return JSON.stringify(item.item.value.map(function (val) {
                 return val.data;
             }).join(''));

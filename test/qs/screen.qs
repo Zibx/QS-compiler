@@ -10,7 +10,7 @@ def Page main
             to: 255
             fillColor: rgb({{s1|0}}, 0, 0)
 
-        Label: Red: {{s1}}
+        Label l: {{s1}}
 
         Slider s2: 100
             from: -255
