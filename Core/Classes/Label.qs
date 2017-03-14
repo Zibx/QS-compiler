@@ -1,2 +1,2 @@
 def UIComponent Label
-    public value String
+    public String value

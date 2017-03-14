@@ -3,3 +3,4 @@ def UIComponent Slider
     public Number to
     public Number step
     public String fillColor
+    public Number value

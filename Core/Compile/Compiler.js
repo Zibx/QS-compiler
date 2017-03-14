@@ -215,12 +215,16 @@ module.exports = (function () {
             }
         },
         getPropertyValue: function (item) {
-            console.log(item);
+            //console.log(item);
+            var info = item.info,
 
+                arr = item.item.value.map(function (val) {
+                    return val.data;
+                });
+            if(info && info.type === 'Number')
+                return arr.join('');
 
-            return JSON.stringify(item.item.value.map(function (val) {
-                return val.data;
-            }).join(''));
+            return JSON.stringify(arr.join(''));
         },
         define: function(name){
             var info = this._world[name],

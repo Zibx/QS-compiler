@@ -74,7 +74,7 @@ module.exports = (function () {
             );
         },
         __isProperty: function (cls, prop) {
-            var info = this.world[cls.class || cls.name],
+            var info = this.world[(cls.class && cls.class.data) || cls.name],
                 propInfo;
             if(!info)
                 return false;
