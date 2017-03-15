@@ -16,7 +16,63 @@ module.exports = (function () {
      */
     var objectCounter = 0;
     var prefab = require('./prefab');
+    var buildPipe = function(items, obj){
 
+        var i, _i, out = [], item, realOut = [];
+        for(i = 0, _i = items.length; i < _i; i++){
+            item = items[i];
+            if(item.tokens){
+                out = out.concat(item.tokens, obj);
+            }else{
+                out.push(item);
+            }
+        }
+
+        var last;
+        for(i = 0, _i = out.length; i < _i; i++){
+            if(out[i].type === 'PIPE'){
+                realOut.push(last = out[i]);
+            }else{
+                if(!last || last.type === 'PIPE'){
+                    realOut.push(last = out[i]);
+                }else if(last.type !== 'PIPE'){
+                    if(out[i].data)
+                        last.data += out[i].data;
+                }else{
+                    realOut.push(last = out[i]);
+                }
+            }
+            //console.log(out[i].data,i,_i,out[i])
+        }
+        var data = (realOut
+            .map(function(item){return item.type === 'PIPE'?'('+item.data+')':JSON.stringify(item.data)})
+            .join('+'));
+        data = 'new Pipe(function(){'+data+'})';
+        return data;
+    };
+    var searchForPipes = function(token, i, list){
+        if(token.type === 'PIPE')
+            return true;
+
+        if(token.type === 'Brace' && token.info === '{' && token.tokens.length === 3){
+            var subToken = token.tokens[1];
+            if(subToken.type === 'Brace' && subToken.info === '{'){
+                list[i] = {
+                    type: 'PIPE',
+                    tokens: subToken.tokens.slice(1, subToken.tokens.length - 2),
+                    pointer: token.pointer,
+                    data: subToken.data.substr(1, subToken.data.length - 2)
+                };
+            }
+        }
+
+
+        if(token.tokens)
+            if(token.tokens.map(searchForPipes).length)
+                return true;
+        return false;
+    };
+    /*
     var get = function(){
 
     };
@@ -79,7 +135,7 @@ module.exports = (function () {
         return info;
     };
     //return {extract: extract, get: get};
-
+*/
     var tokenizer = require('../Tokenizer'),
         lexer = require('../Preprocess'),
         fs = require('fs'),
@@ -226,16 +282,17 @@ module.exports = (function () {
             if(info.type === 'PIPE'){
                 return 'function(){'+info.body.data+'}';
             }
-            arr = item.item.value.map(function (val) {
-                if(val.type === 'PIPE')
+            arr = item.item.value.map(function (val, i, list) {
+
+                if(searchForPipes(val, i, list))
                     ohNoItSPipe = true;
                 return val.data;
             });
             if(ohNoItSPipe){
-                var value = item.item.value;
-                for(var i = 0, _i = value.length; i < _i; i++){
-                    
-                }
+                var out = buildPipe(item.item.value, {});
+                console.log(out)
+                return out;
+
             }
             if(info && info.type === 'Number')
                 return arr.join('');
