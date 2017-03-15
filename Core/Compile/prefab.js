@@ -37,7 +37,7 @@ module.exports = (function () {
                 for(var propName in properties){
                     var prop = properties[propName];
                     ctor.push(
-                        (where === '___this___' ? 'this' : where ) + '.set(\'' + prop.name + '\', '+ this.getPropertyValue(prop)+');');
+                        (where === '___this___' ? 'this' : where ) + '.set(\'' + prop.name + '\', '+ this.getPropertyValue(prop, obj)+');');
                 }
             }
 
@@ -50,7 +50,7 @@ module.exports = (function () {
             for(var who in obj.events) {
                 for(var whatHappens in obj.events[who]) {
                     obj.events[who][whatHappens].forEach(function(evt){
-                        ctor.push((who === '___this___' ? 'this' : who ) + '.on(\'' + whatHappens + '\', '+_self.getPropertyValue(evt)+');');
+                        ctor.push((who === '___this___' ? 'this' : who ) + '.on(\'' + whatHappens + '\', '+_self.getPropertyValue(evt, obj)+');');
                     });
                 }
             }

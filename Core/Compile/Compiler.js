@@ -218,13 +218,25 @@ module.exports = (function () {
             //console.log(item);
             var info = item.info || item,
 
-                arr;
+                arr,
+                ohNoItSPipe = false;
             if(info.type === 'FUNCTION'){
                 return 'function(){'+info.body.data+'}';
             }
+            if(info.type === 'PIPE'){
+                return 'function(){'+info.body.data+'}';
+            }
             arr = item.item.value.map(function (val) {
-                    return val.data;
-                });
+                if(val.type === 'PIPE')
+                    ohNoItSPipe = true;
+                return val.data;
+            });
+            if(ohNoItSPipe){
+                var value = item.item.value;
+                for(var i = 0, _i = value.length; i < _i; i++){
+                    
+                }
+            }
             if(info && info.type === 'Number')
                 return arr.join('');
 
