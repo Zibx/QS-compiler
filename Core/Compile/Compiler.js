@@ -14,9 +14,22 @@ module.exports = (function () {
        TODO: we do not know how to traverse a node until
        TODO: we know how to do it
      */
+    var VariableExtractor = require('../JS/VariableExtractor');
+    var bodyParser = function(body){
+        var vars = {};
+        try {
+            vars = VariableExtractor.parse(body.data).getFullUnDefined();
+        }catch(e){
+            body.pointer.error(e.description, {
+                col: e.column,
+                row: e.lineNumber - 1 + body.pointer.row
+            });
+        }
+        body.vars = vars;
+    };
     var objectCounter = 0;
     var prefab = require('./prefab');
-    var buildPipe = function(items, obj){
+    var buildPipe = function(items, obj, whos){
 
         var i, _i, out = [], item, realOut = [];
         for(i = 0, _i = items.length; i < _i; i++){
@@ -42,12 +55,79 @@ module.exports = (function () {
                     realOut.push(last = out[i]);
                 }
             }
+
             //console.log(out[i].data,i,_i,out[i])
         }
         var data = (realOut
-            .map(function(item){return item.type === 'PIPE'?'('+item.data+')':JSON.stringify(item.data)})
+            .map(function(item){return item.type === 'PIPE' ? '('+ item.data +')' : JSON.stringify(item.data)})
             .join('+'));
-        data = 'new Pipe(function(){'+data+'})';
+        var pipe = {data: data, pointer: items[0].pointer};
+
+        bodyParser(pipe);
+
+
+        var pipeSources = [];
+        var mutatorArgs = [],
+            targetProperty;
+        var fn = pipe.fn,
+            childId = whos;
+
+
+        targetProperty = whos;
+        if (whos !== 'this') {
+            childId = 'self';
+            targetProperty = prop.name;
+        }
+
+        if (prop._type === 'Number' || prop._type === 'Array')
+            fn = tools.compilePipe.raw(fn);
+        else
+            fn = tools.compilePipe.string(fn);
+
+        /** do magic */
+        /*fn = this._functionTransform(fn);
+         fn = {"var1":"cf.cardData.name"," fn ":"JSON.stringify(var1);"};*/
+        //console.log(this.functionWaterfall(fn))
+        var env, cache = {};
+        for (var cName in pipe.vars) {
+            for (var fullName in pipe.vars[cName]) {
+
+                var pipeVars = pipe.vars[cName][fullName];
+                for (var i = 0, _i = pipeVars.length; i < _i; i++) {
+                    var pipeVar = pipeVars[i];
+                    //var source;// = '\'' + fullName + '\'';
+                    var source = tools.getVarAccessor(pipeVar, cls, scope);
+                    if (!cache[source]) {
+                        cache[source] = true;
+                        pipeSources.push(source);
+
+                        var mArg = fullName.replace(/\./g, ''),
+                            varName = ASTtransformer.craft.js(pipeVar);
+                        mutatorArgs.push(mArg);
+
+                        fn = fn.replace(new RegExp(varName.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"), 'g'), mArg);
+                    }
+                }
+            }
+        }
+
+        return 'this.createDependency([\n' +
+            '\t\t' +
+            pipeSources.map(function (item) {
+                console.log(item);
+                return item;
+            }).join(',') +
+            '\n\t],' + childId + '.id+\'.' + targetProperty + '\',\n' +
+            '\tfunction (' + mutatorArgs.join(',') + ') {\n' +
+            '\t\treturn ' + fn + '\n' +
+            '\t});';
+
+
+
+
+
+        data = 'new Pipe(function(){return '+data+'})';
+
         return data;
     };
     var searchForPipes = function(token, i, list){
@@ -270,7 +350,7 @@ module.exports = (function () {
                 to[i] = convertAST(from[i], additional);
             }
         },
-        getPropertyValue: function (item) {
+        getPropertyValue: function (item, obj, whos) {
             //console.log(item);
             var info = item.info || item,
 
@@ -289,7 +369,7 @@ module.exports = (function () {
                 return val.data;
             });
             if(ohNoItSPipe){
-                var out = buildPipe(item.item.value, {});
+                var out = buildPipe(item.item.value, obj, whos);
                 console.log(out)
                 return out;
 

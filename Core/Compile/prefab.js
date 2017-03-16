@@ -36,8 +36,9 @@ module.exports = (function () {
                 var properties = obj.values[where];
                 for(var propName in properties){
                     var prop = properties[propName];
+                    var whos = (where === '___this___' ? 'this' : where );
                     ctor.push(
-                        (where === '___this___' ? 'this' : where ) + '.set(\'' + prop.name + '\', '+ this.getPropertyValue(prop, obj)+');');
+                        whos + '.set(\'' + prop.name + '\', '+ this.getPropertyValue(prop, obj, whos)+');');
                 }
             }
 
@@ -50,7 +51,8 @@ module.exports = (function () {
             for(var who in obj.events) {
                 for(var whatHappens in obj.events[who]) {
                     obj.events[who][whatHappens].forEach(function(evt){
-                        ctor.push((who === '___this___' ? 'this' : who ) + '.on(\'' + whatHappens + '\', '+_self.getPropertyValue(evt, obj)+');');
+                        var whos = (who === '___this___' ? 'this' : who );
+                        ctor.push(whos + '.on(\'' + whatHappens + '\', '+_self.getPropertyValue(evt, obj, whos)+');');
                     });
                 }
             }
