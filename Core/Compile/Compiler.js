@@ -15,6 +15,134 @@ module.exports = (function () {
        TODO: we know how to do it
      */
     var VariableExtractor = require('../JS/VariableExtractor');
+    var primitives = {
+        'Number': true, 'String': true, 'Array': true, 'Boolean': true, 'Function': true
+    },
+        escodegen = require('escodegen');;
+    var getVarInfo = function (stack, obj, child) {
+        //var metadata = cls.metadata;
+        var i, _i, out = [], node, env, selfFlag = false, context = false,
+            envFlag, propFlag, valueFlag = false, thisFlag = false, lastEnv, lastName,
+
+            firstTry = true,
+
+
+            name;
+        for (i = 0, _i = stack.length; i < _i; i++) {
+
+            envFlag = propFlag = false;
+
+            node = stack[i];
+            if (node.type === 'Literal')
+                name = node.value;
+            else
+                name = node.name;
+
+            if (!env || env._type !== 'Variant') {
+
+                if (node.type === 'ThisExpression') {
+                    env = child;
+                    thisFlag = true;
+                } else {
+                    env = obj.variables[name];// this.isNameOfEnv(name, metadata);
+                    if (env)
+                        envFlag = true;
+                }
+
+                if (env && i === 0 && env.class in primitives) { // first token is from `self`
+                    selfFlag = true;
+                }
+
+                if (!env) {
+                    env = obj.variables[name];//this.isNameOfProp(name, metadata);
+
+                    //if (!env)
+                        //env = this.isNameOfProp(name, shadow[metadata._type]);
+
+                    if (env)
+                        propFlag = true;
+                }
+
+                if (!env) {
+                    if(firstTry){
+                        // on first search we can try to find prop in root parent info
+                        metadata = cls.root.metadata;
+                        if(metadata){
+                            i--;
+                            firstTry = false;
+                            continue;
+                        }
+                    }
+
+                    if (lastEnv) {
+                        console.log(out);
+                        cls.metadata.source.error('Can not resolve `' + name + '` from `' + lastName + '` <' + lastEnv._type + '>',
+                            [node.loc.start.line-1,node.loc.start.column+1]
+                        );
+                        throw new Error('Can not resolve `' + name + '` from `' + lastName + '` <' + lastEnv._type + '>');
+                    } else
+                        throw new Error('Unknown variable `' + name + '`');
+                }
+            }
+            if (env._type in primitives) {
+                metadata = shadow[env._type];
+                if (context === false) {
+                    context = i;
+                    // we need to keep context
+                    if (env._type === 'Function')
+                        context--;
+                }
+                //if(i < _i - 1)
+                //    throw new Error('Can not get `'+ stack[i+1].name +'` of primitive value `'+node.name+'` <'+env.type+'>')
+            }/* else {\//TODO: go deepeer
+                metadata = shadow[env._type];
+                if(!metadata)
+                    metadata = cls.root.scope.metadata[env._type];
+                if(!metadata)
+                    debugger;
+            }*/
+            out.push({ name: name, env: envFlag, prop: propFlag, node: node, e: env });
+            lastEnv = env;
+            lastName = name;
+            firstTry = false;
+        }
+        if (!(env._type in primitives || env._type === 'Variant')) {
+            valueFlag = true;
+        }
+        if (out[0].prop)
+            selfFlag = true;
+
+        return {
+            varParts: out,
+            self: selfFlag,
+            context: context,
+            valueFlag: valueFlag,
+            thisFlag: thisFlag
+        };
+    };
+    var getVarAccessor = function (tree, cls, scope) {
+        var pointer = tree, stack = [],
+            metadata = cls.metadata,
+            info;
+        if (pointer.object) {
+
+            while (pointer.object) {
+                stack.push(pointer.property);
+                pointer = pointer.object;
+            }
+            stack.push(pointer);
+            stack = stack.reverse();
+        } else {
+            stack.push(pointer);
+        }
+
+        info = getVarInfo(stack, cls);
+        if (info.valueFlag)
+            info.varParts.push({name: 'value'});
+        return info.varParts[0].name+'.ref('+ (info.varParts.length>1?'\''+ info.varParts.slice(1).map(function(item){return item.name;}).join('.') +'\'':'') +')'/*(info.self ? 'self.id+\'.' : '\'') + info.varParts.map(function (el) {
+                return el.name;
+            }).join('.') + '\'';*/
+    };
     var bodyParser = function(body){
         var vars = {};
         try {
@@ -61,7 +189,7 @@ module.exports = (function () {
         var data = (realOut
             .map(function(item){return item.type === 'PIPE' ? '('+ item.data +')' : JSON.stringify(item.data)})
             .join('+'));
-        var pipe = {data: data, pointer: items[0].pointer};
+        var pipe = {data: data, pointer: items[0].pointer, fn: data};
 
         bodyParser(pipe);
 
@@ -74,16 +202,16 @@ module.exports = (function () {
 
 
         targetProperty = whos;
-        if (whos !== 'this') {
+        /*if (whos !== 'this') {
             childId = 'self';
             targetProperty = prop.name;
-        }
-
+        }*/
+/*
         if (prop._type === 'Number' || prop._type === 'Array')
             fn = tools.compilePipe.raw(fn);
         else
             fn = tools.compilePipe.string(fn);
-
+*/
         /** do magic */
         /*fn = this._functionTransform(fn);
          fn = {"var1":"cf.cardData.name"," fn ":"JSON.stringify(var1);"};*/
@@ -96,13 +224,13 @@ module.exports = (function () {
                 for (var i = 0, _i = pipeVars.length; i < _i; i++) {
                     var pipeVar = pipeVars[i];
                     //var source;// = '\'' + fullName + '\'';
-                    var source = tools.getVarAccessor(pipeVar, cls, scope);
+                    var source = getVarAccessor(pipeVar, obj);
                     if (!cache[source]) {
                         cache[source] = true;
                         pipeSources.push(source);
 
                         var mArg = fullName.replace(/\./g, ''),
-                            varName = ASTtransformer.craft.js(pipeVar);
+                            varName = escodegen.generate(pipeVar);
                         mutatorArgs.push(mArg);
 
                         fn = fn.replace(new RegExp(varName.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"), 'g'), mArg);
@@ -111,7 +239,16 @@ module.exports = (function () {
             }
         }
 
-        return 'this.createDependency([\n' +
+        var parts = [];
+        pipeSources.forEach(function (item) {
+            parts.push(item)
+        });
+        parts.push('function('+mutatorArgs.join(',')+'){\n' +
+            '\treturn '+data+';\n' +
+            '}');
+        return 'new Pipe('+parts.join(', ')+')';
+
+        /*'this.createDependency([\n' +
             '\t\t' +
             pipeSources.map(function (item) {
                 console.log(item);
@@ -128,7 +265,7 @@ module.exports = (function () {
 
         data = 'new Pipe(function(){return '+data+'})';
 
-        return data;
+        return data;*/
     };
     var searchForPipes = function(token, i, list){
         if(token.type === 'PIPE')
