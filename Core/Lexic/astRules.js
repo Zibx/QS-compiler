@@ -60,6 +60,9 @@ module.exports = (function () {
         ],
         'FUNCTION': [
             {type: '?', items: [
+                {type: 'WORD', put: 'returnType', 'notData': ['function', 'fn', 'fun', 'func']}
+            ]},
+            {type: '?', items: [
                 {type: 'WORD', data: ['function', 'fn', 'fun', 'func']}
             ]},
             {type: 'Brace', info: '(', put: 'arguments'},

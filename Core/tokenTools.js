@@ -96,7 +96,7 @@ module.exports = (function () {
                 line, i, _i, j;
             for(i = 0, _i = tokens.length; i < _i; i++){
                 token = tokens[i];
-                if('data' in token || '_data' in token) {
+                if(('data' in token || '_data' in token)&&token.type !== 'Comment') {
                     insertInLine = token.pointer.row - firstLine;
                     tokenCol = token.pointer.col;
                     if(!(insertInLine in lines)) {
@@ -118,7 +118,7 @@ module.exports = (function () {
                 }
 
             }
-            return {data: lines.join('\n'), pointer: tokens[0].pointer};
+            return {data: lines.join(''), pointer: tokens[0].pointer};
         }
     };
     return tools;

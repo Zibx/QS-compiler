@@ -15,6 +15,9 @@ module.exports = (function(){
         match = require('./astMatcher')(matchers),
         tTools = require('../tokenTools'),
         VariableExtractor = require('../JS/VariableExtractor');
+
+    var UNKNOWN_ARGUMENT_TYPE = 'Variant',
+        EMPTY_RETURN_VALUE = 'void';
     var bodyParser = function(body){
         var vars = {};
         try {
@@ -28,7 +31,7 @@ module.exports = (function(){
         body.vars = vars;
     };
 
-    var subMatcher = function(parent){
+    var subMatcher = function(parent, storage){
         return function(item){
             var matched,
                 isPublic,
@@ -62,15 +65,24 @@ module.exports = (function(){
                     .push(matched);
             }else if(matched = match('METADATA', item)){
                 // TODO: not parent, but next folowing prop
-                (parent.tags[matched.name.data] ||
-                (parent.tags[matched.name.data] = []))
+
+                (storage.tags[matched.name.data] ||
+                (storage.tags[matched.name.data] = []))
                     .push(matched);
+                storage.anyTags = true;
             }
 
             if(!matched){
                 // RAW DATA. component may have custom syntax
                 parent.unclassified.push(item);
             }else{
+                if(matched._matchType !== 'METADATA' && storage.anyTags){
+                    Object.assign(matched.tags = {}, storage.tags);
+
+                    storage.tags = {};
+                    storage.anyTags = false;
+                }
+
                 if(matched.value){
                     var fn = match('FUNCTION', {tokens: matched.value});
                     if(fn) {
@@ -89,7 +101,7 @@ module.exports = (function(){
                         if(item.children)
                             bodyTokens = bodyTokens.concat(item.children);
 
-                        //console.log(bodyTokens);
+                        console.log(fn.returnType);
                         matched.value = {
                             type: 'FUNCTION',
                             arguments: fn.arguments.tokens.length < 3 ? [] : tTools.split(
@@ -97,12 +109,31 @@ module.exports = (function(){
                             ).map(tTools.trim),
                             body: tTools.toString(bodyTokens)
                         };
-                        console.log(matched.value.body)
-                        bodyParser(matched.value.body)
+
+                        /** TODO check for return in js ast. DIRTY HACK*/
+                        if(fn.returnType){
+                            matched.value.returnType = fn.returnType.data
+                        }else{
+                            matched.value.returnType = fn.body.data.indexOf('return')>-1 ?
+                                UNKNOWN_ARGUMENT_TYPE
+                                : EMPTY_RETURN_VALUE;
+                        }
+
+                        /** END OF DIRTY HACK */
+
+                        bodyParser(matched.value.body);
 
                         matched.value['arguments'] = matched.value['arguments'].map(function(item){
                             // argument info extraction
-                            return {name: item[0].data, pointer: item[0].pointer};
+                            var argType = item.length>1?
+                                tTools.trim(item.slice(0, item.length - 1))
+                                    .map(function(item){return item.data;})
+                                    .join('')
+                                :UNKNOWN_ARGUMENT_TYPE;
+                            return {
+                                name: item[item.length - 1].data,
+                                type: argType,
+                                pointer: item[0].pointer};
                         });
                         //console.log(matched.value.arguments[0]);
                     }
@@ -119,7 +150,7 @@ module.exports = (function(){
                         raw: [],
                         unclassified: []
                     });
-                    item.children.forEach(subMatcher(matched));
+                    item.children.forEach(subMatcher(matched, {tags: {}}));
                 }
             }
 
@@ -156,7 +187,7 @@ module.exports = (function(){
                     }, definition);
                     ast.push(current);
                     inner = child.children;
-                    inner && inner.forEach(subMatcher(current));
+                    inner && inner.forEach(subMatcher(current, {tags: {}}));
 
                     //console.log(current)
                     //console.log('----')

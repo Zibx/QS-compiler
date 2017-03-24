@@ -85,7 +85,7 @@ module.exports = (function () {
                 }
             }
             if (env._type in primitives) {
-                metadata = shadow[env._type];
+                var metadata = shadow[env._type];
                 if (context === false) {
                     context = i;
                     // we need to keep context
@@ -162,7 +162,9 @@ module.exports = (function () {
         var i, _i, out = [], item, realOut = [];
         for(i = 0, _i = items.length; i < _i; i++){
             item = items[i];
-            if(item.tokens){
+            if(item.type==='PIPE'){
+                out.push(item);
+            }else if(item.tokens){
                 out = out.concat(item.tokens, obj);
             }else{
                 out.push(item);
@@ -276,7 +278,7 @@ module.exports = (function () {
             if(subToken.type === 'Brace' && subToken.info === '{'){
                 list[i] = {
                     type: 'PIPE',
-                    tokens: subToken.tokens.slice(1, subToken.tokens.length - 2),
+                    tokens: subToken.tokens.slice(1, subToken.tokens.length - 1),
                     pointer: token.pointer,
                     data: subToken.data.substr(1, subToken.data.length - 2)
                 };
@@ -408,6 +410,7 @@ module.exports = (function () {
     };
     var system = [
         systemJS('Class'),
+        systemJS('QObject'),
         systemJS('Primitives', true),
         systemQS('Page'),
         systemQS('UIComponent'),
@@ -440,6 +443,19 @@ module.exports = (function () {
         // key - waiting class, value - Array of waiting for classes
         wait: {
 
+        },
+        getTag: function (obj, name) {
+            if(!obj.tags && !obj.tags[name])
+                return false;
+            var items = obj.tags[name], vals;
+
+            return this.extractFirstTag(items);
+        },
+        extractFirstTag: function (tagVal) {
+            if(!tagVal.length)
+                return false;
+
+            return tagVal[0].value.map(function(item){return item.data;}).join('');
         },
         addDependency: function(who, item){
             var _world = this._world,
@@ -507,7 +523,7 @@ module.exports = (function () {
             });
             if(ohNoItSPipe){
                 var out = buildPipe(item.item.value, obj, whos);
-                console.log(out)
+                //console.log(out)
                 return out;
 
             }

@@ -15,19 +15,41 @@ module.exports = (function () {
         __compile: function(obj){
             var baseClassName = obj.extend[0];
             var source = [],
-                i, ctor = [], props = [], cfg;
+                i, ctor = [], props = [], cfg, inlines = [],
 
+                ns,
+                _self = this;
 
+            ns = this.getTag(obj, 'ns') || 'App'+ baseClassName;
 
             source.push('var '+ obj.name +' = '+ baseClassName +
-                '.extend(\'App'+baseClassName+'\', \''+obj.name+'\', {');
+                '.extend(\''+ ns +'\', \''+obj.name+'\', {');
 
 
             ctor.push('ctor: function(){');
 
             for(var where in obj.instances){
                 obj.instances[where].forEach(function (what) {
-                    ctor.push('var '+what.name+' = new '+what.class+'()');
+                    if(what.type === 'child') {
+                        ctor.push('var ' + what.name + ' = new ' + what.class + '()');
+                    }else if(what.type === 'inline'){
+                        var trailingComment = [], tag;
+                        if(what.ast.tags &&
+                            (tag = what.ast.tags.description || what.ast.tags.info)){
+                            trailingComment.push(_self.extractFirstTag(tag),'');
+                        }
+
+                        what.value.arguments.forEach(function(item){
+                            trailingComment.push('@param {'+item.type+'} '+item.name);
+                        });
+                        trailingComment.push('@returns {'+what.value.returnType+'}');
+                        inlines.push(
+                            (trailingComment.length > 0 ? '\n/**\n\t * '+trailingComment.join('\n\t * ')+'\n\t */': '')+
+                            what.name +': function('+
+                            what.value.arguments.map(function(item){return item.name;})
+                                .join(', ')+
+                            '){'+what.value.body.data+'}');
+                    }
                 });
 
             }
@@ -44,9 +66,12 @@ module.exports = (function () {
 
             for(var where in obj.instances) {
                 obj.instances[where].forEach(function (what) {
-                    ctor.push((where === '___this___' ? 'this' : where ) + '.addChild(' + what.name + ');');
+                    if(what.type === 'child') {
+                        ctor.push((where === '___this___' ? 'this' : where ) + '.addChild(' + what.name + ');');
+                    }
                 });
             }
+
             var _self = this;
             for(var who in obj.events) {
                 for(var whatHappens in obj.events[who]) {
@@ -60,14 +85,14 @@ module.exports = (function () {
             
             ctor.push('}');
             for(i in obj.public){
-                props.push(i+':{}')
+                props.push(i+': null')
             }
             ctor = ctor.join('\n');
             props = '_prop: {\n'+ props.join(',\n') +'\n}\n';
 
+//console.log('/////', inlines)
 
-
-            cfg = [ctor, props];
+            cfg = [inlines.join(','), ctor, props];
 
             source.push(cfg.join(','));
 
@@ -76,11 +101,10 @@ module.exports = (function () {
             source.push('});');
 
 
+            var ast = esprima.parse(source.join('\n'), {range: true, tokens: true, comment: true});
+            ast = escodegen.attachComments(ast, ast.comments, ast.tokens);
 
-
-            return escodegen.generate(
-                esprima.parse(source.join('\n'))
-            );
+            return escodegen.generate(ast, {comment: true});
         },
         __isProperty: function (cls, prop) {
             var info = this.world[(cls.class && cls.class.data) || cls.name],
@@ -113,29 +137,22 @@ module.exports = (function () {
                 data.name = item.name.data;
                 cls.variables[item.name.data] = data;
 
-                /*if(obj.value) {
-                    data.value = this.callMethod('__getValue', obj.value);
-                }else{
-
-                }*/
-
-                // if(obj.items) => recursively go around. store links to collector
-                // value: {val: value, deps: [o1, o2], type: function|raw|pipe}
-
                 items = obj.ast.items;
                 for (i = 0, _i = items.length; i < _i; i++) {
                     item = items[i];
+
+
                     itemName = (item.class && item.class.data) || (item.name && item.name.data);
                     var prop = this.callMethod('__isProperty', obj, itemName);
                     if (prop) {
-
-
 
                     } else if (itemName in this.world) {
 
                     } else {
                         moreDependencies = true;
+                        //this.addDependency(obj.class, item.class);
                         this.addDependency(cls.name, item.class);
+                        //this.addDependency(cls.class, obj.class);
                     }
                     //obj.values[itemName] = item.value;
                 }
@@ -147,7 +164,7 @@ module.exports = (function () {
                  */
 
                 if (moreDependencies) {
-                    console.log('More deps for `' + cls.name + '`: ' + this.wait[cls.name])
+                    console.log('More deps for `' + obj.name + '` <'+obj.class+'> in `' + cls.name + '`: ' + this.wait[cls.name].join(', '))
                     return;
                 }
 
@@ -157,26 +174,6 @@ module.exports = (function () {
                     objectName = '___this___';
                 }
 
-                /*
-                 item = obj.ast;
-                 if(item.value){
-                 itemName = 'value';
-                 var value = {
-                 type: 'property',
-                 name: 'value',
-                 item: item,
-                 info: this.callMethod('__isProperty', obj, 'value')
-                 };
-
-
-                 if(!(obj.name in cls.values))
-                 cls.values[objectName] = {};
-
-                 cls.values[objectName][itemName] = value;
-                 }
-                 */
-
-               // debugger;
 
                 for (i = 0, _i = items.length; i < _i; i++) {
                     item = items[i];
@@ -186,11 +183,6 @@ module.exports = (function () {
 
                     if (prop) {
 
-                        /*}
-                         if (
-                         (itemName in cls.public) ||
-                         (itemName in cls.private)
-                         ) {*/
                         var value = {
                             type: 'property',
                             name: itemName,
@@ -205,6 +197,7 @@ module.exports = (function () {
                         cls.values[objectName][itemName] = value;
 
                     }else if (itemName in this.world) {
+                        //console.log(itemName, item.name)
                         var childItem = {
                             type: 'child',
                             class: item.class.data,
@@ -212,12 +205,14 @@ module.exports = (function () {
                             name: itemName,
                             values: {}
                         };
+                        if(childItem.class === 'Function'){
+                            childItem.type = 'inline';
+                        }
                         if (item.name){
                             childItem.name = item.name.data;
                         }else{
                             childItem.name = this.getUID(childItem.class);
                         }
-                        //console.log(childItem.name)
                         this.callMethod('__dig', childItem, cls);
 
                         internals.push(childItem);
@@ -226,9 +221,6 @@ module.exports = (function () {
                             cls.instances = {};
 
                         (cls.instances[objectName] = cls.instances[objectName] || []).push(childItem);
-
-
-
 
                         if(item.value && item.value.length){
 
@@ -250,6 +242,8 @@ module.exports = (function () {
                                 cls.values[childObjectName] = {};
 
                             cls.values[childObjectName].value = value;
+                        }else if(item.value){
+                            childItem.value = item.value;
                         }
 
                         if(item.events){
@@ -273,15 +267,7 @@ module.exports = (function () {
                                 });
 
 
-                                /*
-                                if(!(childObjectName in cls.values))
-                                    cls.values[childObjectName] = {};
-
-                                cls.values[childObjectName].value = value;
-                                */
-
                             }
-                            //console.log('&',item.events);
 
                         }
 

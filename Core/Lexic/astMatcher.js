@@ -175,6 +175,18 @@ module.exports = function (matchers) {
                                 suit = false;
                         }
                     }
+                    if ('notData' in rule) {
+                        if(typeof rule.notData === 'string') {
+                            if (token.data === rule.notData)
+                                suit = false;
+                        }else{
+                            if(rule.notData instanceof Array) {
+                                rule.notData = a2o(rule.notData);
+                            }
+                            if((token.data in rule.notData))
+                                suit = false;
+                        }
+                    }
                     if(whatever){
                         if('put' in rule){
 
@@ -227,15 +239,16 @@ module.exports = function (matchers) {
                 return rule.type === 'END';
             });
             
-            if(out.length>1)
+            /*if(out.length>1)
                 debugger;
-
+*/
             out = out.map(function(item){
                 var out = {},
                     store = item.store, i;
                 for( i in store ){
                     out[i] = store[i];
                 }
+                out._matchType = type;
                 return out;
             });
 

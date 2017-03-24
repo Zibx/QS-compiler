@@ -70,7 +70,7 @@ module.exports = (function(){
                 if(subToken.type === 'Brace' && subToken.info === '{'){
                     return {
                         type: 'PIPE',
-                        tokens: subToken.tokens.slice(1, subToken.tokens.length - 2),
+                        tokens: subToken.tokens.slice(1, subToken.tokens.length - 1),
                         pointer: token.pointer,
                         data: subToken.data.substr(1, subToken.data.length - 2)
                     };
