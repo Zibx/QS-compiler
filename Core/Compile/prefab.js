@@ -91,8 +91,8 @@ module.exports = (function () {
             props = '_prop: {\n'+ props.join(',\n') +'\n}\n';
 
 //console.log('/////', inlines)
-
-            cfg = [inlines.join(','), ctor, props];
+            inlines.push(ctor);
+            cfg = [inlines.join(','), props];
 
             source.push(cfg.join(','));
 
@@ -100,8 +100,12 @@ module.exports = (function () {
 
             source.push('});');
 
-
-            var ast = esprima.parse(source.join('\n'), {range: true, tokens: true, comment: true});
+            try {
+                var ast = esprima.parse(source.join('\n'), {range: true, tokens: true, comment: true});
+            }catch(e){
+                //debugger;
+                console.log('ESPRIMA', source.join('\n'), e)
+            }
             ast = escodegen.attachComments(ast, ast.comments, ast.tokens);
 
             return escodegen.generate(ast, {comment: true});

@@ -452,7 +452,7 @@ module.exports = (function () {
             return this.extractFirstTag(items);
         },
         extractFirstTag: function (tagVal) {
-            if(!tagVal.length)
+            if(!tagVal || !tagVal.length)
                 return false;
 
             return tagVal[0].value.map(function(item){return item.data;}).join('');
