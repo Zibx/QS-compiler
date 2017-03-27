@@ -29,7 +29,9 @@ module.exports = (function () {
             });
 
             //console.log(lex[0])
-            console.log(compiler.compile('AbstractComponent'));
+            var out = compiler.compile('AbstractComponent');
+            console.log(out);
+            fs.writeFileSync('test/generate/AbstractComponent.js', out);
             //console.log(compiler.world.main)
 
             //console.log(JSON.stringify(compiler.world.main.require,null,2))

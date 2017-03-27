@@ -6,22 +6,22 @@ def QObject AbstractComponent
     }
 
     @description: Bind to this._children.on('add'...)
-    Function _onChildAdd: void function (AbstractComponent child) {
+    Function _onChildAdd: function (AbstractComponent child) {
         child.parent = this;
     }
 
     @description: Bind to this._children.on('remove'...)
-    Function _onChildRemove: void function (AbstractComponent child) {
+    Function _onChildRemove: function (AbstractComponent child) {
         child.parent = null;
     }
 
     @description: Bind to this._ownComponents.on('add'...)
-    Function _onOwnComponentAdd: void function (AbstractComponent child) {
+    Function _onOwnComponentAdd: function (AbstractComponent child) {
         child.parent = this;
     }
 
     @description: Bind to this._ownComponents.on('remove'...)
-    Function _onOwnComponentRemove: void function (AbstractComponent child) {
+    Function _onOwnComponentRemove: function (AbstractComponent child) {
         child.parent = null;
     }
 
