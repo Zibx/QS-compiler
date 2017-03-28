@@ -573,7 +573,8 @@ module.exports = (function () {
 
 
                     //console.log(internals)
-                    this.callMethod('__dig', mixed, mixed);
+                    if(this.callMethod('__dig', mixed, mixed)===false)
+                        return false;
 
                     this.applyAST(mixed.public, info.ast.public, {defined: name});
                     this.applyAST(mixed.private, info.ast.private, {defined: name});

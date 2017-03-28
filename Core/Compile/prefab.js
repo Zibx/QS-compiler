@@ -111,7 +111,7 @@ module.exports = (function () {
             return escodegen.generate(ast, {comment: true});
         },
         __isProperty: function (cls, prop) {
-            var info = this.world[(cls.class && cls.class.data) || cls.name],
+            var info = this.world[cls.class ? cls.class || cls.class.data : cls.name],
                 propInfo;
             if(!info)
                 return false;
@@ -169,7 +169,7 @@ module.exports = (function () {
 
                 if (moreDependencies) {
                     console.log('More deps for `' + obj.name + '` <'+obj.class+'> in `' + cls.name + '`: ' + this.wait[cls.name].join(', '))
-                    return;
+                    return false;
                 }
 
                 var internals = [];
@@ -217,7 +217,9 @@ module.exports = (function () {
                         }else{
                             childItem.name = this.getUID(childItem.class);
                         }
-                        this.callMethod('__dig', childItem, cls);
+                        if(this.callMethod('__dig', childItem, cls) === false){
+                            return false;
+                        }
 
                         internals.push(childItem);
 
