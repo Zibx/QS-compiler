@@ -10,7 +10,8 @@
     "jison": "*",
     "source-map": "^0.5.6",
     "escodegen": "*",
-    "esprima": "*"
+    "esprima": "*",
+    "minimist": "*"
   },
   "devDependencies": {
     "chai": "*",

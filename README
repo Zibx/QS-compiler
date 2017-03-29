@@ -1,0 +1,5 @@
+Building.
+
+node build.
+
+clone QComponent4 to dir test/lib
