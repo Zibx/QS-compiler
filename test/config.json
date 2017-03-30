@@ -1,4 +1,4 @@
 {
-  "lib": "test/lib"
-
+  "lib": "test/lib/QComponent4/src",
+  "typeTable": "Core/TypeTable.js"
 }

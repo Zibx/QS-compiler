@@ -2,4 +2,9 @@ Building.
 
 node build.
 
-clone QComponent4 to dir test/lib
+Example:
+  clone QComponent4 to dir test/lib
+
+  look at the example of config in test/config.json
+
+  it is important to specify a Type Table path. Compiler would use it to get the knowledge about namespaces
