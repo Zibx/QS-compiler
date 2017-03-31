@@ -36,6 +36,9 @@ module.exports = (function () {
     var build = function build(cfg){
 
         cfg.config = cfg.config || cfg.c;
+        cfg.verbose = cfg.verbose || cfg.v;
+
+        /** LOAD CONFIG */
         if(!cfg.config)
             showHelp('No config file specified');
 
@@ -49,14 +52,64 @@ module.exports = (function () {
         if(!config.lib){
             showHelp('lib dir is not specified in config');
         }
+
+        /** READ ALL MODULES OF LIB */
         var libDir = path.resolve(config.basePath || __dirname,config.lib);
         try {
             var files = readDirRecursive(libDir);
         }catch(e){
             showHelp('Error reading directory ('+libDir+')', e);
         }
-        console.log(files.map(function(filePath){return path.basename(filePath);}))
+        cfg.verbose && console.log('List of lib files: '+files.map(function(filePath){
+                return path.basename(filePath);
+            }).join(', '));
 
+
+        /** LOAD LIB MODULES */
+        var classes = {};
+        files.forEach(function (filePath) {
+            try {
+                classes[filePath] = require(filePath);
+            }catch(e){
+                showHelp('Can not load module '+filePath, e)
+            }
+        });
+
+        /** LOAD TYPE TABLE */
+        var typeTable;
+        if(!config.typeTable){
+            showHelp('type table dir is not specified in config');
+        }
+
+        var typeTableDir = path.resolve(config.basePath || __dirname, config.lib, config.typeTable);
+        try {
+            typeTable = require(typeTableDir);
+        }catch(e){
+            showHelp('Can not load type table '+typeTableDir, e)
+        }
+
+
+        /** TRY BUILDING */
+        var tokenizer = require('./Core/Tokenizer'),
+            lexer = require('./Core/Preprocess'),
+            Compiler = require('./Core/Compile/Compiler');
+
+        var sourcePath = path.resolve(config.basePath || __dirname, config.build);
+        var data = fs.readFileSync(sourcePath) + '',
+            tokens = tokenizer(data, sourcePath),
+            lex = lexer(tokens);
+
+        var compiler  = new Compiler();
+
+        lex.forEach(function(item){
+            compiler.add(item);
+            //item.metadata = metadata.extract(item);
+        });
+
+
+        console.log(compiler.compile(config.main || 'main'));//typeTable.search('Timer'))
+        
+        
         console.log(config);
         console.dir(cfg);
     };
