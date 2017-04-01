@@ -421,7 +421,10 @@ module.exports = (function () {
 
     ];
 
-    var Compiler = function(){
+    var Compiler = function(cfg){
+
+        typeof cfg === 'object' && Object.assign(this, cfg);
+
         this.world = {};
         this._world = {};
         this.wait = {};
@@ -495,6 +498,9 @@ module.exports = (function () {
                     .forEach(this.addDependency.bind(this, name));
 
             this.tryInspect(name);
+
+        },
+        addNative: function(){
 
         },
         applyAST: function(to, from, additional){
@@ -573,8 +579,11 @@ module.exports = (function () {
 
 
                     //console.log(internals)
-                    if(this.callMethod('__dig', mixed, mixed)===false)
+                    if(this.callMethod('__dig', mixed, mixed)===false) {
+                        if(this.wait[name].length)
+                            this.searchDeps && this.searchDeps(this.wait[name]);
                         return false;
+                    }
 
                     this.applyAST(mixed.public, info.ast.public, {defined: name});
                     this.applyAST(mixed.private, info.ast.private, {defined: name});

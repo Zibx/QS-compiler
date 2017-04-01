@@ -99,7 +99,24 @@ module.exports = (function () {
             tokens = tokenizer(data, sourcePath),
             lex = lexer(tokens);
 
-        var compiler  = new Compiler();
+        var compiler  = new Compiler({
+            searchDeps: function (fileNames) {
+                var i, _i, fileName, matched;
+                for(i = 0, _i = fileNames.length; i < _i; i++){
+                    fileName = fileNames[i];
+                    matched = typeTable.search(fileName);
+                    if(matched.length){
+                        if(matched.length === 1){
+                            compiler.addNative(matched[0])
+                        }else{
+                            throw new Error('TOO COMPLEX (сложна)');
+                        }
+                    }
+                }
+
+
+            }
+        });
 
         lex.forEach(function(item){
             compiler.add(item);
