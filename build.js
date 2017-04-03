@@ -107,7 +107,7 @@ module.exports = (function () {
                     matched = typeTable.search(fileName);
                     if(matched.length){
                         if(matched.length === 1){
-                            compiler.addNative(matched[0])
+                            compiler.addNative(matched[0]);
                         }else{
                             throw new Error('TOO COMPLEX (сложна)');
                         }

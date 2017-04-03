@@ -448,7 +448,7 @@ module.exports = (function () {
 
         },
         getTag: function (obj, name) {
-            if(!obj.tags && !obj.tags[name])
+            if(!obj.tags || !obj.tags[name])
                 return false;
             var items = obj.tags[name], vals;
 
@@ -500,8 +500,29 @@ module.exports = (function () {
             this.tryInspect(name);
 
         },
-        addNative: function(){
+        addNative: function(info){
+            var name = info.name,
+                ns = info.namespace,
+                ctor = info.ctor;
 
+            var obj = this.world[name] = {
+                public: {},
+                private: {},
+                values: {},
+                require: info.require,
+                extend: [],
+                name: name,
+                namespace: ns,
+                variables: {},
+                props: {},
+                tags: {ns: [{data: ns}]},
+                ready: true,
+                js: true
+//                ast: ast
+            };
+            this.loaded(name);
+
+            //debugger;
         },
         applyAST: function(to, from, additional){
             var i;
