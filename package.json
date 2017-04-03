@@ -4,7 +4,9 @@
   "description": "quokka script compiler",
   "main": "index.js",
   "scripts": {
-    "test": "node_modules/.bin/mocha -w"
+    "test": "node_modules/.bin/mocha -w",
+    "build": "node build test/config.json",
+    "lib": "cd test | mkdir lib | cd lib | git clone git@git.quokka.pub:LikeAWildfire/QComponent4.git | cd QComponent4 | npm i"
   },
   "dependencies": {
     "jison": "*",
