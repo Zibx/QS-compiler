@@ -31,11 +31,10 @@ module.exports = (function () {
                 }
 
             }
-
+            source.push('var Pipe = Q.Core.Pipe;');
 
             source.push('var '+ obj.name +' = '+ baseClassName +
                 '.extend(\''+ ns +'\', \''+obj.name+'\', {');
-
 
             //console.log('REQUIRES: '+requires.join('\n'));
 
@@ -113,6 +112,17 @@ module.exports = (function () {
 
             source.push('});');
 
+
+            obj.extend.forEach(function(name){
+                var info = _self.world[name],
+                    after = info && info.ast && _self.getTag(info.ast, '__afterCompile');
+                if(after){
+                    after = new Function('', 'return '+after)();
+                    after && (source = after.call(this, source, obj.name));
+                }
+
+            });
+
             try {
                 var ast = esprima.parse(source.join('\n'), {range: true, tokens: true, comment: true});
             }catch(e){
@@ -164,7 +174,7 @@ module.exports = (function () {
                     if (prop) {
 
                     } else if (itemName in this.world) {
-                        console.log(cls.name, '<', itemName)
+                        //console.log(cls.name, '<', itemName)
                         this.addDependency(cls.name, item);
                     } else {
                         moreDependencies = true;

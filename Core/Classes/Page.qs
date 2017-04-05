@@ -1,6 +1,8 @@
 @nested
-@__compile: function(method, obj){
-    console.log('ti pidor');
+@__afterCompile: function(source, name){
+    source.push('var instance = new '+ name +'();');
+    source.push('instance.load()');
+    return source;
 }
 @ns: UI
 define UIComponent Page

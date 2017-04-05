@@ -123,8 +123,17 @@ module.exports = (function () {
             //item.metadata = metadata.extract(item);
         });
 
+        var finalSource = compiler.compile(config.main || 'main');
+        console.log('Compiled')
 
-        console.log(compiler.compile(config.main || 'main'));//typeTable.search('Timer'))
+        if(!config.output){
+            console.log(finalSource);
+        }else{
+            var outputPath = path.resolve(config.basePath || __dirname, config.output);
+            fs.writeFileSync(outputPath, finalSource);
+            console.log('OUTPUT: '+ outputPath)
+        }
+        //typeTable.search('Timer'))
         
         
         console.log(config);

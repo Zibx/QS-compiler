@@ -1,5 +1,6 @@
 {
   "lib": "test/lib/QComponent4/src",
   "typeTable": "Core/TypeTable.js",
-  "build": "test/qs/buildTest.qs"
+  "build": "test/qs/buildTest.qs",
+  "output": "test/lib/QComponent4/public/zhaba.js"
 }
