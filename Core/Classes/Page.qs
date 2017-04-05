@@ -4,6 +4,7 @@
     source.push('instance.load()');
     return source;
 }
+@description: Page UI component. Fills the whole window
 @ns: UI
 define UIComponent Page
   public String title
