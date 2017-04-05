@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "node_modules/.bin/mocha -w",
-    "build": "node build -c test/config.json",
-    "lib": "cd test | mkdir lib | cd lib | git clone git@git.quokka.pub:LikeAWildfire/QComponent4.git | cd QComponent4 | npm i"
+    "build": "node build -c test/config.json"
   },
   "dependencies": {
     "jison": "*",
