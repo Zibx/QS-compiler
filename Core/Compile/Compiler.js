@@ -461,12 +461,14 @@ module.exports = (function () {
             return tagVal[0].value.map(function(item){return item.data;}).join('');
         },
         addDependency: function(who, item){
+
             var _world = this._world,
                 waitingFor = this.waitingFor,
                 wait = this.wait[who],
                 info = _world[who],
                 what = item.data;
-
+            if(!what)
+                what = item.class && item.class.data;
             if(_world[what] === void 0 || !_world[what].ready) {
                 (waitingFor[what] || (waitingFor[what] = [])).push(who);
                 if(wait.indexOf(what) === -1)
@@ -615,7 +617,7 @@ module.exports = (function () {
                 if(ast.tags){
                     mixed.tags = ast.tags;
                 }
-
+                mixed.namespace = this.getTag(ast, 'ns');
                 info.ready = true;
                 //debugger
             }else{

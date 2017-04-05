@@ -1,3 +1,4 @@
+@ns: Core
 def Class Timer
     public Function start
     public Function stop

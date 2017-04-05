@@ -1,3 +1,4 @@
+@ns: UI.Controls
 def UIComponent Slider
     public Number from
     public Number to

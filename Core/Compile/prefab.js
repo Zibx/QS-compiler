@@ -22,9 +22,22 @@ module.exports = (function () {
 
             ns = this.getTag(obj, 'ns') || 'App'+ baseClassName;
 
+            /** REQUIRES */
+            for(i in obj.require){
+                if(this.world[i].namespace) {
+                    var nsString = ['Q'].concat(this.world[i].namespace);
+                    nsString.push(i);
+                    source.push('var ' + i + ' = ' + nsString.join('.') + ';');
+                }
+
+            }
+
+
             source.push('var '+ obj.name +' = '+ baseClassName +
                 '.extend(\''+ ns +'\', \''+obj.name+'\', {');
 
+
+            //console.log('REQUIRES: '+requires.join('\n'));
 
             ctor.push('ctor: function(){');
 
@@ -151,7 +164,8 @@ module.exports = (function () {
                     if (prop) {
 
                     } else if (itemName in this.world) {
-
+                        console.log(cls.name, '<', itemName)
+                        this.addDependency(cls.name, item);
                     } else {
                         moreDependencies = true;
                         //this.addDependency(obj.class, item.class);
