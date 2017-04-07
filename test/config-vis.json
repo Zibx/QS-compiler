@@ -1,0 +1,10 @@
+{
+  "lib": "test/lib/QComponent4/src",
+  "typeTable": "Core/TypeTable.js",
+  "build": "test/qs/buildTest.qs",
+  "output": "test/lib/source-map-visualization/example/coffee/example.js",
+  "outputMapPath": "test/lib/source-map-visualization/example/coffee/example.map",
+  "outputQSPath": "test/lib/source-map-visualization/example/coffee/example",
+  "outputQSName": "example",
+  "mapName": "example.map"
+}

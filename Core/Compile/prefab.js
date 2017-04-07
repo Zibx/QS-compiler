@@ -24,12 +24,14 @@ module.exports = (function () {
 
             if(compileCfg.sourceMap) {
                 sourceMap = new SourceMap.SourceMapGenerator();
-                var sm = function (ast) {
+                var sm = function (ast, name) {
+                    if(!ast)return;
+                    name = name || '';
                     var pos;
                     if(ast.pointer)
-                        pos = [ast.pointer.row, ast.pointer.col];
+                        pos = [ast.pointer.row, ast.pointer.col,name && new Buffer(name).toString('base64')];
                     else if(ast.loc)
-                        pos = [ast.loc.start.line,ast.loc.start.column];
+                        pos = [ast.loc.start.line,ast.loc.start.column,name && new Buffer(name).toString('base64')];
                     else
                         return '';
                     return '/*%$@'+ pos +'@$%*/';
@@ -48,8 +50,12 @@ module.exports = (function () {
 
             }
             source.push('var Pipe = Q.Core.Pipe;');
-
-            source.push('var '+ sm(obj.ast.name) + obj.name +' = '+ baseClassName +
+            //sm(obj.ast.definition)+ + sm(obj.ast.name, obj.name)
+            /*source.push('var ' + obj.name +' = ' + baseClassName +
+                //'.extend(\''+ sm(obj.ast.extend[0], ns) + ns +'\', '+sm(obj.ast.name, obj.name)+'\'' + obj.name+'\', {');
+                '.extend(\''+ ns +'\', '+'\'' + obj.name+'\', {');
+*/
+            source.push('var '+ sm(obj.ast.name,obj.name) + obj.name +' = '+ baseClassName +
                 '.extend(\''+ ns +'\', \''+obj.name+'\', {');
 
 
@@ -61,7 +67,7 @@ module.exports = (function () {
             for(var where in obj.instances){
                 obj.instances[where].forEach(function (what) {
                     if(what.type === 'child') {
-                        ctor.push('var ' + sm(what.ast.name || what.ast.class) + what.name + ' = new ' + what.class + '()');
+                        ctor.push('var ' + what.name + ' = new ' + what.class + '(); '+sm(what.ast.name || what.ast.class)+'var '+sm(what.ast.name || what.ast.class, what.name||what.class)+'DATA_'+what.name+''+(what.ast.semiToken?sm(what.ast.semiToken):'')+'='+what.name+'._data;');
                     }else if(what.type === 'inline'){
                         var trailingComment = [], tag;
                         if(what.ast.tags &&
@@ -92,14 +98,14 @@ module.exports = (function () {
                     var prop = properties[propName];
                     var whos = (where === '___this___' ? 'this' : where );
                     ctor.push(
-                        sm(prop.item.class)+ whos + '.set(\'' + prop.name + '\', '+ this.getPropertyValue(prop, obj, whos,sm)+');');
+                        sm(prop.item.class)+ whos + '.'+ sm(prop.item.semiToken) +'set(\'' + prop.name + '\', '+ this.getPropertyValue(prop, obj, whos,sm)+');');
                 }
             }
 
             for(var where in obj.instances) {
                 obj.instances[where].forEach(function (what) {
                     if(what.type === 'child') {
-                        ctor.push((where === '___this___' ? 'this' : where ) + '.addChild(' + what.name + ');');
+                        ctor.push(sm(what.ast.name||what.ast.class)+(where === '___this___' ? 'this' : where ) + '.addChild(' + what.name + ');');
                     }
                 });
             }
@@ -145,20 +151,25 @@ module.exports = (function () {
 
             var code = source.join('\n'),
                 rowDecrements = {};
-            var ccode = code.replace(/\/\*%\$@([0-9]*,[0-9]*)@\$%\*\//g, function(a,b,c){
+            var ccode = code.replace(/\/\*%\$@([0-9]*,[0-9]*,[^@]*)@\$%\*\//g, function(a,b,c){
                 var poses = b.split(','),
-                    rows = (code.substr(0,c)+'\n').split('\n'),
+                    rows = (code.substr(0,c)).split('\n'),
                     line = rows.length,
-                    row = rows[line-2],
+                    row = rows[line-1],
                     column = row.length-(rowDecrements[rows.length]|0)+1,
                     map = {
                         source: sourcePath,
-                        original: {line: poses[0]-0, column: poses[1]-0},
-                        generated: {line:line, column: column}
+                        original: {line: poses[0], column: poses[1]-1},
+                        generated: {line:line, column: column-1}
                     };
-                rowDecrements[rows.length] = (rowDecrements[rows.length]|0) + a.length;
+                if(poses[2]) {
+                    map.name = new Buffer(poses[2], 'base64').toString();
+                    //map.name = poses[2]
+                }
+                console.log(map.name +' '+map.original.line+':'+map.original.column+' -> '+map.generated.line+':'+map.generated.column)
+                rowDecrements[rows.length] = (rowDecrements[rows.length]|0) + a.length+1;
                 sourceMap.addMapping(map);
-
+                console.log()
                 return '';
             });
 
@@ -176,7 +187,8 @@ module.exports = (function () {
             }else{
                 source = ccode;
             }
-            var result = {source: source, map: sourceMap.toString()};
+            var map = sourceMap.toString();
+            var result = {source: source, map: map};
             return result;
         },
         __isProperty: function (cls, prop) {
@@ -302,7 +314,7 @@ module.exports = (function () {
 
                             var childObjectName = childItem.name;
 
-                            if(!(objectName in cls.values))
+                            if(!(childObjectName in cls.values))
                                 cls.values[childObjectName] = {};
 
                             prop = this.callMethod('__isProperty', item, 'value');
@@ -314,8 +326,6 @@ module.exports = (function () {
                                 info: prop
                             };
 
-                            if(!(childObjectName in cls.values))
-                                cls.values[childObjectName] = {};
 
                             cls.values[childObjectName].value = value;
                         }else if(item.value){

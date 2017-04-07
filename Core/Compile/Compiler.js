@@ -189,7 +189,10 @@ module.exports = (function () {
             //console.log(out[i].data,i,_i,out[i])
         }
         var data = (realOut
-            .map(function(item){return item.type === 'PIPE' ? '('+ item.data +')' : JSON.stringify(item.data)})
+            .map(function(item){
+                return item.type === 'PIPE' ?
+                    '('+ sm(item.tokens[0])+item.data +')' : sm(item)+JSON.stringify(item.data)
+            })
             .join('+'));
         var pipe = {data: data, pointer: items[0].pointer, fn: data};
 
@@ -233,7 +236,7 @@ module.exports = (function () {
 
                         var mArg = fullName.replace(/\./g, ''),
                             varName = escodegen.generate(pipeVar);
-                        mutatorArgs.push(sm(pipeVar) + mArg);
+                        mutatorArgs.push(mArg);
 
                         fn = fn.replace(new RegExp(varName.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"), 'g'), mArg);
                     }
