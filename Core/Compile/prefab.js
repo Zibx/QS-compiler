@@ -98,7 +98,7 @@ module.exports = (function () {
                     var prop = properties[propName];
                     var whos = (where === '___this___' ? 'this' : where );
                     ctor.push(
-                        sm(prop.item.class)+ whos + '.'+ sm(prop.item.semiToken) +'set(\'' + prop.name + '\', '+ this.getPropertyValue(prop, obj, whos,sm)+');');
+                        sm(prop.item.class)+ whos + '.'+ sm(prop.item.semiToken) +'set(\'' + prop.name + '\', '+ this.getPropertyValue(prop, obj, whos,sm)+sm(prop.item.semiToken)+');');
                 }
             }
 
@@ -167,7 +167,7 @@ module.exports = (function () {
                     //map.name = poses[2]
                 }
                 console.log(map.name +' '+map.original.line+':'+map.original.column+' -> '+map.generated.line+':'+map.generated.column)
-                rowDecrements[rows.length] = (rowDecrements[rows.length]|0) + a.length+1;
+                rowDecrements[rows.length] = (rowDecrements[rows.length]|0) + a.length;
                 sourceMap.addMapping(map);
                 console.log()
                 return '';

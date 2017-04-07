@@ -191,7 +191,7 @@ module.exports = (function () {
         var data = (realOut
             .map(function(item){
                 return item.type === 'PIPE' ?
-                    '('+ sm(item.tokens[0])+item.data +')' : sm(item)+JSON.stringify(item.data)
+                    sm(item)+'('+ sm(item.tokens[0])+item.data +sm(item)+' )' : sm(item)+JSON.stringify(item.data)
             })
             .join('+'));
         var pipe = {data: data, pointer: items[0].pointer, fn: data};
@@ -249,7 +249,7 @@ module.exports = (function () {
             parts.push(item)
         });
         parts.push('function('+mutatorArgs.join(',')+'){\n' +
-            '\treturn '+ data +';\n' +
+            '\t'+sm(pipe)+'return '+ data +';\n' +
             '}');
         return 'new Pipe('+parts.join(', ')+')';
 
