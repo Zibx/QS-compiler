@@ -123,14 +123,27 @@ module.exports = (function () {
             //item.metadata = metadata.extract(item);
         });
 
-        var finalSource = compiler.compile(config.main || 'main');
+        var result = compiler.compile(config.main || 'main', {sourceMap: true}),
+            finalSource = result.source;
         console.log('Compiled')
 
         if(!config.output){
             console.log(finalSource);
         }else{
             var outputPath = path.resolve(config.basePath || __dirname, config.output);
-            fs.writeFileSync(outputPath, finalSource);
+            fs.writeFileSync(outputPath, finalSource+'\n' +
+                '//# sourceMappingURL='+config.mapName+'\n'+
+                '//# sourceURL='+config.outputQSName);
+
+            var map = JSON.parse(result.map);
+            map.sources = [config.outputQSName];
+
+            var mapPath = path.resolve(config.basePath || __dirname, config.outputMapPath);
+            fs.writeFileSync(mapPath, JSON.stringify(map));
+
+            var qsPath = path.resolve(config.basePath || __dirname, config.outputQSPath);
+            fs.writeFileSync(qsPath, data);
+
             console.log('OUTPUT: '+ outputPath)
         }
         //typeTable.search('Timer'))

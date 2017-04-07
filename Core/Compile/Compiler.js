@@ -157,7 +157,7 @@ module.exports = (function () {
     };
     var objectCounter = 0;
     var prefab = require('./prefab');
-    var buildPipe = function(items, obj, whos){
+    var buildPipe = function(items, obj, whos, sm){
 
         var i, _i, out = [], item, realOut = [];
         for(i = 0, _i = items.length; i < _i; i++){
@@ -233,7 +233,7 @@ module.exports = (function () {
 
                         var mArg = fullName.replace(/\./g, ''),
                             varName = escodegen.generate(pipeVar);
-                        mutatorArgs.push(mArg);
+                        mutatorArgs.push(sm(pipeVar) + mArg);
 
                         fn = fn.replace(new RegExp(varName.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"), 'g'), mArg);
                     }
@@ -246,7 +246,7 @@ module.exports = (function () {
             parts.push(item)
         });
         parts.push('function('+mutatorArgs.join(',')+'){\n' +
-            '\treturn '+data+';\n' +
+            '\treturn '+ data +';\n' +
             '}');
         return 'new Pipe('+parts.join(', ')+')';
 
@@ -532,7 +532,7 @@ module.exports = (function () {
                 to[i] = convertAST(from[i], additional);
             }
         },
-        getPropertyValue: function (item, obj, whos) {
+        getPropertyValue: function (item, obj, whos, sm) {
             //console.log(item);
             var info = item.info || item,
 
@@ -548,10 +548,10 @@ module.exports = (function () {
 
                 if(searchForPipes(val, i, list))
                     ohNoItSPipe = true;
-                return val.data;
+                return sm(val) + val.data;
             });
             if(ohNoItSPipe){
-                var out = buildPipe(item.item.value, obj, whos);
+                var out = buildPipe(item.item.value, obj, whos, sm);
                 //console.log(out)
                 return out;
 
@@ -645,8 +645,8 @@ module.exports = (function () {
                 this.loaded(name);
             }
         },
-        compile: function (name) {
-            return this.callMethod('__compile', this.world[name]);
+        compile: function (name, cfg) {
+            return this.callMethod('__compile', this.world[name], cfg || {});
         },
         findMethod: function(method, obj){
             var i, _i, fn;

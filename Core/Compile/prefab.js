@@ -9,16 +9,32 @@
 module.exports = (function () {
     'use strict';
     var esprima = require('esprima'),
-        escodegen = require('escodegen');
+        escodegen = require('escodegen'),
+        SourceMap = require('source-map');
 
     return {
-        __compile: function(obj){
+        __compile: function(obj, compileCfg){
             var baseClassName = obj.extend[0];
             var source = [],
                 i, ctor = [], props = [], cfg, inlines = [],
 
                 ns,
-                _self = this;
+                _self = this,
+                sourceMap, sourcePath = obj.ast.name.pointer.source;
+
+            if(compileCfg.sourceMap) {
+                sourceMap = new SourceMap.SourceMapGenerator();
+                var sm = function (ast) {
+                    var pos;
+                    if(ast.pointer)
+                        pos = [ast.pointer.row, ast.pointer.col];
+                    else if(ast.loc)
+                        pos = [ast.loc.start.line,ast.loc.start.column];
+                    else
+                        return '';
+                    return '/*%$@'+ pos +'@$%*/';
+                }
+            }
 
             ns = this.getTag(obj, 'ns') || 'App'+ baseClassName;
 
@@ -33,8 +49,10 @@ module.exports = (function () {
             }
             source.push('var Pipe = Q.Core.Pipe;');
 
-            source.push('var '+ obj.name +' = '+ baseClassName +
+            source.push('var '+ sm(obj.ast.name) + obj.name +' = '+ baseClassName +
                 '.extend(\''+ ns +'\', \''+obj.name+'\', {');
+
+
 
             //console.log('REQUIRES: '+requires.join('\n'));
 
@@ -43,7 +61,7 @@ module.exports = (function () {
             for(var where in obj.instances){
                 obj.instances[where].forEach(function (what) {
                     if(what.type === 'child') {
-                        ctor.push('var ' + what.name + ' = new ' + what.class + '()');
+                        ctor.push('var ' + sm(what.ast.name || what.ast.class) + what.name + ' = new ' + what.class + '()');
                     }else if(what.type === 'inline'){
                         var trailingComment = [], tag;
                         if(what.ast.tags &&
@@ -58,7 +76,9 @@ module.exports = (function () {
                         inlines.push(
                             (trailingComment.length > 0 ? '\n/**\n\t * '+trailingComment.join('\n\t * ')+'\n\t */': '')+
                             what.name +': function('+
-                            what.value.arguments.map(function(item){return item.name;})
+                            what.value.arguments.map(function(item){
+                                return item.name;
+                            })
                                 .join(', ')+
                             '){'+what.value.body.data+'}');
                     }
@@ -72,7 +92,7 @@ module.exports = (function () {
                     var prop = properties[propName];
                     var whos = (where === '___this___' ? 'this' : where );
                     ctor.push(
-                        whos + '.set(\'' + prop.name + '\', '+ this.getPropertyValue(prop, obj, whos)+');');
+                        sm(prop.item.class)+ whos + '.set(\'' + prop.name + '\', '+ this.getPropertyValue(prop, obj, whos,sm)+');');
                 }
             }
 
@@ -89,7 +109,7 @@ module.exports = (function () {
                 for(var whatHappens in obj.events[who]) {
                     obj.events[who][whatHappens].forEach(function(evt){
                         var whos = (who === '___this___' ? 'this' : who );
-                        ctor.push(whos + '.on(\'' + whatHappens + '\', '+_self.getPropertyValue(evt, obj, whos)+');');
+                        ctor.push(whos + '.on(\'' + whatHappens + '\', '+_self.getPropertyValue(evt, obj, whos,sm)+');');
                     });
                 }
             }
@@ -97,7 +117,7 @@ module.exports = (function () {
             
             ctor.push('}');
             for(i in obj.public){
-                props.push(i+': null')
+                props.push(i+': {}')
             }
             ctor = ctor.join('\n');
             props = '_prop: {\n'+ props.join(',\n') +'\n}\n';
@@ -123,15 +143,41 @@ module.exports = (function () {
 
             });
 
-            try {
-                var ast = esprima.parse(source.join('\n'), {range: true, tokens: true, comment: true});
-            }catch(e){
-                //debugger;
-                console.log('ESPRIMA', source.join('\n'), e)
-            }
-            ast = escodegen.attachComments(ast, ast.comments, ast.tokens);
+            var code = source.join('\n'),
+                rowDecrements = {};
+            var ccode = code.replace(/\/\*%\$@([0-9]*,[0-9]*)@\$%\*\//g, function(a,b,c){
+                var poses = b.split(','),
+                    rows = (code.substr(0,c)+'\n').split('\n'),
+                    line = rows.length,
+                    row = rows[line-2],
+                    column = row.length-(rowDecrements[rows.length]|0)+1,
+                    map = {
+                        source: sourcePath,
+                        original: {line: poses[0]-0, column: poses[1]-0},
+                        generated: {line:line, column: column}
+                    };
+                rowDecrements[rows.length] = (rowDecrements[rows.length]|0) + a.length;
+                sourceMap.addMapping(map);
 
-            return escodegen.generate(ast, {comment: true});
+                return '';
+            });
+
+            if(compileCfg.beautify) {
+                console.log(sourceMap.toString());
+                try {
+                    var ast = esprima.parse(ccode, {range: true, tokens: true, comment: true});
+                } catch (e) {
+                    //debugger;
+                    console.log('ESPRIMA', ccode, e)
+                }
+
+                ast = escodegen.attachComments(ast, ast.comments, ast.tokens);
+                var source = escodegen.generate(ast, {comment: true});
+            }else{
+                source = ccode;
+            }
+            var result = {source: source, map: sourceMap.toString()};
+            return result;
         },
         __isProperty: function (cls, prop) {
             var info = this.world[cls.class ? cls.class || cls.class.data : cls.name],
