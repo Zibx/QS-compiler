@@ -127,11 +127,6 @@ module.exports = (function () {
             finalSource = result.source;
         console.log('Compiled')
 
-            /*,
-            "outputMapPath": "test/lib/QComponent4/public/zhaba.js.map",
-            "outputQSPath": "test/lib/QComponent4/public/zhaba.qs",
-            "outputQSName": "zhaba.qs",
-            "mapName": "zhaba.js.map"*/
 
         if(!config.output){
             console.log(finalSource);
@@ -175,7 +170,7 @@ module.exports = (function () {
         
         
         console.log(config);
-        console.dir(cfg);
+        //console.dir(cfg);
     };
 
     if(module.parent){
