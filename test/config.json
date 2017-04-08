@@ -3,7 +3,5 @@
   "typeTable": "Core/TypeTable.js",
   "build": "test/qs/buildTest.qs",
 
-  "output": {
-    "basePath": "test/lib/QComponent4/public"
-  }
+  "output":  "test/lib/QComponent4/public"
 }

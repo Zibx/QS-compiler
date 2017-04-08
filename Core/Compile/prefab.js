@@ -166,10 +166,10 @@ module.exports = (function () {
                     map.name = new Buffer(poses[2], 'base64').toString();
                     //map.name = poses[2]
                 }
-                console.log(map.name +' '+map.original.line+':'+map.original.column+' -> '+map.generated.line+':'+map.generated.column)
+                // console.log(map.name +' '+map.original.line+':'+map.original.column+' -> '+map.generated.line+':'+map.generated.column)
                 rowDecrements[rows.length] = (rowDecrements[rows.length]|0) + a.length;
                 sourceMap.addMapping(map);
-                console.log()
+                // console.log()
                 return '';
             });
 

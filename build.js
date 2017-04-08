@@ -131,6 +131,18 @@ module.exports = (function () {
         if(!config.output){
             console.log(finalSource);
         }else{
+            if(typeof config.output === 'string'){
+                /* lets predict! */
+                var parsed = path.parse(config.output);
+                if(!parsed.ext){
+                    config.output = {basePath: config.output};
+                }else{
+                    config.output = {
+                        basePath: parsed.dir,
+                        fileName: config.output
+                    };
+                }
+            }
             var outputBase;
             if('basePath' in config.output){
                 outputBase = config.output.basePath;
