@@ -127,21 +127,46 @@ module.exports = (function () {
             finalSource = result.source;
         console.log('Compiled')
 
+            /*,
+            "outputMapPath": "test/lib/QComponent4/public/zhaba.js.map",
+            "outputQSPath": "test/lib/QComponent4/public/zhaba.qs",
+            "outputQSName": "zhaba.qs",
+            "mapName": "zhaba.js.map"*/
+
         if(!config.output){
             console.log(finalSource);
         }else{
-            var outputPath = path.resolve(config.basePath || __dirname, config.output);
+            var outputBase;
+            if('basePath' in config.output){
+                outputBase = config.output.basePath;
+            }else{
+                outputBase = config.basePath || __dirname;
+            }
+            var fileName = path.basename(config.build);
+            var outputPath = path.resolve(
+                    outputBase,
+                    config.output.fileName || (path.parse(fileName).name+'.js')
+                ),
+                mapPath = path.resolve(
+                    outputBase,
+                    config.output.mapFileName || (path.parse(fileName).name+'.map')
+                ),
+                qsPath = path.resolve(
+                    outputBase,
+                    config.output.qsFileName || (fileName)
+                );
+
             fs.writeFileSync(outputPath, finalSource+'\n' +
-                '//# sourceMappingURL='+config.mapName+'\n'+
-                '//# sourceURL='+config.outputQSName);
+                '//# sourceMappingURL='+path.relative(outputBase, mapPath)+'\n'+
+                '//# sourceURL='+path.relative(outputBase, qsPath));
 
             var map = JSON.parse(result.map);
-            map.sources = [config.outputQSName];
+            map.sources = [path.relative(outputBase, qsPath)];
 
-            var mapPath = path.resolve(config.basePath || __dirname, config.outputMapPath);
+
             fs.writeFileSync(mapPath, JSON.stringify(map));
 
-            var qsPath = path.resolve(config.basePath || __dirname, config.outputQSPath);
+
             fs.writeFileSync(qsPath, data);
 
             console.log('OUTPUT: '+ outputPath)

@@ -12,7 +12,7 @@ def Page main
 
         Label l: {{s1}}
 
-        Slider s2: 22
+        Slider s2: 44
             from: -255
             to: 255
             step: 1
