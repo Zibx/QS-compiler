@@ -217,7 +217,7 @@ module.exports = (function () {
                     class: obj === cls ? item.name.data : item.class.data
                 };
                 if(!item.name){
-                    item.name = {data: this.getUID(item.class.name)};
+                    item.name = {data: this.getUID(item.class.name || item.class.data)};
                 }
                 data.name = item.name.data;
                 cls.variables[item.name.data] = data;

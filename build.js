@@ -32,23 +32,65 @@ module.exports = (function () {
         }
         return ret;
     };
+    var options = {
+        lib: {
+            short: 'l',
+            info: 'standard library directory. Is relative to basePath'
+        },
+        typeTable: {
+            short: 't',
+            info: 'path to typeTable relative to lib directory. Type table is required to resolve namespaces'
+        },
+        build: {
+            short: 'b',
+            info: 'path to qs relative to basePath'
+        },
+        basePath: {
+            short: 'p',
+            info: 'base path',
+            value: 'current path'
+        },
+        output: {
+            short: 'o',
+            info: 'output path. Relative to basePath'
+        },
+        verbose: {
+            short: 'v',
+            info: 'show debug logging'
+        },
+        config: {
+            short: 'c',
+            info: 'config path. Config can contain any property from this list'
+        },
+        main: {
+            short: 'm',
+            info: 'main object. Entry point of project'
+        }
+    };
 
     var build = function build(cfg){
+        var config, i, opt;
 
-        cfg.config = cfg.config || cfg.c;
-        cfg.verbose = cfg.verbose || cfg.v;
-
-        /** LOAD CONFIG */
-        if(!cfg.config)
-            showHelp('No config file specified');
-
-        try {
-            var config = JSON.parse(fs.readFileSync(cfg.config) + '');
-        }catch(e){
-            showHelp('JSON config is corrupted or not exists ('+cfg.config+')', e)
+        for(i in options){
+            opt = options[i];
+            if(opt.short)
+                cfg[i] = cfg[i] || cfg[opt.short];
         }
 
-        console.log('JSON config parsed ('+cfg.config+')');
+        /** LOAD CONFIG */
+        if(!cfg.config){
+            //showHelp('No config file specified');
+            config = cfg;
+        }else {
+            try {
+                config = Object.assign({}, JSON.parse(fs.readFileSync(cfg.config) + ''), cfg);
+            } catch (e) {
+                showHelp('JSON config is corrupted or not exists (' + cfg.config + ')', e)
+            }
+            console.log('JSON config parsed ('+config.config+')');
+        }
+
+
         if(!config.lib){
             showHelp('lib dir is not specified in config');
         }
@@ -60,7 +102,7 @@ module.exports = (function () {
         }catch(e){
             showHelp('Error reading directory ('+libDir+')', e);
         }
-        cfg.verbose && console.log('List of lib files: '+files.map(function(filePath){
+        config.verbose && console.log('List of lib files: '+files.map(function(filePath){
                 return path.basename(filePath);
             }).join(', '));
 
@@ -102,12 +144,17 @@ module.exports = (function () {
         var compiler  = new Compiler({
             searchDeps: function (fileNames) {
                 var i, _i, fileName, matched;
-                for(i = 0, _i = fileNames.length; i < _i; i++){
+                for(i = fileNames.length - 1; i >= 0; i--){
                     fileName = fileNames[i];
-                    matched = typeTable.search(fileName);
+                    try {
+                        matched = typeTable.search(fileName);
+                    }catch(e){
+                        throw new Error('Error matching `'+fileName+'`')
+                    }
                     if(matched.length){
                         if(matched.length === 1){
                             compiler.addNative(matched[0]);
+                            console.log('Dep resolved ', fileName, matched[0].namespace)
                         }else{
                             throw new Error('TOO COMPLEX (сложна)');
                         }
@@ -122,6 +169,15 @@ module.exports = (function () {
             compiler.add(item);
             //item.metadata = metadata.extract(item);
         });
+
+        if(!config.main){
+            if(lex.length === 1){
+                config.main = lex[0].name.data;
+            }else{
+                showHelp('Please specify main object')
+            }
+        }
+
 
         var result = compiler.compile(config.main || 'main', {sourceMap: true}),
             finalSource = result.source;

@@ -20,7 +20,9 @@ module.exports = (function () {
     },
         escodegen = require('escodegen');;
     var getVarInfo = function (stack, obj, child) {
-        //var metadata = cls.metadata;
+
+        var metadata = obj;
+
         var i, _i, out = [], node, env, selfFlag = false, context = false,
             envFlag, propFlag, valueFlag = false, thisFlag = false, lastEnv, lastName,
 
@@ -38,27 +40,28 @@ module.exports = (function () {
             else
                 name = node.name;
 
-            if (!env || env._type !== 'Variant') {
+            if (!env || env.type !== 'Variant') {
 
                 if (node.type === 'ThisExpression') {
                     env = child;
                     thisFlag = true;
                 } else {
-                    env = obj.variables[name];// this.isNameOfEnv(name, metadata);
+                    env = metadata.private[name];// this.isNameOfEnv(name, metadata);
+
                     if (env)
                         envFlag = true;
                 }
 
-                if (env && i === 0 && env.class in primitives) { // first token is from `self`
+                if (env && i === 0 && env.type in primitives) { // first token is from `self`
                     selfFlag = true;
                 }
 
                 if (!env) {
-                    env = obj.variables[name];//this.isNameOfProp(name, metadata);
-
-                    //if (!env)
-                        //env = this.isNameOfProp(name, shadow[metadata._type]);
-
+                    env = metadata.public[name];//this.isNameOfProp(name, metadata);
+                    /*
+                    if (!env)
+                        env = this.isNameOfProp(name, shadow[metadata._type]);
+                    */
                     if (env)
                         propFlag = true;
                 }
@@ -66,7 +69,7 @@ module.exports = (function () {
                 if (!env) {
                     if(firstTry){
                         // on first search we can try to find prop in root parent info
-                        metadata = cls.root.metadata;
+                        metadata = obj;
                         if(metadata){
                             i--;
                             firstTry = false;
@@ -84,8 +87,8 @@ module.exports = (function () {
                         throw new Error('Unknown variable `' + name + '`');
                 }
             }
-            if (env._type in primitives) {
-                var metadata = shadow[env._type];
+            if (env.type in primitives) {
+                metadata = this.world[env.type];
                 if (context === false) {
                     context = i;
                     // we need to keep context
@@ -94,19 +97,24 @@ module.exports = (function () {
                 }
                 //if(i < _i - 1)
                 //    throw new Error('Can not get `'+ stack[i+1].name +'` of primitive value `'+node.name+'` <'+env.type+'>')
-            }/* else {\//TODO: go deepeer
+            } else {//TODO: go deepeer
+                metadata = this.world[env.type]
+                //var x;
+                /*
                 metadata = shadow[env._type];
+
                 if(!metadata)
                     metadata = cls.root.scope.metadata[env._type];
                 if(!metadata)
                     debugger;
-            }*/
+                    */
+            }
             out.push({ name: name, env: envFlag, prop: propFlag, node: node, e: env });
             lastEnv = env;
             lastName = name;
             firstTry = false;
         }
-        if (!(env._type in primitives || env._type === 'Variant')) {
+        if (!(env.type in primitives || env.type === 'Variant')) {
             valueFlag = true;
         }
         if (out[0].prop)
@@ -122,7 +130,6 @@ module.exports = (function () {
     };
     var getVarAccessor = function (tree, cls, scope) {
         var pointer = tree, stack = [],
-            metadata = cls.metadata,
             info;
         if (pointer.object) {
 
@@ -136,9 +143,11 @@ module.exports = (function () {
             stack.push(pointer);
         }
 
-        info = getVarInfo(stack, cls);
+        info = getVarInfo.call(this, stack, cls);
+
         if (info.valueFlag)
             info.varParts.push({name: 'value'});
+
         return info.varParts[0].name+'.ref('+ (info.varParts.length>1?'\''+ info.varParts.slice(1).map(function(item){return item.name;}).join('.') +'\'':'') +')'/*(info.self ? 'self.id+\'.' : '\'') + info.varParts.map(function (el) {
                 return el.name;
             }).join('.') + '\'';*/
@@ -229,7 +238,7 @@ module.exports = (function () {
                 for (var i = 0, _i = pipeVars.length; i < _i; i++) {
                     var pipeVar = pipeVars[i];
                     //var source;// = '\'' + fullName + '\'';
-                    var source = getVarAccessor(pipeVar, obj);
+                    var source = getVarAccessor.call(this, pipeVar, obj);
                     if (!cache[source]) {
                         cache[source] = true;
                         pipeSources.push(source);
@@ -244,12 +253,13 @@ module.exports = (function () {
             }
         }
 
+        pipe.fn = fn;
         var parts = [];
         pipeSources.forEach(function (item) {
             parts.push(item)
         });
         parts.push('function('+mutatorArgs.join(',')+'){\n' +
-            '\t'+sm(pipe)+'return '+ data +';\n' +
+            '\t'+sm(pipe)+'return '+ pipe.fn +';\n' +
             '}');
         return 'new Pipe('+parts.join(', ')+')';
 
@@ -508,7 +518,8 @@ module.exports = (function () {
         addNative: function(info){
             var name = info.name,
                 ns = info.namespace,
-                ctor = info.ctor;
+                ctor = info.ctor,
+                props = ctor.prototype._prop, i;
 
             var obj = this.world[name] = {
                 public: {},
@@ -525,6 +536,10 @@ module.exports = (function () {
                 js: true
 //                ast: ast
             };
+            if(props)
+                for( i in props){
+                    obj.public[i] = {type: 'Variant', defined: name };//props[i];
+                }
             this.loaded(name);
 
             //debugger;
@@ -554,7 +569,7 @@ module.exports = (function () {
                 return sm(val) + val.data;
             });
             if(ohNoItSPipe){
-                var out = buildPipe(item.item.value, obj, whos, sm);
+                var out = buildPipe.call(this, item.item.value, obj, whos, sm);
                 //console.log(out)
                 return out;
 
