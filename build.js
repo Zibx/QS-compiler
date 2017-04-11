@@ -213,11 +213,11 @@ module.exports = (function () {
                 mapPath = path.resolve(
                     outputBase,
                     config.output.mapFileName || (path.parse(fileName).name+'.map')
-                ),
+                )+(config.ext||''),
                 qsPath = path.resolve(
                     outputBase,
                     config.output.qsFileName || (fileName)
-                );
+                )+(config.ext||'');
             var getLine = '';
             if(config.get){
                 getLine = '?'+require('querystring').stringify(config.get);
