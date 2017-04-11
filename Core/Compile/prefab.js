@@ -97,8 +97,11 @@ module.exports = (function () {
                 for(var propName in properties){
                     var prop = properties[propName];
                     var whos = (where === '___this___' ? 'this' : where );
-                    ctor.push(
-                        sm(prop.item.class)+ whos + '.'+ sm(prop.item.semiToken) +'set(\'' + prop.name + '\', '+ this.getPropertyValue(prop, obj, whos,sm)+sm(prop.item.semiToken)+');');
+                    var propValue = this.getPropertyValue(prop, obj, whos,sm);
+                    if(!(propValue instanceof Error)) {
+                        ctor.push(
+                            sm(prop.item.class) + whos + '.' + sm(prop.item.semiToken) + 'set(\'' + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                    }
                 }
             }
 
@@ -110,12 +113,14 @@ module.exports = (function () {
                 });
             }
 
-            var _self = this;
             for(var who in obj.events) {
                 for(var whatHappens in obj.events[who]) {
                     obj.events[who][whatHappens].forEach(function(evt){
                         var whos = (who === '___this___' ? 'this' : who );
-                        ctor.push(whos + '.on(\'' + whatHappens + '\', '+_self.getPropertyValue(evt, obj, whos,sm)+');');
+                        var propValue = _self.getPropertyValue(evt, obj, whos,sm);
+                        if(!(propValue instanceof Error)) {
+                            ctor.push(whos + '.on(\'' + whatHappens + '\', ' + propValue + ');');
+                        }
                     });
                 }
             }

@@ -28,6 +28,8 @@ module.exports = (function () {
 
             firstTry = true,
 
+            somePointer = obj.ast.name.pointer,
+
 
             name;
         for (i = 0, _i = stack.length; i < _i; i++) {
@@ -79,10 +81,11 @@ module.exports = (function () {
 
                     if (lastEnv) {
                         console.log(out);
-                        cls.metadata.source.error('Can not resolve `' + name + '` from `' + lastName + '` <' + lastEnv._type + '>',
-                            [node.loc.start.line-1,node.loc.start.column+1]
+                        somePointer.error('Can not resolve `' + name + '` from `' + lastName + '` <' + lastEnv.type + '>',
+                            {row: node.loc.start.line-1, col: node.loc.start.column+1}
                         );
-                        throw new Error('Can not resolve `' + name + '` from `' + lastName + '` <' + lastEnv._type + '>');
+                        return false;
+                        //throw new Error('Can not resolve `' + name + '` from `' + lastName + '` <' + lastEnv._type + '>');
                     } else
                         throw new Error('Unknown variable `' + name + '`');
                 }
@@ -144,7 +147,8 @@ module.exports = (function () {
         }
 
         info = getVarInfo.call(this, stack, cls);
-
+        if(!info)
+            return false;
         if (info.valueFlag)
             info.varParts.push({name: 'value'});
 
@@ -239,6 +243,8 @@ module.exports = (function () {
                     var pipeVar = pipeVars[i];
                     //var source;// = '\'' + fullName + '\'';
                     var source = getVarAccessor.call(this, pipeVar, obj);
+                    if(source === false)
+                        return false;
                     if (!cache[source]) {
                         cache[source] = true;
                         pipeSources.push(source);
@@ -570,7 +576,11 @@ module.exports = (function () {
             });
             if(ohNoItSPipe){
                 var out = buildPipe.call(this, item.item.value, obj, whos, sm);
-                //console.log(out)
+
+                // HAIL TAUTOLOGY!
+                if(out === false)
+                    return new Error('Can not get value');
+
                 return out;
 
             }

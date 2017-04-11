@@ -1,7 +1,7 @@
 {
   "name": "quokka-script",
-  "version": "0.1.0",
-  "description": "quokka script compiler",
+  "version": "0.4.2",
+  "description": "QuokkaScript compiler.",
   "main": "index.js",
   "scripts": {
     "test": "node_modules/.bin/mocha -w",
@@ -19,6 +19,6 @@
     "mocha": "*",
     "istanbul": "*"
   },
-  "author": "Quokka inc",
+  "author": "Quokka-labs",
   "license": "MPL-2.0"
 }
