@@ -218,10 +218,13 @@ module.exports = (function () {
                     outputBase,
                     config.output.qsFileName || (fileName)
                 );
-
+            var getLine = '';
+            if(config.get){
+                getLine = '?'+require('querystring').stringify(config.get);
+            }
             fs.writeFileSync(outputPath, finalSource+'\n' +
-                '//# sourceMappingURL='+path.relative(outputBase, mapPath)+'\n'+
-                '//# sourceURL='+path.relative(outputBase, qsPath));
+                '//# sourceMappingURL='+path.relative(outputBase, mapPath)+getLine+'\n'+
+                '//# sourceURL='+path.relative(outputBase, qsPath)+getLine);
 
             var map = JSON.parse(result.map);
             map.sources = [path.relative(outputBase, qsPath)];

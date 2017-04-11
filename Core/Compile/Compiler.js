@@ -377,8 +377,9 @@ module.exports = (function () {
     var tokenizer = require('../Tokenizer'),
         lexer = require('../Preprocess'),
         fs = require('fs'),
+        path = require('path'),
         systemQS = function(name){
-            var fileName = './Core/Classes/'+name+'.qs';
+            var fileName = path.join(__dirname, '../Classes/'+name+'.qs');
             var data = fs.readFileSync(fileName) + '',
                 tokens = tokenizer(data, fileName);
             return lexer(tokens);
