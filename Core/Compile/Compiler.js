@@ -306,7 +306,7 @@ module.exports = (function () {
 
 
         if(token.tokens)
-            if(token.tokens.map(searchForPipes).length)
+            if(token.tokens.filter(searchForPipes).length)
                 return true;
         return false;
     };
