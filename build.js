@@ -68,7 +68,7 @@ module.exports = (function () {
         }
     };
 
-    var build = function build(cfg){
+    var build = function build(cfg, callback){
         var config, i, opt;
 
         for(i in options){
@@ -234,7 +234,7 @@ module.exports = (function () {
 
 
             fs.writeFileSync(qsPath, data);
-
+            typeof callback === 'function' && callback();
             console.log('OUTPUT: '+ outputPath)
         }
         //typeTable.search('Timer'))
