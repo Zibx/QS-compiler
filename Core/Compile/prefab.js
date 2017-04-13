@@ -214,7 +214,9 @@ module.exports = (function () {
         __dig: function(obj, cls) {
             var item = obj.ast,
                 data, itemName, i, _i, items,
-                moreDependencies = false;
+                moreDependencies = false,
+
+                prop;
 
             if(item.type === 'DEFINE'){
 
@@ -233,17 +235,14 @@ module.exports = (function () {
 
 
                     itemName = (item.class && item.class.data) || (item.name && item.name.data);
-                    var prop = this.callMethod('__isProperty', obj, itemName);
+                    prop = this.callMethod('__isProperty', obj, itemName);
                     if (prop) {
 
                     } else if (itemName in this.world) {
-                        //console.log(cls.name, '<', itemName)
                         this.addDependency(cls.name, item);
                     } else {
                         moreDependencies = true;
-                        //this.addDependency(obj.class, item.class);
                         this.addDependency(cls.name, item.class);
-                        //this.addDependency(cls.class, obj.class);
                     }
                     //obj.values[itemName] = item.value;
                 }
@@ -270,7 +269,7 @@ module.exports = (function () {
                     item = items[i];
                     itemName = (item.class && item.class.data) || (item.name && item.name.data);
 
-                    var prop = this.callMethod('__isProperty', obj, itemName);
+                    prop = this.callMethod('__isProperty', obj, itemName);
 
                     if (prop) {
 
@@ -337,6 +336,17 @@ module.exports = (function () {
                             childItem.value = item.value;
                         }
 
+                        if(item.private){
+                            for(var propName in item.private){
+                                cls.private[propName] = item.private[propName];
+                            }
+                        }
+                        if(item.public){
+                            for(var propName in item.public){
+                                cls.public[propName] = item.public[propName];
+                            }
+                        }
+
                         if(item.events){
 
                             for(var eventName in item.events){
@@ -369,10 +379,7 @@ module.exports = (function () {
                 }
                 obj.items = internals;
 
-            }else{
-                //debugger
             }
-
         }
     };
 })();
