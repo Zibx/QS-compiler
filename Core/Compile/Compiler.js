@@ -301,6 +301,7 @@ module.exports = (function () {
                     pointer: token.pointer,
                     data: subToken.data.substr(1, subToken.data.length - 2)
                 };
+                return true;
             }
         }
 
