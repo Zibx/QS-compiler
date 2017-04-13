@@ -114,7 +114,7 @@ module.exports = (function(){
                         if(fn.returnType){
                             matched.value.returnType = fn.returnType.data
                         }else{
-                            matched.value.returnType = fn.body.data.indexOf('return')>-1 ?
+                            matched.value.returnType = matched.value.body.data.indexOf('return')>-1 ?
                                 UNKNOWN_ARGUMENT_TYPE
                                 : EMPTY_RETURN_VALUE;
                         }
