@@ -92,6 +92,8 @@ module.exports = (function () {
 
             }
 
+            var privateDefined = false;
+
             for(var where in obj.values){
                 var properties = obj.values[where];
                 for(var propName in properties){
@@ -99,8 +101,23 @@ module.exports = (function () {
                     var whos = (where === '___this___' ? 'this' : where );
                     var propValue = this.getPropertyValue(prop, obj, whos,sm);
                     if(!(propValue instanceof Error)) {
-                        ctor.push(
-                            sm(prop.item.class) + whos + '.' + sm(prop.item.semiToken) + 'set(\'' + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                        var scope = prop.item.scope && prop.item.scope.data; 
+                        if(scope === 'public'){
+                            ctor.push(
+                                'this.set(\''+ sm(prop.item.class) + whos + '.' + sm(prop.item.semiToken) + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                            
+                        }else {
+                            if(!privateDefined){
+                                ctor.push('var __private = new Q.Core.QObject();')
+                            }
+                            ctor.push(
+                                '__private.set(\''+ sm(prop.item.class) + whos + '.' + sm(prop.item.semiToken) + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                            /*ctor.push(
+                                sm(prop.item.class) + whos + '.' + sm(prop.item.semiToken) + 'set(\'' + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');*/
+                            privateDefined = true;
+                        }
+                    }else{
+                        throw propValue;
                     }
                 }
             }
@@ -128,7 +145,9 @@ module.exports = (function () {
             
             ctor.push('}');
             for(i in obj.public){
-                props.push(i+': {}')
+                if(obj.name === obj.public[i].defined) {
+                    props.push(i + ': {}');
+                }
             }
             ctor = ctor.join('\n');
             props = '_prop: {\n'+ props.join(',\n') +'\n}\n';
