@@ -18,7 +18,25 @@ module.exports = (function () {
     var primitives = {
         'Number': true, 'String': true, 'Array': true, 'Boolean': true, 'Function': true
     },
-        escodegen = require('escodegen');;
+        escodegen = require('escodegen');
+
+    var cache = function(fn, scope){
+        var argumentsCount = fn.length;
+        var cache = {},
+            join = Array.prototype.join;
+        //if(fn.toSource().indexOf('arguments')>-1){
+        return function(){
+            for(var key = '', i = 0, _i = arguments.length; i < _i; i++)
+                key+=arguments[i]+',\n%';
+
+            return key in cache ? cache[key] : cache[key] = fn.apply(scope, arguments);
+        }
+        /*}else{
+         console.log(fn)
+         return new Function()
+         }*/
+    };
+    
     var getVarInfo = function (stack, obj, child) {
 
         var metadata = obj;
@@ -152,7 +170,17 @@ module.exports = (function () {
         if (info.valueFlag)
             info.varParts.push({name: 'value'});
 
-        return info.varParts[0].name+'.ref('+ (info.varParts.length>1?'\''+ info.varParts.slice(1).map(function(item){return item.name;}).join('.') +'\'':'') +')'/*(info.self ? 'self.id+\'.' : '\'') + info.varParts.map(function (el) {
+        return (info.self ? 'this.ref(':'__private.ref(')+ '\'' + info.varParts.map(function (el) {
+                return el.name;
+            }).join('.') + '\')';
+
+
+        info.varParts[0].name+'.ref('+
+            (info.varParts.length>1?'\''+ info.varParts.slice(1).map(function(item){
+                return item.name;
+            }).join('.') +'\'':'') +')'
+
+        /*(info.self ? 'self.id+\'.' : '\'') + info.varParts.map(function (el) {
                 return el.name;
             }).join('.') + '\'';*/
     };
@@ -168,7 +196,7 @@ module.exports = (function () {
         }
         body.vars = vars;
     };
-    var objectCounter = 0;
+
     var prefab = require('./prefab');
     var buildPipe = function(items, obj, whos, sm){
 
@@ -443,9 +471,10 @@ module.exports = (function () {
     ];
 
     var Compiler = function(cfg){
-
+        this.objectCounter = 0;
         typeof cfg === 'object' && Object.assign(this, cfg);
-
+        
+        this.isInstanceOf = cache(this.isInstanceOf, this);
         this.world = {};
         this._world = {};
         this.wait = {};
@@ -632,9 +661,20 @@ module.exports = (function () {
 
 
                     //console.log(internals)
+                    /*delete mixed.instances;
+                    delete mixed.instances;*/
+                    mixed.instances = {};
+                    mixed.variables = {};
+                    mixed.values = {};
+                    mixed.events = {};
+
+                    
                     if(this.callMethod('__dig', mixed, mixed)===false) {
                         if(this.wait[name].length)
                             this.searchDeps && this.searchDeps(this.wait[name]);
+
+                        
+
                         return false;
                     }
 
@@ -657,7 +697,8 @@ module.exports = (function () {
 
         },
         getUID: function(cls){
-            return cls+'_I'+(++objectCounter);
+            var generatedName = cls+'_I'+(++this.objectCounter); 
+            return generatedName;
         },
         tryInspect: function(name){
             // collecting metadata and compiling are possible only after all
@@ -721,6 +762,33 @@ module.exports = (function () {
                 }
                 delete this.waitingFor[name];
             }
+        },
+        isInstanceOf: function (who, whosInstance) {
+            if(who.data)
+                who = who.data;
+
+            var info = this.world[who],
+                extend, i, _i,
+                parentName;
+
+
+            if(!info.ast)
+                return false;
+
+            extend = info.ast.extend;
+
+            for(i=0, _i = extend.length; i < _i; i++){
+                parentName = extend[i];
+                if(parentName.data)
+                    parentName = parentName.data;
+
+                if(parentName === whosInstance)
+                    return true;
+
+                if(this.isInstanceOf(parentName, whosInstance))
+                    return true;
+            }
+            return false;
         }
     };
     return Compiler;

@@ -20,7 +20,8 @@ module.exports = (function () {
 
                 ns,
                 _self = this,
-                sourceMap, sourcePath = obj.ast.name.pointer.source;
+                sourceMap, sourcePath = obj.ast.name.pointer.source,
+                itemsInfo = {};
 
             if(compileCfg.sourceMap) {
                 sourceMap = new SourceMap.SourceMapGenerator();
@@ -63,11 +64,29 @@ module.exports = (function () {
             //console.log('REQUIRES: '+requires.join('\n'));
 
             ctor.push('ctor: function(){');
+            var privateDefined = false;
 
             for(var where in obj.instances){
                 obj.instances[where].forEach(function (what) {
                     if(what.type === 'child') {
-                        ctor.push('var ' + what.name + ' = new ' + what.class + '(); '+sm(what.ast.name || what.ast.class)+'var '+sm(what.ast.name || what.ast.class, what.name||what.class)+'DATA_'+what.name+''+(what.ast.semiToken?sm(what.ast.semiToken):'')+'='+what.name+'._data;');
+                        itemsInfo[what.name] = what;
+
+                        //ctor.push('var ' + what.name + ' = new ' + what.class + '(); '+sm(what.ast.name || what.ast.class)+'var '+sm(what.ast.name || what.ast.class, what.name||what.class)+'DATA_'+what.name+''+(what.ast.semiToken?sm(what.ast.semiToken):'')+'='+what.name+'._data;');
+
+                        var scope = what.ast.scope && what.ast.scope.data;
+                        var isPublic = scope === 'public';
+                        what.isPublic = isPublic;
+                        if(isPublic) {
+                            ctor.push('this.set(\'' + what.name + '\', new ' + what.class + '());')
+                        } else {
+                            if(!privateDefined){
+                                ctor.push('var __private = new Q.Core.QObject();');
+                                privateDefined = true;
+                            }
+                            ctor.push('__private.set(\'' + what.name + '\', new ' + what.class + '());')
+                        }
+                        console.log(isPublic, what);
+
                     }else if(what.type === 'inline'){
                         var trailingComment = [], tag;
                         if(what.ast.tags &&
@@ -92,7 +111,7 @@ module.exports = (function () {
 
             }
 
-            var privateDefined = false;
+
 
             for(var where in obj.values){
                 var properties = obj.values[where];
@@ -100,18 +119,27 @@ module.exports = (function () {
                     var prop = properties[propName];
                     var whos = (where === '___this___' ? 'this' : where );
                     var propValue = this.getPropertyValue(prop, obj, whos,sm);
+
                     if(!(propValue instanceof Error)) {
-                        var scope = prop.item.scope && prop.item.scope.data; 
-                        if(scope === 'public'){
-                            ctor.push(
-                                'this.set(\''+ sm(prop.item.class) + whos + '.' + sm(prop.item.semiToken) + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                        var scope = prop.item.scope && prop.item.scope.data;
+                        var isPublic = scope === 'public' || whos === 'this';// && propName in obj.public);
+                        if( isPublic ){
+
+                            if(whos === 'this') {
+                                ctor.push(
+                                    'this.set(\'' + sm(prop.item.semiToken) + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                            }else{
+                                ctor.push(
+                                    'this.set(\'' + sm(prop.item.class) + whos + '.' + sm(prop.item.semiToken) + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                            }
                             
-                        }else {
+                        } else {
                             if(!privateDefined){
                                 ctor.push('var __private = new Q.Core.QObject();')
                             }
+                            if(prop.name=== 'background')debugger;
                             ctor.push(
-                                '__private.set(\''+ sm(prop.item.class) + whos + '.' + sm(prop.item.semiToken) + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                                '__private.set(\''+ sm(prop.item.class) + whos + (prop.name!== 'value'||true?'.' + sm(prop.item.semiToken) + prop.name:'') + '\', ' + propValue + sm(prop.item.semiToken) + ');');
                             /*ctor.push(
                                 sm(prop.item.class) + whos + '.' + sm(prop.item.semiToken) + 'set(\'' + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');*/
                             privateDefined = true;
@@ -125,7 +153,29 @@ module.exports = (function () {
             for(var where in obj.instances) {
                 obj.instances[where].forEach(function (what) {
                     if(what.type === 'child') {
-                        ctor.push(sm(what.ast.name||what.ast.class)+(where === '___this___' ? 'this' : where ) + '.addChild(' + what.name + ');');
+                        var name = what.name,
+                            info = itemsInfo[name],
+                            fromQObject = _self.isInstanceOf(info.class, 'QObject'),
+                            childGetter,
+                            parent,
+                            parentGetter;
+
+                        if(fromQObject) {
+                            if(what.isPublic){
+                                childGetter = 'this.get(\''+ what.name +'\')';
+                            }else{
+                                childGetter = '__private.get(\''+ what.name +'\')';
+                            }
+                            if(where !== '___this___'){
+                                parent = itemsInfo[where];
+                                parentGetter = (parent.isPublic ? 'this' : '__private') +'.get(\''+ where +'\')';
+                            }else{
+                                parentGetter = 'this';
+                            }
+
+                            ctor.push(sm(what.ast.name || what.ast.class) + parentGetter + '.addChild(' + childGetter + ');');
+
+                        }
                     }
                 });
             }
@@ -300,7 +350,7 @@ module.exports = (function () {
                         };
                         internals.push(value);
 
-                        if(!(obj.name in cls.values))
+                        if(!(objectName in cls.values))
                             cls.values[objectName] = {};
 
                         cls.values[objectName][itemName] = value;
