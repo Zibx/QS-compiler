@@ -29,16 +29,14 @@ module.exports = (function () {
             ]}
         ],
         'PROPERTY': [
-            //{type: '*', items: [
             {type: '?', items: [
                 {type: 'WORD', data: ['pub', 'public', 'private'], put: 'scope'}
             ]},
-            //]},
             {type: 'WORD', put: 'class'},
             {type: '?', items: [ {type: 'WORD', put: 'name'} ] },
             {type: '?', items: [
                 {type: 'SEMICOLON', data: ':', put: 'semiToken'},
-                {type: 'ALL', put: 'value'}
+                {type: '?', items: [{type: 'ALL', put: 'value'}]}
             ]}
         ],
         'EVENT': [

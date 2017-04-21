@@ -137,7 +137,7 @@ module.exports = (function () {
                             if(!privateDefined){
                                 ctor.push('var __private = new Q.Core.QObject();')
                             }
-                            if(prop.name=== 'background')debugger;
+                            //if(prop.name=== 'background')debugger;
                             ctor.push(
                                 '__private.set(\''+ sm(prop.item.class) + whos + (prop.name!== 'value'||true?'.' + sm(prop.item.semiToken) + prop.name:'') + '\', ' + propValue + sm(prop.item.semiToken) + ');');
                             /*ctor.push(
@@ -183,10 +183,20 @@ module.exports = (function () {
             for(var who in obj.events) {
                 for(var whatHappens in obj.events[who]) {
                     obj.events[who][whatHappens].forEach(function(evt){
+                        var getter,
+                            what = itemsInfo[who];
+                        if(what.isPublic){
+                            getter = 'this.get(\''+ what.name +'\')';
+                        }else{
+                            getter = '__private.get(\''+ what.name +'\')';
+                        }
+
                         var whos = (who === '___this___' ? 'this' : who );
                         var propValue = _self.getPropertyValue(evt, obj, whos,sm);
                         if(!(propValue instanceof Error)) {
-                            ctor.push(whos + '.on(\'' + whatHappens + '\', ' + propValue + ');');
+                            ctor.push(getter + '.on(\'' + whatHappens + '\', ' + propValue + ');');
+                        }else{
+                            console.log('Error getting event handler', evt);
                         }
                     });
                 }
