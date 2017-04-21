@@ -1,6 +1,8 @@
-@nested
+@ns: UI
 define QObject UIComponent
   public Number opacity
-    @ddd: fff
   public String background
   public String scroll
+  public String padding
+  public String height
+  public String width

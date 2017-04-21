@@ -137,7 +137,7 @@ module.exports = (function () {
             Compiler = require('./Core/Compile/Compiler');
 
         var sourcePath = path.resolve(config.basePath || __dirname, config.build);
-        var data = fs.readFileSync(sourcePath) + '',
+        var data = (fs.readFileSync(sourcePath) + '').replace(/\r/g, ''),
             tokens = tokenizer(data, sourcePath),
             lex = lexer(tokens);
 
@@ -180,7 +180,11 @@ module.exports = (function () {
 
 
         var result = compiler.compile(config.main || 'main', {sourceMap: true}),
-            finalSource = result.source;
+            finalSource = lex.map(function(item) {
+                return (config.main || 'main') !== item.name.data ? compiler.compile(item.name.data, {sourceMap: true}).source : ''
+            }).join('\n\n') + result.source;
+
+
         console.log('Compiled')
 
 
