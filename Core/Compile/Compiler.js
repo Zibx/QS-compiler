@@ -569,6 +569,9 @@ module.exports = (function () {
                 js: true
 //                ast: ast
             };
+            if(info.ctor.parent)
+                obj.ast = {extend: [{data: info.ctor.parent.name}]};
+
             if(props)
                 for( i in props){
                     obj.public[i] = {type: 'Variant', defined: name };//props[i];
