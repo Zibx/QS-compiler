@@ -66,6 +66,8 @@ module.exports = (function () {
                     env = child;
                     thisFlag = true;
                 } else {
+                    if(metadata === void 0)
+                        debugger;
                     env = metadata.private[name];// this.isNameOfEnv(name, metadata);
 
                     if (env)
@@ -119,7 +121,7 @@ module.exports = (function () {
                 //if(i < _i - 1)
                 //    throw new Error('Can not get `'+ stack[i+1].name +'` of primitive value `'+node.name+'` <'+env.type+'>')
             } else {//TODO: go deepeer
-                metadata = this.world[env.type]
+                metadata = this.world[(env.class && env.class.data) || env.type]
                 //var x;
                 /*
                 metadata = shadow[env._type];
@@ -170,19 +172,12 @@ module.exports = (function () {
         if (info.valueFlag)
             info.varParts.push({name: 'value'});
 
-        return (info.self ? 'this.ref(':'__private.ref(')+ '\'' + info.varParts.map(function (el) {
+
+        return (info.varParts[0].name in cls.public ? 'this.ref(':'__private.ref(')+ '\'' + info.varParts.map(function (el) {
                 return el.name;
             }).join('.') + '\')';
 
 
-        info.varParts[0].name+'.ref('+
-            (info.varParts.length>1?'\''+ info.varParts.slice(1).map(function(item){
-                return item.name;
-            }).join('.') +'\'':'') +')'
-
-        /*(info.self ? 'self.id+\'.' : '\'') + info.varParts.map(function (el) {
-                return el.name;
-            }).join('.') + '\'';*/
     };
     var bodyParser = function(body){
         var vars = {};
@@ -488,6 +483,7 @@ module.exports = (function () {
 
     };
     Compiler.prototype = {
+        _primitives: primitives,
         world: {},// known metadata
         _world: {},// known metadata with garbage
         waitingFor: { // key - waiting for class, value - Array of waiting classes

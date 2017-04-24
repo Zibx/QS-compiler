@@ -129,19 +129,26 @@ module.exports = (function () {
                                 ctor.push(
                                     'this.set(\'' + sm(prop.item.semiToken) + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');
                             }else{
-                                ctor.push(
-                                    'this.set(\'' + sm(prop.item.class) + whos + '.' + sm(prop.item.semiToken) + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                                if(prop.name === 'value' && ((prop.item.class && prop.item.class.data) in this._primitives)){
+                                    ctor.push(
+                                        'this.set(\'' + sm(prop.item.class) + whos + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                                }else {
+                                    ctor.push(
+                                        'this.set(\'' + sm(prop.item.class) + whos + '.' + sm(prop.item.semiToken) + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                                }
                             }
                             
                         } else {
-                            if(!privateDefined){
-                                ctor.push('var __private = new Q.Core.QObject();')
+                            if (!privateDefined) {
+                                ctor.push('var __private = new Q.Core.QObject();');
                             }
-                            //if(prop.name=== 'background')debugger;
-                            ctor.push(
-                                '__private.set(\''+ sm(prop.item.class) + whos + (prop.name!== 'value'||true?'.' + sm(prop.item.semiToken) + prop.name:'') + '\', ' + propValue + sm(prop.item.semiToken) + ');');
-                            /*ctor.push(
-                                sm(prop.item.class) + whos + '.' + sm(prop.item.semiToken) + 'set(\'' + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');*/
+                            if(prop.name === 'value' && ((prop.item.class && prop.item.class.data) in this._primitives)){
+                                ctor.push(
+                                    '__private.set(\'' + sm(prop.item.class) + whos + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                            }else {
+                                ctor.push(
+                                    '__private.set(\'' + sm(prop.item.class) + whos + (prop.name !== 'value' || true ? '.' + sm(prop.item.semiToken) + prop.name : '') + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                            }
                             privateDefined = true;
                         }
                     }else{
