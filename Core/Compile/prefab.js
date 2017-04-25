@@ -118,7 +118,7 @@ module.exports = (function () {
                 for(var propName in properties){
                     var prop = properties[propName];
                     var whos = (where === '___this___' ? 'this' : where );
-                    var propValue = this.getPropertyValue(prop, obj, whos,sm);
+                    var propValue = this.getPropertyValue(prop, obj, whos, sm);
 
                     if(!(propValue instanceof Error)) {
                         var scope = prop.item.scope && prop.item.scope.data;
@@ -199,7 +199,7 @@ module.exports = (function () {
                         }
 
                         var whos = (who === '___this___' ? 'this' : who );
-                        var propValue = _self.getPropertyValue(evt, obj, whos,sm);
+                        var propValue = _self.getPropertyValue(evt, obj, whos, sm);
                         if(!(propValue instanceof Error)) {
                             ctor.push(getter + '.on(\'' + whatHappens + '\', ' + propValue + ');');
                         }else{

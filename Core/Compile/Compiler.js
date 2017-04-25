@@ -14,7 +14,10 @@ module.exports = (function () {
        TODO: we do not know how to traverse a node until
        TODO: we know how to do it
      */
+    var buildFunction = require('./FunctionTransformer');
+
     var VariableExtractor = require('../JS/VariableExtractor');
+
     var primitives = {
         'Number': true, 'String': true, 'Array': true, 'Boolean': true, 'Function': true
     },
@@ -593,7 +596,8 @@ module.exports = (function () {
                 arr,
                 ohNoItSPipe = false;
             if(info.type === 'FUNCTION'){
-                return 'function(){'+info.body.data+'}';
+                return buildFunction.call(this, item, obj, whos, sm);
+                //return 'function(){'+info.body.data+'}';
             }
             if(info.type === 'PIPE'){
                 return 'function(){'+info.body.data+'}';
@@ -770,6 +774,8 @@ module.exports = (function () {
                 extend, i, _i,
                 parentName;
 
+            if(!info)
+                return false;
 
             if(!info.ast)
                 return false;
