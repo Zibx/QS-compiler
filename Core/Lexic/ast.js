@@ -19,9 +19,11 @@ module.exports = (function(){
     var UNKNOWN_ARGUMENT_TYPE = 'Variant',
         EMPTY_RETURN_VALUE = 'void';
     var bodyParser = function(body){
-        var vars = {};
+        var vars = {},
+            parsed;
         try {
-            vars = VariableExtractor.parse(body.data).getFullUnDefined();
+            parsed = VariableExtractor.parse(body.data);
+            vars = parsed.getFullUnDefined();
         }catch(e){
             body.pointer.error(e.description, {
                 col: e.column,
@@ -29,6 +31,7 @@ module.exports = (function(){
             });
         }
         body.vars = vars;
+        body.ast = parsed.getAST();
     };
 
     var subMatcher = function(parent, storage){

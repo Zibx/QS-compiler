@@ -21,7 +21,7 @@ module.exports = (function () {
                 ns,
                 _self = this,
                 sourceMap, sourcePath = obj.ast.name.pointer.source,
-                itemsInfo = {};
+                itemsInfo = obj.itemsInfo = {};
 
             if(compileCfg.sourceMap) {
                 sourceMap = new SourceMap.SourceMapGenerator();
@@ -64,6 +64,7 @@ module.exports = (function () {
             //console.log('REQUIRES: '+requires.join('\n'));
 
             ctor.push('ctor: function(){');
+            ctor.push('var _self = this;');
             var privateDefined = false;
 
             for(var where in obj.instances){
