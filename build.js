@@ -174,14 +174,22 @@ module.exports = (function () {
             if(lex.length === 1){
                 config.main = lex[0].name.data;
             }else{
-                showHelp('Please specify main object')
+                var filtered = lex.filter(function(el){
+                    return el.extend[0].data !== 'UIComponent';
+                });
+                if(filtered.length === 1){
+                    config.main = filtered[0].name.data;
+                }else{
+                    showHelp('Please specify main object')
+                }
             }
         }
 
+        var mainObj = config.main || 'main';
 
-        var result = compiler.compile(config.main || 'main', {sourceMap: true}),
+        var result = compiler.compile(mainObj, {sourceMap: true}),
             finalSource = lex.map(function(item) {
-                return (config.main || 'main') !== item.name.data ? compiler.compile(item.name.data, {sourceMap: true}).source : ''
+                return mainObj !== item.name.data ? compiler.compile(item.name.data, {sourceMap: true}).source : ''
             }).join('\n\n') + result.source;
 
 

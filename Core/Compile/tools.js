@@ -82,7 +82,7 @@ module.exports = (function () {
                             return false;
                             //throw new Error('Can not resolve `' + name + '` from `' + lastName + '` <' + lastEnv._type + '>');
                         } else
-                            throw new Error('Unknown variable `' + name + '`');
+                            throw new Error('Unknown variable `' + name + '` in `'+obj.name+'`');
                     }
                 }
                 if (env.type in tools.primitives) {
@@ -112,7 +112,7 @@ module.exports = (function () {
                 lastName = name;
                 firstTry = false;
             }
-            if (!(env.type in tools.primitives || env.type === 'Variant')) {
+            if (!((env.type in tools.primitives) || env.type === 'Variant')) {
                 valueFlag = true;
             }
             if (out[0].prop)

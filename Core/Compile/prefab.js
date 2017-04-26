@@ -10,7 +10,8 @@ module.exports = (function () {
     'use strict';
     var esprima = require('esprima'),
         escodegen = require('escodegen'),
-        SourceMap = require('source-map');
+        SourceMap = require('source-map'),
+        path = require('path');
 
     return {
         __compile: function(obj, compileCfg){
@@ -38,8 +39,10 @@ module.exports = (function () {
                     return '/*%$@'+ pos +'@$%*/';
                 }
             }
+            var fileInfo = path.parse(obj.ast.name.pointer.source);
 
-            ns = this.getTag(obj, 'ns') || 'App'+ baseClassName;
+            var nsName = this.getTag(obj, 'ns');
+            ns = fileInfo.name+ (nsName?'.'+ nsName : '');
 
             /** REQUIRES */
             for(i in obj.require){
@@ -50,6 +53,8 @@ module.exports = (function () {
                 }
 
             }
+
+            source.push('var _AppNamespace = '+JSON.stringify(fileInfo.name)+';');
             source.push('var Pipe = Q.Core.Pipe;');
             //sm(obj.ast.definition)+ + sm(obj.ast.name, obj.name)
             /*source.push('var ' + obj.name +' = ' + baseClassName +
