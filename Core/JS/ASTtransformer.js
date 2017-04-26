@@ -3,7 +3,6 @@
  */
 module.exports = (function(){
     'use strict';
-    var assert = require('chai').assert;
     var escodegen = require('escodegen');
 
     var rules = {
