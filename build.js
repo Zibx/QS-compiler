@@ -246,7 +246,7 @@ module.exports = (function () {
 
 
             fs.writeFileSync(qsPath, data);
-            typeof callback === 'function' && callback();
+            typeof callback === 'function' && callback({outputPath: outputPath, js: finalSource, lex: lex});
             console.log('OUTPUT: '+ outputPath)
         }
         //typeTable.search('Timer'))
