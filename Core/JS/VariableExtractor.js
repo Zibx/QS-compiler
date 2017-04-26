@@ -398,7 +398,9 @@ module.exports = (function () {
             document: 1,
             apiRequest: 1,
             closeApp: 1,
-            setTimeout: 1
+            setTimeout: 1,
+            NavigationManager: 2,
+            item: 2
         }
     };
     return extractor;
