@@ -14,6 +14,8 @@ module.exports = (function () {
        TODO: we do not know how to traverse a node until
        TODO: we know how to do it
      */
+    var console = new (require('../../console'))('Compiler');
+
     var buildFunction = require('./FunctionTransformer');
 
     var VariableExtractor = require('../JS/VariableExtractor');

@@ -11,7 +11,8 @@ module.exports = (function () {
     var esprima = require('esprima'),
         escodegen = require('escodegen'),
         SourceMap = require('source-map'),
-        path = require('path');
+        path = require('path'),
+        console = new (require('../../console'))('Compile');
 
     return {
         __compile: function(obj, compileCfg){
@@ -206,6 +207,7 @@ module.exports = (function () {
 
                         var whos = (who === '___this___' ? 'this' : who );
                         var propValue = _self.getPropertyValue(evt, obj, whos, sm);
+                        evt._js = propValue;
                         if(!(propValue instanceof Error)) {
                             ctor.push(getter + '.on(\'' + whatHappens + '\', ' + propValue + ');');
                         }else{

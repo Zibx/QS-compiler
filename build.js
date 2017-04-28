@@ -12,7 +12,7 @@ module.exports = (function () {
         path = require('path')
         ;
     var showHelp;
-
+    var console = new (require('./console'))('build');
     function readDirRecursive(dir) {
         var entries = fs.readdirSync(dir);
         var ret = [];
@@ -91,54 +91,66 @@ module.exports = (function () {
         }
 
 
-        if(!config.lib){
+        if(!('lib' in config)){
             showHelp('lib dir is not specified in config');
         }
 
-        /** READ ALL MODULES OF LIB */
-        var libDir = path.resolve(config.basePath || __dirname,config.lib);
-        try {
-            var files = readDirRecursive(libDir);
-        }catch(e){
-            showHelp('Error reading directory ('+libDir+')', e);
-        }
-        config.verbose && console.log('List of lib files: '+files.map(function(filePath){
-                return path.basename(filePath);
-            }).join(', '));
+        if(config.lib) {
+            /** READ ALL MODULES OF LIB */
+            var libDir = path.resolve(config.basePath || __dirname, config.lib);
 
-
-        /** LOAD LIB MODULES */
-        var classes = {};
-        files.forEach(function (filePath) {
             try {
-                classes[filePath] = require(filePath);
-            }catch(e){
-                showHelp('Can not load module '+filePath, e)
+                var files = readDirRecursive(libDir);
+            } catch (e) {
+                showHelp('Error reading directory (' + libDir + ')', e);
             }
-        });
 
-        /** LOAD TYPE TABLE */
-        var typeTable;
-        if(!config.typeTable){
-            showHelp('type table dir is not specified in config');
+            config.verbose && console.log('List of lib files: ' + files.map(function (filePath) {
+                    return path.basename(filePath);
+                }).join(', '));
+
+
+            /** LOAD LIB MODULES */
+            var classes = {};
+            files.forEach(function (filePath) {
+                try {
+                    classes[filePath] = require(filePath);
+                } catch (e) {
+                    showHelp('Can not load module ' + filePath, e)
+                }
+            });
+
+            /** LOAD TYPE TABLE */
+            var typeTable;
+            if (!config.typeTable) {
+                showHelp('type table dir is not specified in config');
+            }
+
+            var typeTableDir = path.resolve(config.basePath || __dirname, config.lib, config.typeTable);
+            try {
+                typeTable = require(typeTableDir);
+            } catch (e) {
+                showHelp('Can not load type table ' + typeTableDir, e)
+            }
+
         }
-
-        var typeTableDir = path.resolve(config.basePath || __dirname, config.lib, config.typeTable);
-        try {
-            typeTable = require(typeTableDir);
-        }catch(e){
-            showHelp('Can not load type table '+typeTableDir, e)
-        }
-
-
         /** TRY BUILDING */
         var tokenizer = require('./Core/Tokenizer'),
             lexer = require('./Core/Preprocess'),
             Compiler = require('./Core/Compile/Compiler');
+        if(config.build) {
+            var sourcePath = path.resolve(config.basePath || __dirname, config.build);
 
-        var sourcePath = path.resolve(config.basePath || __dirname, config.build);
-        var data = (fs.readFileSync(sourcePath) + '').replace(/\r/g, ''),
-            tokens = tokenizer(data, sourcePath),
+            var data = (fs.readFileSync(sourcePath) + '');
+        }else if(config.source){
+            sourcePath = 'inline';
+            data = config.source;
+        }else{
+            showHelp('Specify `build` option or give source' + typeTableDir, e)
+        }
+
+        data = data.replace(/\r/g, '');
+        var tokens = tokenizer(data, sourcePath),
             lex = lexer(tokens);
 
         var compiler  = new Compiler({
@@ -186,9 +198,11 @@ module.exports = (function () {
         }
 
         var mainObj = config.main || 'main';
-
+        var asts = {};
+        asts[mainObj] = compiler.world[mainObj];
         var result = compiler.compile(mainObj, {sourceMap: true}),
             finalSource = lex.map(function(item) {
+                    asts[item.name.data] = compiler.world[item.name.data];
                 return mainObj !== item.name.data ? compiler.compile(item.name.data, {sourceMap: true}).source : ''
             }).join('\n\n') + result.source;
 
@@ -198,6 +212,7 @@ module.exports = (function () {
 
         if(!config.output){
             console.log(finalSource);
+            typeof callback === 'function' && callback({js: finalSource, lex: lex, ast: asts});
         }else{
             if(typeof config.output === 'string'){
                 /* lets predict! */
@@ -246,7 +261,7 @@ module.exports = (function () {
 
 
             fs.writeFileSync(qsPath, data);
-            typeof callback === 'function' && callback({outputPath: outputPath, js: finalSource, lex: lex});
+            typeof callback === 'function' && callback({outputPath: outputPath, ast: asts, js: finalSource, lex: lex});
             console.log('OUTPUT: '+ outputPath)
         }
         //typeTable.search('Timer'))

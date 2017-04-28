@@ -9,22 +9,22 @@
 module.exports = (function () {
     'use strict';
     var assert = require('chai').assert;
-    var tokenizer = require('../Core/Tokenizer'),
-        lexer = require('../Core/Preprocess'),
-        metadata = require('../Core/Compile/Metadata'),
+    var build = require('../build'),
         fs = require('fs');
 
     describe('Metadata', function() {
 
-        it('extract', function () {
-            var data = fs.readFileSync('test/qs/example.qs') + '',
-                tokens = tokenizer(data, 'example.qs'),
-                lex = lexer(tokens);
-            lex.forEach(function(item){
-                item.metadata = metadata.extract(item);
+        it('extract', function (done) {
+            var crafted = build({
+                lib: void 0,
+                source: fs.readFileSync('test/qs/functions.qs') + ''
+            }, function(result){
+                console.log(result.ast.main.events.s1.change[0]._js);
+                assert.equal(1,2);
+
+                done();
             });
 
-            console.log(lex[0])
         });
     });
 
