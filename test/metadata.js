@@ -23,7 +23,8 @@ module.exports = (function () {
             parentheses: false,
             semicolons: false
         }});
-        return f.substr(12, f.length - 14);
+        var start = f.indexOf('{')+1;
+        return f.substr(start, f.length - 2-start);
     };
     describe('Metadata', function() {
 
@@ -42,6 +43,11 @@ module.exports = (function () {
                 assert.equal(
                     compact(result.ast.main.events.s1.change[1]._js),
                     'var x=5;(function(){__private.set(["s1","value"],x)}())'
+                );
+
+                assert.equal(
+                    compact(result.ast.main.events.s1.change[2]._js),
+                    'console.log(e)'
                 );
 
                 done();

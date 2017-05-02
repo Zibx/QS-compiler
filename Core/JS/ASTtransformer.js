@@ -250,7 +250,8 @@ module.exports = (function(){
                 return node;
             }
         },
-        'FunctionExpression': function(node){
+        'FunctionExpression': function(node, options){
+            node.body = doTransform.call(this, node.body, options, node);
             return node; // TODO unshit
         },
         'CallExpression': function(node, options){
