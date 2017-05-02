@@ -396,6 +396,7 @@ module.exports = (function () {
 
             return tagVal[0].value.map(function(item){return item.data;}).join('');
         },
+
         addDependency: function(who, item){
 
             var _world = this._world,

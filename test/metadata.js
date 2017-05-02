@@ -10,8 +10,21 @@ module.exports = (function () {
     'use strict';
     var assert = require('chai').assert;
     var build = require('../build'),
+        esprima = require('esprima'),
+        escodegen = require('escodegen'),
         fs = require('fs');
-
+    var compact = function(code){
+        var f = escodegen.generate(esprima.parse('('+code+')'), {format: {
+            renumber: true,
+            hexadecimal: true,
+            quotes: 'double',
+            escapeless: true,
+            compact: true,
+            parentheses: false,
+            semicolons: false
+        }});
+        return f.substr(12, f.length - 14);
+    };
     describe('Metadata', function() {
 
         it('extract', function (done) {
@@ -19,8 +32,17 @@ module.exports = (function () {
                 lib: void 0,
                 source: fs.readFileSync('test/qs/functions.qs') + ''
             }, function(result){
-                console.log(result.ast.main.events.s1.change[0]._js);
-                assert.equal(1,2);
+                var change = result.ast.main.events.s1.change[0]._js;
+
+                assert.equal(
+                    compact(change),
+                    'var x=5;__private.set(["s1","value"],x)'
+                );
+
+                assert.equal(
+                    compact(result.ast.main.events.s1.change[1]._js),
+                    'var x=5;(function(){__private.set(["s1","value"],x)}())'
+                );
 
                 done();
             });

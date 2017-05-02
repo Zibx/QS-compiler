@@ -128,16 +128,22 @@ module.exports = (function(){
 
                         matched.value['arguments'] = matched.value['arguments'].map(function(item){
                             // argument info extraction
+
                             var argType = item.length>1?
                                 tTools.trim(item.slice(0, item.length - 1))
                                     .map(function(item){return item.data;})
                                     .join('')
-                                :UNKNOWN_ARGUMENT_TYPE;
+                                :UNKNOWN_ARGUMENT_TYPE,
+                                name = item[item.length - 1].data;
+                            delete matched.value.body.vars[name];
+
                             return {
-                                name: item[item.length - 1].data,
+                                name: name,
                                 type: argType,
                                 pointer: item[0].pointer};
                         });
+
+
                         //console.log(matched.value.arguments[0]);
                     }
 
@@ -199,6 +205,8 @@ module.exports = (function(){
                     (tags[matched.name.data] ||
                     (tags[matched.name.data] = []))
                         .push(matched);
+                    if(child.children)
+                        matched.children = child.children;
                 }else{
                     throw new Error('ololo')
                 }
