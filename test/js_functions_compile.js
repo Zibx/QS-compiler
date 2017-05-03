@@ -26,30 +26,53 @@ module.exports = (function () {
         var start = f.indexOf('{')+1;
         return f.substr(start, f.length - 2-start);
     };
-    describe('Metadata', function() {
+    var compile = function(fileName, cb){
+        var crafted = build({
+            lib: void 0,
+            source: fs.readFileSync(fileName) + ''
+        }, cb);
+    };
 
-        it('extract', function (done) {
-            var crafted = build({
-                lib: void 0,
-                source: fs.readFileSync('test/qs/functions.qs') + ''
-            }, function(result){
+    describe('JS transformations', function() {
+        it('simple inner vars declaration', function (done) {
+            compile('test/qs/functions.qs', function (result) {
                 var change = result.ast.main.events.s1.change[0]._js;
 
                 assert.equal(
                     compact(change),
                     'var x=5;__private.set(["s1","value"],x)'
                 );
+                done();
+            });
+        });
 
+        it('compile refs in inner functions scopes', function (done) {
+            compile('test/qs/functions.qs', function (result) {
                 assert.equal(
                     compact(result.ast.main.events.s1.change[1]._js),
                     'var x=5;(function(){__private.set(["s1","value"],x)}())'
                 );
+                done();
+            });
+        });
 
+        it('respect function args', function (done) {
+            compile('test/qs/functions.qs', function (result) {
                 assert.equal(
                     compact(result.ast.main.events.s1.change[2]._js),
                     'console.log(e)'
                 );
+                done();
+            });
+        });
 
+        it('inner scope primitive values', function (done) {
+            compile('test/qs/functions.qs', function (result) {
+                assert.equal(
+                    compact(result.ast.main.events.s1.change[3]._js),
+                    '__private.set(["nInner"],__private.get(["s1","value"]));' +
+                    'console.log(__private.get(["nInner"]),__private.get(["nMain"]))'
+                );
                 done();
             });
 

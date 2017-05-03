@@ -476,6 +476,7 @@ module.exports = (function () {
             for(i in from){
                 to[i] = convertAST(from[i], additional);
             }
+            return to;
         },
         getPropertyValue: function (item, obj, whos, sm) {
             //console.log(item);
@@ -568,6 +569,9 @@ module.exports = (function () {
 
                         return false;
                     }
+
+                    this.applyAST(mixed.public, mixed.public, {defined: name});
+                    this.applyAST(mixed.private, mixed.private, {defined: name});
 
                     this.applyAST(mixed.public, info.ast.public, {defined: name});
                     this.applyAST(mixed.private, info.ast.private, {defined: name});
