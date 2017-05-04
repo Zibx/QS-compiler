@@ -89,14 +89,15 @@ module.exports = (function () {
 
             return tokens.slice(start);
         },
-        toString: function(tokens, lines, firstLine){
+        toString: function(tokens, lines, firstLine, cfg){
+            cfg = cfg || {};
             firstLine = firstLine == void 0 ? tokens[0].pointer.row : firstLine;
             lines = lines || [];
             var token, insertInLine, tokenCol,
                 line, i, _i, j;
             for(i = 0, _i = tokens.length; i < _i; i++){
                 token = tokens[i];
-                if(('data' in token || '_data' in token)&&token.type !== 'Comment') {
+                if(('data' in token || '_data' in token) && (cfg.comments ? true : token.type !== 'Comment')) {
                     insertInLine = token.pointer.row - firstLine;
                     tokenCol = token.pointer.col;
                     if(!(insertInLine in lines)) {
@@ -111,14 +112,14 @@ module.exports = (function () {
 
                 }else{
 
-                    tools.toString(token.tokens, lines, firstLine);
+                    tools.toString(token.tokens, lines, firstLine, cfg);
                     if(token.children)
-                        tools.toString(token.children, lines, firstLine);
+                        tools.toString(token.children, lines, firstLine, cfg);
                     //console.log(x)
                 }
 
             }
-            return {data: lines.join(''), pointer: tokens[0].pointer};
+            return {data: lines.join(''), pointer: tokens[0].pointer, lines: lines};
         }
     };
     return tools;
