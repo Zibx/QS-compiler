@@ -1,8 +1,8 @@
 def Page main
     Number nMain
     Slider s1: 10
-        public from: 0
-        public to: 100
+        from: 0
+        to: 100
         .change: ()->
             var x = 5;
             s1 = x

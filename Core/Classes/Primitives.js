@@ -33,6 +33,9 @@ module.exports = (function () {
         Number: {
             public: {
                 value: p('Number')
+            },
+            __compileValue: function(arr, value){
+                return arr.join('');
             }
         },
         Variant: {

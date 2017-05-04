@@ -14,6 +14,20 @@ module.exports = (function () {
        TODO: we do not know how to traverse a node until
        TODO: we know how to do it
      */
+    /*var vm = require('vm'),
+        untrusted = function(data){
+
+        },
+        parseJSON = function () {
+
+        };
+    var x = {setTimeout: setTimeout};
+    global.console.log(vm.runInContext('var tral = function(x){' +
+        'return (new Function(\'\',\'return \'+x+\';\'))()' +
+    '};setTimeout(function(){console.log(22)},1000);10', vm.createContext(x), {timeout: 100})+1);
+
+    //global.console.log(x.tral('((function(){while(1){}})(),{a:2})'))
+*/
     var console = new (require('../../console'))('Compiler');
 
     var buildFunction = require('./FunctionTransformer');
@@ -306,10 +320,20 @@ module.exports = (function () {
                     item = {
                         ready: true,
                         js: true,
-                        name: {data: i}
+                        name: {data: i},
+                        tags: {}
                     };
                     if(obj[i].public)
                         item.public = obj[i].public;
+
+                    for( i in obj[i] ){
+                        if(i.indexOf('_')===0){
+                            if(i.indexOf('__')!=0)
+                                i = i.substr(1);
+
+                            (item.tags[i] || (item.tags[i] = [])).push({data: info[i]});
+                        }
+                    }
 
                     out.push(item);
                 }
@@ -467,6 +491,14 @@ module.exports = (function () {
                 for( i in props){
                     obj.public[i] = {type: 'Variant', defined: name };//props[i];
                 }
+            for( i in info ){
+                    if(i.indexOf('_')===0){
+                        if(i.indexOf('__')!=0)
+                            i = i.substr(1);
+
+                        (obj.tags[i] || (obj.tags[i] = [])).push({data: info[i]});
+                    }
+            }
             this.loaded(name);
 
             //debugger;
@@ -478,12 +510,42 @@ module.exports = (function () {
             }
             return to;
         },
+        tryCall: function(name, fnName, args, cb){
+            var info = this.world[name];
+            if(!info)
+                return cb('no such class `'+ name +'`');
+
+            var after = info && info.ast && this.getTag(info.ast, fnName),
+                result;
+
+            if(!after)
+                return cb('no such function `'+ fnName +'`');
+
+            if(typeof after !== 'function') {
+                after = new Function('', 'return ' + after)();
+            }
+
+            if( typeof after === 'function'){
+                result = after.apply(this, args || [])
+                if(cb === 'function')
+                    return cb(false, result);
+            }else{
+                return cb('not a function `'+ fnName +'`');
+            }
+
+        },
         getPropertyValue: function (item, obj, whos, sm) {
             //console.log(item);
             var info = item.info || item,
 
                 arr,
-                ohNoItSPipe = false;
+                ohNoItSPipe = false,
+                result,
+                propName = info.defined || item.item.class.data;
+
+            var property = this.world[propName].public[item.name];
+            if(item.name === 'label')debugger
+            global.console.log(item.name+' <'+property.type+'>')
             if(info.type === 'FUNCTION'){
                 return buildFunction.call(this, item, obj, whos, sm);
                 //return 'function(){'+info.body.data+'}';
@@ -491,11 +553,19 @@ module.exports = (function () {
             if(info.type === 'PIPE'){
                 return 'function(){'+info.body.data+'}';
             }
-            arr = item.item.value.map(function (val, i, list) {
 
+            arr = item.item.value.map(function (val, i, list) {
                 if(searchForPipes(val, i, list))
                     ohNoItSPipe = true;
-                return sm(val) + val.data;
+
+                global.console.log(val.data, JSON.stringify(val))
+
+                if(val.type==='Quote')
+                    return sm(val) + val._data;
+                else
+                    return sm(val) + val.data;
+
+
             });
             if(ohNoItSPipe){
                 var out = buildPipe.call(this, item.item.value, obj, whos, sm);
@@ -507,7 +577,15 @@ module.exports = (function () {
                 return out;
 
             }
-            if(info && info.type === 'Number')
+
+            var error = false;
+            this.tryCall(property.type, '__compileValue', [arr, item.item.value], function(err, res){
+                error = err;
+                if(!err)
+                    result = res;
+            });
+            global.console.log(error)
+            if(property.type === 'Number' || property.type ==='Variant')
                 return arr.join('');
 
             return JSON.stringify(arr.join(''));

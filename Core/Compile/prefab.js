@@ -239,13 +239,10 @@ module.exports = (function () {
 
 
             obj.extend.forEach(function(name){
-                var info = _self.world[name],
-                    after = info && info.ast && _self.getTag(info.ast, '__afterCompile');
-                if(after){
-                    after = new Function('', 'return '+after)();
-                    after && (source = after.call(this, source, obj.name));
-                }
-
+                _self.tryCall(name, '__afterCompile', [source, obj.name], function(err, result){
+                    if(!err)
+                        source = result;
+                });
             });
 
             var code = source.join('\n'),
