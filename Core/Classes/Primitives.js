@@ -57,7 +57,8 @@ module.exports = (function () {
                 }catch(e){
                     return JSON.stringify(arr.join(''));
                 }
-            }
+            },
+            _anything: true
         },
         Function: {
             public: {

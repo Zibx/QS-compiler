@@ -13,3 +13,10 @@ def Page main
           '{{myColor}}': 'My'
       }
     CheckBox: false
+
+    Variant v1
+      a: 3
+      b
+        c: 3
+        d: {{mySlider.to}}
+    Label: {{v1.b.d}}

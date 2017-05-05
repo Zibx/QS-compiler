@@ -25,8 +25,8 @@ module.exports = (function () {
             var data = fs.readFileSync('test/qs/example.qs')+'',
                 tokens = tokenizer(data, 'example.qs');
 
-            assert.equal(getToken(tokens, 22, 8).type, 'DOT');
-            assert.equal(getToken(tokens, 22, 9).data, 'leave');
+            assert.equal(getToken(tokens, 25, 8).type, 'DOT');
+            assert.equal(getToken(tokens, 25, 9).data, 'leave');
         })
     });
 })();

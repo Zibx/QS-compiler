@@ -128,6 +128,7 @@ module.exports = (function () {
                     var propValue = this.getPropertyValue(prop, obj, whos, sm);
 
                     if(!(propValue instanceof Error)) {
+                        prop._val = propValue;
                         var scope = prop.item.scope && prop.item.scope.data;
                         var isPublic = scope === 'public' || whos === 'this';// && propName in obj.public);
                         if( isPublic ){
@@ -294,6 +295,10 @@ module.exports = (function () {
                 return false;
 
             propInfo = info.public[prop] || info.private[prop];
+
+            if(this.getTag(info, 'anything'))
+                return {_type: 'Variant'};
+
             if(propInfo)
                 return propInfo;
 

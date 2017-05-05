@@ -325,6 +325,8 @@ module.exports = (function () {
                         ready: true,
                         js: true,
                         name: {data: i},
+                        public: {},
+                        private: {},
                         tags: {}
                     };
 
@@ -439,8 +441,11 @@ module.exports = (function () {
                 wait = this.wait[who],
                 info = _world[who],
                 what = item.data;
+
             if(!what)
                 what = item.class && item.class.data;
+
+
             if(_world[what] === void 0 || !_world[what].ready) {
                 (waitingFor[what] || (waitingFor[what] = [])).push(who);
                 if(wait.indexOf(what) === -1)
@@ -551,12 +556,9 @@ module.exports = (function () {
 
                 arr,
                 ohNoItSPipe = false,
-                result,
-                propName = info.defined || item.item.class.data;
+                result;
 
-            var property = this.world[propName].public[item.name];
-            if(item.name === 'label')debugger
-            global.console.log(item.name+' <'+property.type+'>')
+            //global.console.log(item.name+' <'+property.type+'>')
             if(info.type === 'FUNCTION'){
                 return buildFunction.call(this, item, obj, whos, sm);
             }
@@ -564,11 +566,26 @@ module.exports = (function () {
                 return 'function(){'+info.body.data+'}';
             }
 
+
+            var propName = info.defined || item.item.class.data;
+
+            var world = this.world[propName];
+            if(world) {
+                var property = world.public[item.name];
+            }else{
+                property = {type: 'Variant'}
+            }
+
+            if(!('value' in item.item)) {
+                global.console.log('No value in `'+ propName +'`')
+                return void 0;
+            }
+
             arr = item.item.value.map(function (val, i, list) {
                 if(searchForPipes(val, i, list))
                     ohNoItSPipe = true;
 
-                global.console.log(val.data, JSON.stringify(val))
+                //global.console.log(val.data, JSON.stringify(val))
 
                 if(val.type==='Quote')
                     return val._data;
@@ -598,7 +615,7 @@ module.exports = (function () {
             if(!error)
                 return result;
 
-            global.console.log(error)
+            //global.console.log(error)
 
             //ok, lets guess
             if(property.type !== 'Variant'){
@@ -775,6 +792,8 @@ module.exports = (function () {
                 return false;
 
             extend = info.ast.extend;
+            if(!extend)
+                return false;
 
             for(i=0, _i = extend.length; i < _i; i++){
                 parentName = extend[i];

@@ -4,7 +4,7 @@
  * *
  */
 ;// QUOKKA 2017
-// By zibx on 5/4/17.
+// By zibx on 5/5/17.
 
 module.exports = (function () {
     'use strict';
@@ -34,22 +34,12 @@ module.exports = (function () {
         }, cb);
     };
 
-    describe('Setters', function() {
-        compile('test/qs/setters.qs', function (result) {
+    describe('call functions', function() {
+        compile('test/qs/functionCalls.qs', function (result) {
             var main = result.ast.main;
-            it('number setters', function () {
-                assert.equal(main.values.mySlider.from._val, '5');
-                assert.equal(main.values.mySlider.to._val, '20');
-                assert.equal(main.values.mySlider.value._val, '10');
+            it('should compile fn call', function(){
+                assert.equal(compact(main.events.b.click[0]._js), '__private.get(["t1"]).start()')
             });
-
-            it('string setters', function () {
-                assert.equal(main.values.combo1.value._val, '"#000"');
-                assert.equal(main.values.combo1.label._val, '"Укажите цвет текста надписи \\"Изображение\\""');
-            });
-
-            console.log(result.js)
         });
     });
-
 })();
