@@ -86,7 +86,9 @@ module.exports = (function(){
                     storage.tags = {};
                     storage.anyTags = false;
                 }
-
+                /*if(matched.cls){
+                    debugger
+                }*/
                 if(matched.value){
                     var fn = match('FUNCTION', {tokens: matched.value});
                     if(fn) {

@@ -432,6 +432,26 @@ module.exports = (function () {
                             childItem.value = item.value;
                         }
 
+                        if(item.cls && item.cls.length){
+                            var childObjectName = childItem.name;
+
+                            if(!(childObjectName in cls.values))
+                                cls.values[childObjectName] = {};
+
+                            prop = this.callMethod('__isProperty', item, 'cls');
+
+                            var value = {
+                                type: 'property',
+                                name: 'cls',
+                                item: Object.assign(Object.create(item),{value: item.cls}),
+                                info: prop
+                            };
+
+
+                            cls.values[childObjectName].cls = value;
+                        }
+
+
                         if(item.private){
                             for(var propName in item.private){
                                 cls.private[propName] = item.private[propName];

@@ -34,6 +34,17 @@ module.exports = (function () {
             ]},
             {type: 'WORD', put: 'class'},
             {type: '?', items: [ {type: 'WORD', put: 'name'} ] },
+            {type: '*', count: 'any', items: [
+                {type: 'DOT', put: '*cls'},
+                {type: '*', count: 'any', items: [
+                    {type: '?', items:[
+                        {type: 'WORD', put: '*cls'}
+                    ]},
+                    {type: '?', items:[
+                        {type: 'PIPE', put: '*cls'}
+                    ]}
+                ]}
+            ] },
             {type: '?', items: [
                 {type: 'SEMICOLON', data: ':', put: 'semiToken'},
                 {type: '?', items: [{type: 'ALL', put: 'value'}]}

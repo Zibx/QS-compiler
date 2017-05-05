@@ -6,3 +6,4 @@ define QObject UIComponent
   public String padding
   public String height
   public String width
+  public String cls
