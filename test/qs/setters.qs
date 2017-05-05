@@ -1,5 +1,5 @@
 def Page main
-    Slider slide: 10
+    Slider mySlider: 10
       from: 5
       to: 20
 
@@ -12,3 +12,4 @@ def Page main
           '#0f0': 'green',
           '{{myColor}}': 'My'
       }
+    CheckBox: false

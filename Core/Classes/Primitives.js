@@ -8,6 +8,11 @@
 
 module.exports = (function () {
     'use strict';
+
+    var evaluteSafe = function(str){
+        // TODO: wrap in vm
+        return new Function('','return '+str+';')();
+    }
     var Property = function (type, text) {
         this.type = type;
         this._description = text;
@@ -23,6 +28,9 @@ module.exports = (function () {
             public: {
                 length: p('Number', 'Length of string'),
                 value: p('String')
+            },
+            __compileValue: function(arr, value){
+                return JSON.stringify(arr.join(''));
             }
         },
         Boolean: {
@@ -41,6 +49,14 @@ module.exports = (function () {
         Variant: {
             public: {
                 value: p('Variant')
+            },
+            __compileValue: function(arr, value){
+                var result;
+                try{
+                    return JSON.stringify(evaluteSafe(arr.join('')),null,2)
+                }catch(e){
+                    return JSON.stringify(arr.join(''));
+                }
             }
         },
         Function: {
