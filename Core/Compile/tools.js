@@ -90,7 +90,7 @@ module.exports = (function () {
                     if (context === false) {
                         context = i;
                         // we need to keep context
-                        if (env._type === 'Function')
+                        if (env.type === 'Function')
                             context--;
                     }
                     //if(i < _i - 1)

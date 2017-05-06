@@ -14,6 +14,20 @@ module.exports = (function () {
        TODO: we do not know how to traverse a node until
        TODO: we know how to do it
      */
+    /*var vm = require('vm'),
+        untrusted = function(data){
+
+        },
+        parseJSON = function () {
+
+        };
+    var x = {setTimeout: setTimeout};
+    global.console.log(vm.runInContext('var tral = function(x){' +
+        'return (new Function(\'\',\'return \'+x+\';\'))()' +
+    '};setTimeout(function(){console.log(22)},1000);10', vm.createContext(x), {timeout: 100})+1);
+
+    //global.console.log(x.tral('((function(){while(1){}})(),{a:2})'))
+*/
     var console = new (require('../../console'))('Compiler');
 
     var buildFunction = require('./FunctionTransformer');
@@ -299,18 +313,39 @@ module.exports = (function () {
             return lexer(tokens);
         },
         systemJS = function(name, multiple){
-            var obj = require('../Classes/'+name), i, out, item;
+            var obj = require('../Classes/'+name),
+                i, j, out, item, cfg, prop;
             if(multiple){
+
                 out = [];
                 for( i in obj ){
+                    cfg = obj[i];
+
                     item = {
                         ready: true,
                         js: true,
-                        name: {data: i}
+                        name: {data: i},
+                        public: {},
+                        private: {},
+                        tags: {}
                     };
-                    if(obj[i].public)
-                        item.public = obj[i].public;
 
+                    if(cfg.public)
+                        item.public = cfg.public;
+
+                    for( j in cfg ){
+                        prop = cfg[j];
+                        if(j.indexOf('_')===0){
+                            if(j.indexOf('__')!=0)
+                                j = j.substr(1);
+
+                            (item.tags[j] || (item.tags[j] = []))
+                                .push({
+                                    value: prop
+                                });
+                        }
+                    }
+                    item.ast = item;
                     out.push(item);
                 }
             }else{
@@ -393,8 +428,10 @@ module.exports = (function () {
         extractFirstTag: function (tagVal) {
             if(!tagVal || !tagVal.length)
                 return false;
-
-            return tagVal[0].value.map(function(item){return item.data;}).join('');
+            if(Array.isArray(tagVal[0].value))
+                return tagVal[0].value.map(function(item){return item.data;}).join('');
+            else
+                return tagVal[0].value;
         },
 
         addDependency: function(who, item){
@@ -404,8 +441,11 @@ module.exports = (function () {
                 wait = this.wait[who],
                 info = _world[who],
                 what = item.data;
+
             if(!what)
                 what = item.class && item.class.data;
+
+
             if(_world[what] === void 0 || !_world[what].ready) {
                 (waitingFor[what] || (waitingFor[what] = [])).push(who);
                 if(wait.indexOf(what) === -1)
@@ -467,6 +507,15 @@ module.exports = (function () {
                 for( i in props){
                     obj.public[i] = {type: 'Variant', defined: name };//props[i];
                 }
+            for( i in info ){
+                    var prop = info[i];
+                    if(i.indexOf('_')===0){
+                        if(i.indexOf('__')!=0)
+                            i = i.substr(1);
+
+                        (obj.tags[i] || (obj.tags[i] = [])).push({data: prop});
+                    }
+            }
             this.loaded(name);
 
             //debugger;
@@ -478,24 +527,72 @@ module.exports = (function () {
             }
             return to;
         },
+        tryCall: function(name, fnName, args, cb){
+            var info = this.world[name];
+            if(!info)
+                return cb('no such class `'+ name +'`');
+
+            var after = info && info.ast && this.getTag(info.ast, fnName),
+                result;
+
+            if(!after)
+                return cb('no such function `'+ fnName +'`');
+
+            if(typeof after !== 'function') {
+                after = new Function('', 'return ' + after)();
+            }
+
+            if( typeof after === 'function'){
+                result = after.apply(this, args || []);
+                if(typeof cb === 'function')
+                    return cb(false, result);
+            }else{
+                return cb('not a function `'+ fnName +'`');
+            }
+        },
         getPropertyValue: function (item, obj, whos, sm) {
             //console.log(item);
             var info = item.info || item,
 
                 arr,
-                ohNoItSPipe = false;
+                ohNoItSPipe = false,
+                result;
+
+            //global.console.log(item.name+' <'+property.type+'>')
             if(info.type === 'FUNCTION'){
                 return buildFunction.call(this, item, obj, whos, sm);
-                //return 'function(){'+info.body.data+'}';
             }
             if(info.type === 'PIPE'){
                 return 'function(){'+info.body.data+'}';
             }
-            arr = item.item.value.map(function (val, i, list) {
 
+
+            var propName = info.defined || item.item.class.data;
+
+            var world = this.world[propName];
+            if(world) {
+                var property = world.public[item.name];
+            }else{
+                property = {type: 'Variant'}
+            }
+
+            if(!('value' in item.item)) {
+                global.console.log('No value in `'+ propName +'`')
+                return void 0;
+            }
+
+            arr = item.item.value.map(function (val, i, list) {
                 if(searchForPipes(val, i, list))
                     ohNoItSPipe = true;
-                return sm(val) + val.data;
+
+                //global.console.log(val.data, JSON.stringify(val))
+
+                if(val.type==='Quote')
+                    return val._data;
+                else
+                    return val.data;
+
+
             });
             if(ohNoItSPipe){
                 var out = buildPipe.call(this, item.item.value, obj, whos, sm);
@@ -507,9 +604,31 @@ module.exports = (function () {
                 return out;
 
             }
-            if(info && info.type === 'Number')
-                return arr.join('');
 
+            // typed property getter
+            var error = false;
+            this.tryCall(property.type, '__compileValue', [arr, item.item.value], function(err, res){
+                error = err;
+                if(!err)
+                    result = res;
+            });
+            if(!error)
+                return result;
+
+            //global.console.log(error)
+
+            //ok, lets guess
+            if(property.type !== 'Variant'){
+                var error = false;
+                this.tryCall('Variant', '__compileValue', [arr, item.item.value], function(err, res){
+                    error = err;
+                    if(!err)
+                        result = res;
+                });
+                if(!error)
+                    return result;
+            }
+            throw new Error('UNEXCEPTABLE VALUE! '+ arr.join(''))
             return JSON.stringify(arr.join(''));
         },
         define: function(name){
@@ -673,6 +792,8 @@ module.exports = (function () {
                 return false;
 
             extend = info.ast.extend;
+            if(!extend)
+                return false;
 
             for(i=0, _i = extend.length; i < _i; i++){
                 parentName = extend[i];

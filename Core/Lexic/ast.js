@@ -23,6 +23,7 @@ module.exports = (function(){
             parsed;
         try {
             parsed = VariableExtractor.parse(body.data);
+            body.ast = parsed.getAST();
             vars = parsed.getFullUnDefined();
         }catch(e){
             body.pointer.error(e.description, {
@@ -31,7 +32,7 @@ module.exports = (function(){
             });
         }
         body.vars = vars;
-        body.ast = parsed.getAST();
+
     };
 
     var subMatcher = function(parent, storage){
@@ -85,7 +86,9 @@ module.exports = (function(){
                     storage.tags = {};
                     storage.anyTags = false;
                 }
-
+                /*if(matched.cls){
+                    debugger
+                }*/
                 if(matched.value){
                     var fn = match('FUNCTION', {tokens: matched.value});
                     if(fn) {

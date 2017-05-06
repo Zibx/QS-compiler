@@ -73,7 +73,7 @@ module.exports = (function () {
     out.forEach(function(o){
         if(o.name === 'Slider')
             console.log(JSON.stringify(o,null,2))
-    })
+    });
 
 
 })();

@@ -211,6 +211,7 @@ module.exports = (function () {
                 },
                 transformer = new ASTtransformer(),
                 fn = fnObj.fn;
+
             fn = transformer.transform(fn.ast, fn.vars, options);
             return 'function(' + fnObj.args.map(getName).join(',') + '){\n' + fn + '\n}';
         }

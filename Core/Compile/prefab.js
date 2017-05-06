@@ -128,6 +128,7 @@ module.exports = (function () {
                     var propValue = this.getPropertyValue(prop, obj, whos, sm);
 
                     if(!(propValue instanceof Error)) {
+                        prop._val = propValue;
                         var scope = prop.item.scope && prop.item.scope.data;
                         var isPublic = scope === 'public' || whos === 'this';// && propName in obj.public);
                         if( isPublic ){
@@ -239,13 +240,10 @@ module.exports = (function () {
 
 
             obj.extend.forEach(function(name){
-                var info = _self.world[name],
-                    after = info && info.ast && _self.getTag(info.ast, '__afterCompile');
-                if(after){
-                    after = new Function('', 'return '+after)();
-                    after && (source = after.call(this, source, obj.name));
-                }
-
+                _self.tryCall(name, '__afterCompile', [source, obj.name], function(err, result){
+                    if(!err)
+                        source = result;
+                });
             });
 
             var code = source.join('\n'),
@@ -297,6 +295,10 @@ module.exports = (function () {
                 return false;
 
             propInfo = info.public[prop] || info.private[prop];
+
+            if(this.getTag(info, 'anything'))
+                return {_type: 'Variant'};
+
             if(propInfo)
                 return propInfo;
 
@@ -429,6 +431,26 @@ module.exports = (function () {
                         }else if(item.value){
                             childItem.value = item.value;
                         }
+
+                        if(item.cls && item.cls.length){
+                            var childObjectName = childItem.name;
+
+                            if(!(childObjectName in cls.values))
+                                cls.values[childObjectName] = {};
+
+                            prop = this.callMethod('__isProperty', item, 'cls');
+
+                            var value = {
+                                type: 'property',
+                                name: 'cls',
+                                item: Object.assign(Object.create(item),{value: item.cls}),
+                                info: prop
+                            };
+
+
+                            cls.values[childObjectName].cls = value;
+                        }
+
 
                         if(item.private){
                             for(var propName in item.private){

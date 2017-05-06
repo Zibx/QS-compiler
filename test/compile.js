@@ -29,7 +29,7 @@ module.exports = (function () {
             });
 
             //console.log(lex[0])
-            console.log(compiler.compile('main'));
+            console.log(compiler.compile('main', {sourceMap: true}));
             //console.log(compiler.world.main)
 
             //console.log(JSON.stringify(compiler.world.main.require,null,2))

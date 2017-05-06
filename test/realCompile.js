@@ -29,7 +29,7 @@ module.exports = (function () {
             });
 
             //console.log(lex[0])
-            var out = compiler.compile('AbstractComponent');
+            var out = compiler.compile('AbstractComponent', {sourceMap: true});
             console.log(out);
             fs.writeFileSync('test/generate/AbstractComponent.js', out);
             //console.log(compiler.world.main)

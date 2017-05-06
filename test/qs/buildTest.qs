@@ -32,7 +32,7 @@ def Page main
             from: 0
             to: 1
 
-        Label: Page opacity: {{opacity}}
+        Label: Page opacity: {{opacity}}ё
 
         Button b1: Button1
     Timer
