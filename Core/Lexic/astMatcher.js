@@ -171,8 +171,11 @@ module.exports = function (matchers) {
                             if(rule.data instanceof Array) {
                                 rule.data = a2o(rule.data);
                             }
-                            if(!(token.data in rule.data))
+                            if(!(token.data in rule.data)) {
                                 suit = false;
+                            }else{
+                                token.mapped = rule.data[token.data];
+                            }
                         }
                     }
                     if ('notData' in rule) {

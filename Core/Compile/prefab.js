@@ -52,7 +52,6 @@ module.exports = (function () {
                     nsString.push(i);
                     source.push('var ' + i + ' = ' + nsString.join('.') + ';');
                 }
-
             }
 
             source.push('var _AppNamespace = '+JSON.stringify(fileInfo.name)+';');

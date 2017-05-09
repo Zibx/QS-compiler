@@ -12,7 +12,8 @@
     "source-map": "^0.5.6",
     "escodegen": "*",
     "esprima": "*",
-    "minimist": "*"
+    "minimist": "*",
+    "z-lib": "*"
   },
   "devDependencies": {
     "chai": "*",

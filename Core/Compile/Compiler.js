@@ -508,12 +508,13 @@ module.exports = (function () {
                     obj.public[i] = {type: 'Variant', defined: name };//props[i];
                 }
             for( i in info ){
+                    var origI = i;
                     var prop = info[i];
                     if(i.indexOf('_')===0){
                         if(i.indexOf('__')!=0)
                             i = i.substr(1);
 
-                        (obj.tags[i] || (obj.tags[i] = [])).push({data: prop});
+                        (obj.tags[origI] || (obj.tags[origI] = [])).push({data: prop});
                     }
             }
             this.loaded(name);
@@ -572,9 +573,9 @@ module.exports = (function () {
             var world = this.world[propName];
             if(world) {
                 var property = world.public[item.name];
-            }else{
-                property = {type: 'Variant'}
             }
+            property = property || {type: 'Variant'}
+
 
             if(!('value' in item.item)) {
                 global.console.log('No value in `'+ propName +'`')

@@ -30,7 +30,11 @@ module.exports = (function () {
         ],
         'PROPERTY': [
             {type: '?', items: [
-                {type: 'WORD', data: ['pub', 'public', 'private'], put: 'scope'}
+                {type: 'WORD', data: {
+                    'pub': 'public',
+                    'public': 'public',
+                    'private': 'private'
+                }, put: 'scope'}
             ]},
             {type: 'WORD', put: 'class'},
             {type: '?', items: [ {type: 'WORD', put: 'name'} ] },

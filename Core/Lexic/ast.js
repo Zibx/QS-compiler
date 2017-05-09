@@ -6,57 +6,102 @@
 
 module.exports = (function(){
     'use strict';
-    var getData = function(item){
-        return item.data;
+
+    var astRules = require('./astRules'),
+        match = require('./astMatcher')(astRules),
+
+        VariableExtractor = require('../JS/VariableExtractor'),
+
+        Z = require('z-lib');
+
+    var matchers = {
+        func: require('./ext/function')(match, 'FUNCTION'),
+        prop: require('./ext/property')(match, 'PROPERTY'),
+        define: require('./ext/define')(match, ['DEFINE', 'DEFINE#']),
+        metadata: require('./ext/metadata')(match, 'METADATA')
     };
-    var quotes = {'\'': 1, '"': 1};
 
-    var matchers = require('./astRules'),
-        match = require('./astMatcher')(matchers),
-        tTools = require('../tokenTools'),
-        VariableExtractor = require('../JS/VariableExtractor');
 
-    var UNKNOWN_ARGUMENT_TYPE = 'Variant',
-        EMPTY_RETURN_VALUE = 'void';
-    var bodyParser = function(body){
-        var vars = {},
-            parsed;
-        try {
-            parsed = VariableExtractor.parse(body.data);
-            body.ast = parsed.getAST();
-            vars = parsed.getFullUnDefined();
-        }catch(e){
-            body.pointer.error(e.description, {
-                col: e.column,
-                row: e.lineNumber - 1 + body.pointer.row
-            });
+    var AST_Define = function (cfg) {
+        Z.apply(this, {
+            public: {},
+            private: {},
+            events: {},
+            tags: {},
+            items: [],
+            raw: [],
+            unclassified: []
+        });
+
+        cfg && Z.apply(this, cfg);
+    };
+    AST_Define.prototype = {
+        type: 'DEFINE',
+        addTags: function (tags) {
+            var _self = this;
+            var addFn = function (item) {
+                _self.add(_self.tags, i, item);
+            };
+            for(var i in tags){
+                tags[i].forEach(addFn);
+            }
+            return this;
+        },
+        add: function (store, name, what, children) {
+            if(!(name in store))
+                store[name] = [];
+            store[name].push(what);
+            if(children)
+                what.children = children;
+            return this;
+        },
+        addTag: function (name, tag, children) {
+            this.add(this.tags, name, tag, children);
+            return this;
+        },
+        addEvent: function (name, evt, children) {
+            this.add(this.events, name, evt, children);
+            return this;
+        },
+        clear: function (name) {
+            this[name] = {};
+        },
+        apply: function (cfg) {
+            Z.apply(this, cfg);
+            return this;
         }
-        body.vars = vars;
-
     };
+
+    var AST_Property = function (cfg) {
+        AST_Define.call(this, cfg);
+    };
+    AST_Property.prototype = AST_Define.prototype;
+
+    var AST_Event = function (cfg) {
+        AST_Define.call(this, cfg);
+    };
+    AST_Event.prototype = AST_Define.prototype;
+
 
     var subMatcher = function(parent, storage){
         return function(item){
             var matched,
                 isPublic,
-                currentPropHolder;
-            if(matched = match('PROPERTY', item)){
+                currentPropHolder, child, newItem;
 
-                parent.items.push(matched);
-                isPublic = matched.scope && {public: true, pub: true}[matched.scope.data];
+            if(matched = matchers.prop(item)){
+                newItem = new AST_Property(matched);
+                parent.items.push(newItem);
 
-                /*if(matched.class && !matched.name){
-                    matched.name = matched.class;
-                    matched.class = void 0;
-                }
-                console.log({name: matched.name && matched.name.data, class: matched.class && matched.class.data})*/
+                isPublic = newItem.isPublic = matched.scope && matched.scope.mapped === 'public';
+
                 if(matched.name) {
 
-                    currentPropHolder = parent[isPublic ? 'public' : 'private'];
+                    currentPropHolder = parent[isPublic?'public':'private'];
                     if(currentPropHolder[matched.name.data]){
                         throw new Error('prop already exists `'+matched.name.data+'`')
                     }else{
-                        currentPropHolder[matched.name.data] = matched;
+                        currentPropHolder[matched.name.data] = newItem;
                     }
                 }else if(isPublic){
                     throw new Error('public property must be named');
@@ -64,15 +109,12 @@ module.exports = (function(){
 
                 }
             }else if(matched = match('EVENT', item)){
-                (parent.events[matched.name.data] ||
-                (parent.events[matched.name.data] = []))
-                    .push(matched);
+                newItem = new AST_Event(matched);
+                parent.addEvent(matched.name.data, newItem);
             }else if(matched = match('METADATA', item)){
                 // TODO: not parent, but next folowing prop
 
-                (storage.tags[matched.name.data] ||
-                (storage.tags[matched.name.data] = []))
-                    .push(matched);
+                storage.addTag(matched.name.data, matched);
                 storage.anyTags = true;
             }
 
@@ -80,89 +122,20 @@ module.exports = (function(){
                 // RAW DATA. component may have custom syntax
                 parent.unclassified.push(item);
             }else{
-                if(matched._matchType !== 'METADATA' && storage.anyTags){
-                    Object.assign(matched.tags = {}, storage.tags);
-
-                    storage.tags = {};
+                if(newItem && storage.anyTags){
+                    newItem.addTags(storage.tags);
+                    storage.clear('tags');
                     storage.anyTags = false;
                 }
-                /*if(matched.cls){
-                    debugger
-                }*/
                 if(matched.value){
-                    var fn = match('FUNCTION', {tokens: matched.value});
-                    if(fn) {
-                        // yep, it's function!
-                        var fnBody = fn.body;
-                        //console.log(fnBody[0])
-                        if (fnBody && fnBody.tokens && fnBody.tokens.length && fnBody.type === 'Brace' && fnBody.info === '{') {
-                            // braced function body
-                            var bodyTokens = fnBody.tokens;
-                            bodyTokens = bodyTokens.slice(1, bodyTokens.length - 1);
-                        } else {
-                            bodyTokens = fnBody;
-                        }
-                        bodyTokens = bodyTokens || [];
-
-                        if(item.children)
-                            bodyTokens = bodyTokens.concat(item.children);
-
-                        console.log(fn.returnType);
-                        matched.value = {
-                            type: 'FUNCTION',
-                            arguments: fn.arguments.tokens.length < 3 ? [] : tTools.split(
-                                fn.arguments.tokens.slice(1,fn.arguments.tokens.length-1), {type: 'COMMA'}
-                            ).map(tTools.trim),
-                            body: tTools.toString(bodyTokens)
-                        };
-
-                        /** TODO check for return in js ast. DIRTY HACK*/
-                        if(fn.returnType){
-                            matched.value.returnType = fn.returnType.data
-                        }else{
-                            matched.value.returnType = matched.value.body.data.indexOf('return')>-1 ?
-                                UNKNOWN_ARGUMENT_TYPE
-                                : EMPTY_RETURN_VALUE;
-                        }
-
-                        /** END OF DIRTY HACK */
-
-                        bodyParser(matched.value.body);
-
-                        matched.value['arguments'] = matched.value['arguments'].map(function(item){
-                            // argument info extraction
-
-                            var argType = item.length>1?
-                                tTools.trim(item.slice(0, item.length - 1))
-                                    .map(function(item){return item.data;})
-                                    .join('')
-                                :UNKNOWN_ARGUMENT_TYPE,
-                                name = item[item.length - 1].data;
-                            delete matched.value.body.vars[name];
-
-                            return {
-                                name: name,
-                                type: argType,
-                                pointer: item[0].pointer};
-                        });
-
-
-                        //console.log(matched.value.arguments[0]);
-                    }
-
+                    matchers.func({tokens: matched.value, matched: matched, item: item});
+                    if(newItem)
+                        newItem.value = matched.value;
                 }
                 if(item.children){
-                    Object.assign(matched, {
-                        type: 'DEFINE',
-                        public: {},
-                        private: {},
-                        events: {},
-                        tags: {},
-                        items: [],
-                        raw: [],
-                        unclassified: []
-                    });
-                    item.children.forEach(subMatcher(matched, {tags: {}}));
+                    //child = new AST_Define(matched);
+                    var tagStore = new AST_Define({tagStore: true});
+                    item.children.forEach(subMatcher(newItem, tagStore));
                 }
             }
 
@@ -170,12 +143,12 @@ module.exports = (function(){
 
         }
     };
-    // It is a hardcoded plain function for only one purpose
-    // Fuck the beauty, it just do the job
+
     var process = function (tree) {
         var i, _i, children, child,
             ast = [], current, info,
-            definition, inner, matched, tags = {};
+            definition, inner, matched,
+            tags = new AST_Define({tagStore: true});
         if(tree.type==='AST'){
             if(!tree.children.length){
                 throw 'no defs'
@@ -183,35 +156,24 @@ module.exports = (function(){
             children = tree.children;
             for( i = 0, _i = children.length; i < _i; i++ ){                
                 child = children[i];
-                // should be define
 
-                definition = match('DEFINE', child) || match('DEFINE#', child);
-                if(definition){
-                    current = Object.assign({
-                        type: 'DEFINE',
-                        public: {},
-                        private: {},
-                        events: {},
-                        tags: tags,
-                        items: [],
-                        raw: [],
-                        unclassified: []
-                    }, definition);
+                if(definition = matchers.define(child)){
+                    current = (new AST_Define(definition))
+                        .addTags(tags.tags);
+
                     ast.push(current);
                     inner = child.children;
-                    inner && inner.forEach(subMatcher(current, {tags: {}}));
 
-                    //console.log(current)
-                    //console.log('----')
-                    tags = {};
-                }else if(matched = match('METADATA', child)){
-                    (tags[matched.name.data] ||
-                    (tags[matched.name.data] = []))
-                        .push(matched);
-                    if(child.children)
-                        matched.children = child.children;
+                    if(inner){
+                        var tagStore = new AST_Define({tagStore: true});
+                        inner.forEach(subMatcher(current, tagStore));
+                    }
+
+                    tags = new AST_Define({tagStore: true});
+                }else if(matched = matchers.metadata(child)){
+                    tags.addTag(matched.name.data, matched, child.children);
                 }else{
-                    throw new Error('ololo')
+                    throw new Error('can not match')
                 }
                 //console.log(info)
             }
