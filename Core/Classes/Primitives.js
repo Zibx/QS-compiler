@@ -64,6 +64,11 @@ module.exports = (function () {
             public: {
                 value: p('Function')
             }
+        },
+        Array: {
+            public: {
+                value: p('Array')
+            }
         }/*,
         UIComponent: {
             public: {

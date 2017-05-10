@@ -8,5 +8,7 @@
 
 module.exports = (function () {
     'use strict';
-    return require('./build');
+    var build = require('./build');
+    build.doc = require('./doc');
+    return build;
 })();

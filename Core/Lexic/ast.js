@@ -91,6 +91,8 @@ module.exports = (function(){
 
             if(matched = matchers.prop(item)){
                 newItem = new AST_Property(matched);
+                if(!parent|| !parent.items)
+                    return;
                 parent.items.push(newItem);
 
                 isPublic = newItem.isPublic = matched.scope && matched.scope.mapped === 'public';
@@ -175,7 +177,6 @@ module.exports = (function(){
                 }else{
                     throw new Error('can not match')
                 }
-                //console.log(info)
             }
             tree = tree.children[0];
         }

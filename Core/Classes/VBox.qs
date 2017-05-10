@@ -1,7 +1,43 @@
+@example: Vertical aligned components
+    def Page main
+      //This VBox draws the flag of the Netherlands
+      VBox
+        width: 400px
+        div
+          height: 100px
+          background: darkred
+        div
+          height: 100px
+          background: white
+        div
+          height: 100px
+          background: darkblue
+@info: Layout element capable of aligning child elements. The nested elements are aligned in a single vertical column. Child components can be dynamically added to a VBox.
 @ns: UI.Controls
 def UIComponent VBox
+    @info: Contains all elements widths specifications for your [[HBox]] or all elements heights specifications for your [[VBox]]. In either case the values are separated by spaces.
     public String flexDefinition
 
+
+@example: Horizontal aligned components
+    def Page main
+      //this HBox draws the flag of France
+      HBox
+
+        //This property is inherited from FlexSizeComponent. It sets the widths of the three child elements
+        flexDefinition: 100px 100px 100px
+
+        UIComponent
+          height: 200px
+          background: darkblue
+        UIComponent
+          height: 200px
+          background: white
+        UIComponent
+          height: 200px
+          background: darkred
+@info: Layout element capable of aligning child elements. The nested elements are left-aligned in a single horizontal row. Child components can be dynamically added to an HBox.
 @ns: UI.Controls
 def UIComponent HBox
+    @info: Contains all elements widths specifications for your [[HBox]] or all elements heights specifications for your [[VBox]]. In either case the values are separated by spaces.
     public String flexDefinition

@@ -23,7 +23,6 @@ module.exports = (function () {
 
                 somePointer = obj.ast.name.pointer,
 
-
                 name;
             for (i = 0, _i = stack.length; i < _i; i++) {
 
@@ -35,7 +34,8 @@ module.exports = (function () {
                 else
                     name = node.name;
 
-                if (!env || env.type !== 'Variant') {
+
+                if (!env || env.type !== 'Variant' || this.getTag(this.world[env.type], 'anything')) {
 
                     if (node.type === 'ThisExpression') {
                         env = child;
@@ -74,12 +74,17 @@ module.exports = (function () {
                             }
                         }
 
-                        if (lastEnv) {
-                            console.log(out);
-                            somePointer.error('Can not resolve `' + name + '` from `' + lastName + '` <' + lastEnv.type + '>',
-                                {row: node.loc.start.line-1, col: node.loc.start.column+1}
-                            );
-                            return false;
+                        if (lastEnv){
+                            if(this.getTag(this.world[lastEnv.type], 'anything')) {
+                                env = {type: 'Variant'};
+
+                            }else{
+                                console.log(out);
+                                somePointer.error('Can not resolve `' + name + '` from `' + lastName + '` <' + lastEnv.type + '>',
+                                    {row: node.loc.start.line - 1, col: node.loc.start.column + 1}
+                                );
+                                return false;
+                            }
                             //throw new Error('Can not resolve `' + name + '` from `' + lastName + '` <' + lastEnv._type + '>');
                         } else
                             throw new Error('Unknown variable `' + name + '` in `'+obj.name+'`');

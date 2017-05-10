@@ -39,6 +39,8 @@ def UIComponent Slider
 
     @info: Upper bound of range
     public Number to
+
+    @info: Step of the values while moving the slider.
     public Number step
 
     @info: Color of the Filled part of the slider

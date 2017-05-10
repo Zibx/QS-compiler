@@ -47,6 +47,9 @@ module.exports = (function () {
 
             /** REQUIRES */
             for(i in obj.require){
+                if(!(i in this.world)){
+                    throw new Error('Unknown class `'+ i +'`')
+                }
                 if(this.world[i].namespace) {
                     var nsString = ['Q'].concat(this.world[i].namespace);
                     nsString.push(i);

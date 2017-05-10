@@ -386,6 +386,13 @@ module.exports = (function () {
         systemQS('VBox'),
         systemQS('Timer'),
         systemQS('Slider'),
+        systemQS('Button'),
+        systemQS('CheckBox'),
+        systemQS('TextBox'),
+        systemQS('GeoMap'),
+        systemQS('Video'),
+        systemQS('Image'),
+        systemQS('Grid'),
         systemQS('Label')
 
     ];
@@ -483,7 +490,8 @@ module.exports = (function () {
             var name = info.name,
                 ns = info.namespace,
                 ctor = info.ctor,
-                props = ctor.prototype._prop, i;
+                props = ctor.prototype._prop, i,
+                proto = ctor.prototype;
 
             var obj = this.world[name] = {
                 public: {},
@@ -507,14 +515,16 @@ module.exports = (function () {
                 for( i in props){
                     obj.public[i] = {type: 'Variant', defined: name };//props[i];
                 }
-            for( i in info ){
+            for( i in proto ){
+                    if(i==='_prop' || i==='_method')
+                        continue;
                     var origI = i;
-                    var prop = info[i];
+                    var prop = proto[i];
                     if(i.indexOf('_')===0){
                         if(i.indexOf('__')!=0)
                             i = i.substr(1);
 
-                        (obj.tags[origI] || (obj.tags[origI] = [])).push({data: prop});
+                        (obj.tags[i] || (obj.tags[i] = [])).push({value: prop});
                     }
             }
             this.loaded(name);
