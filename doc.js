@@ -17,19 +17,70 @@ module.exports = (function () {
 
         return items.map(function(tag){
             var out = {info: tag.value.map(function(item){return item.data;}).join('')};
+
             if(tag.children)
-                out.text = tokenTools.toString(tag.children, [],void 0, {comments: true}).lines.join('\n')
+                out.text = (
+                    drawChildrenData(
+                        tokenTools.toString(
+                            tag.children, [],void 0, {comments: true}
+                        )
+                    )
+                );
             return out;
         });
     };
     var Compiler = require('./Core/Compile/Compiler');
-
+    var marked = require('marked');
     var tokenTools = require('./Core/tokenTools');
+    var renderer = function(text){
+        return marked(text);
+    };
 
+    marked.setOptions({
+        highlight: function (code, lang) {
+            return ('<div style="overflow: visible; position: relative; width: 95%; height: 100%; font-size: 14px;" class="Q-UI-LiveQS">' +
+            '<div class="LiveQSCode" style="font-family: monospace;">'+
+                code +
+            '</div>' +
+            '<div style="clear: both;"></div></div>');
+        },
+        code: function(code){
+            return code;
+        }
+    });
+    var drawChildrenData = function(childrenData){
+        var minLength = childrenData.lines.filter(function(line){
+            return line.length>0;
+        }).map(function (line) {
+            return line.replace(/^(\s*)(.*)/,'$1').length;
+        }).reduce(function (a, b) {
+            // TODO check for single line case
+            return a<b?a:b;
+        });
+        var spaces = new RegExp('^'+new Array(minLength+1).join(' '));
+        return childrenData.lines.map(function(line){
+            return line.replace(spaces, '');
+        }).join('\n');
+    };
+    var getTag = function(ast, tagName){
+        var out = compiler.getTag(ast, tagName),
+            childrenData;
+        if(out === false)
+            return false;
+        var children = ast.tags[tagName][0].children;
+        if(children) {
+            childrenData = tokenTools.toString(ast.tags[tagName][0].children, [],void 0, {comments: true});
+
+
+            out += '\n'+drawChildrenData(childrenData)
+        }
+        return out;
+    };
+    var compiler;
     var doDoc = function () {
 
 
-        var compiler = new Compiler({});
+        compiler = new Compiler({});
 
         var world = compiler._world, item;
         var out = [];
@@ -41,9 +92,10 @@ module.exports = (function () {
                 collector.name = item.mixed.name;
                 collector.namespace = item.mixed.namespace;
 
-                var info = compiler.getTag(item.ast, 'info');
-                if (info)
-                    collector.info = info.replace(/\n/g,'<br>');
+                var info = getTag(item.ast, 'info');
+                if (info) {
+                    collector.info = renderer(info);//.replace(/\n/g,'<br>');
+                }
 
                 var examples = extractTags(item.ast, 'example');
                 if (examples) {
@@ -60,10 +112,10 @@ module.exports = (function () {
                         props.push(prop);
 
                         info = item.mixed.ast.public[p];
-                        var infoTag = compiler.getTag(info, 'info');
+                        var infoTag = getTag(info, 'info');
 
                         if (infoTag) {
-                            prop.info = infoTag
+                            prop.info = renderer(infoTag);
                         }
                     }
                     /*else{
@@ -76,10 +128,10 @@ module.exports = (function () {
 
             }
         }
-        out.forEach(function (o) {
+        /*out.forEach(function (o) {
             if (o.name === 'Slider')
                 console.log(JSON.stringify(o, null, 2))
-        });
+        });*/
         return out;
     };
     if(module.parent){

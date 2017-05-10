@@ -38,7 +38,7 @@ module.exports = (function () {
         compile('test/qs/cls.qs', function (result) {
             var main = result.ast.main;
             it('should compile fn call', function(){
-                assert.equal(main.values.b1.cls._val,'".aaa.bbb"');
+                assert.equal(main.values.b1.cls._val, '".aaa.bbb"');
             });
         });
     });

@@ -1,6 +1,6 @@
 {
   "name": "quokka-script",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "QuokkaScript compiler.",
   "main": "index.js",
   "scripts": {
@@ -13,7 +13,8 @@
     "escodegen": "*",
     "esprima": "*",
     "minimist": "*",
-    "z-lib": "*"
+    "z-lib": "*",
+    "marked": "*"
   },
   "devDependencies": {
     "chai": "*",

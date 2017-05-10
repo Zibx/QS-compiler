@@ -82,6 +82,10 @@ module.exports = (function(){
     };
     AST_Event.prototype = AST_Define.prototype;
 
+    var AST_Metadata = function (cfg) {
+        AST_Define.call(this, cfg);
+    };
+    AST_Metadata.prototype = AST_Define.prototype;
 
     var subMatcher = function(parent, storage){
         return function(item){
@@ -116,7 +120,7 @@ module.exports = (function(){
             }else if(matched = match('METADATA', item)){
                 // TODO: not parent, but next folowing prop
 
-                storage.addTag(matched.name.data, matched);
+                storage.addTag(matched.name.data, matched, item.children);
                 storage.anyTags = true;
             }
 
@@ -134,7 +138,7 @@ module.exports = (function(){
                     if(newItem)
                         newItem.value = matched.value;
                 }
-                if(item.children){
+                if(newItem && item.children){
                     //child = new AST_Define(matched);
                     var tagStore = new AST_Define({tagStore: true});
                     item.children.forEach(subMatcher(newItem, tagStore));

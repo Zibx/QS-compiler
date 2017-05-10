@@ -288,6 +288,7 @@ module.exports = (function () {
             }
             var map = sourceMap.toString();
             var result = {source: source, map: map};
+            console.log(result)
             return result;
         },
         __isProperty: function (cls, prop) {
