@@ -35,7 +35,30 @@ module.exports = (function () {
     var renderer = function(text){
         return marked(text);
     };
-
+    var argumentsParser = function(args){
+        return args.map(function(arg){
+            var info = arg.info;
+            delete arg.info;
+            var stack = [];
+            for(var i = 0, _i = info.length; i < _i; i++){
+                var char = info[i];
+                if(char === '[' || char === '(' || char === '{' || char === '<') {
+                    stack.push(char);
+                }
+                if(char === ']' || char === ')' || char === '}' || char === '>') {
+                    stack.length && stack.pop();
+                }
+                if(stack.length === 0 && (char === ' ' || char === '\t')){
+                    break;
+                }
+            }
+            return {
+                type: info.substr(0, i),
+                name: info.substr(i+1),
+                info: marked(arg.text)
+            };
+        });
+    };
     marked.setOptions({
         highlight: function (code, lang) {
             return ('<div style="overflow: visible; position: relative; width: 95%; height: 100%; font-size: 14px;" class="Q-UI-LiveQS">' +
@@ -101,26 +124,41 @@ module.exports = (function () {
                 if (examples) {
                     collector.example = examples;
                 }
-                var props = collector.props = [];
+                var props = collector.props = [],
+                    events = collector.events = [],
+                    fns = collector.fns = [];
                 for (var p in item.mixed.public) {
                     var prop = {};
 
                     var itemProp = item.mixed.public[p];
                     prop.name = p;
                     prop.type = itemProp.type;
-                    if (i === itemProp.defined) { // own
-                        props.push(prop);
 
-                        info = item.mixed.ast.public[p];
-                        var infoTag = getTag(info, 'info');
+                    var own = prop.own = i === itemProp.defined;
 
-                        if (infoTag) {
-                            prop.info = renderer(infoTag);
-                        }
+                    var ast = own ? item.mixed.ast.public[p] : world[ itemProp.defined ].mixed.ast.public[p];
+
+                    info = item.mixed.ast.public[p];
+                    var infoTag = getTag(ast, 'info');
+
+                    if (infoTag) {
+                        prop.info = renderer(infoTag);
                     }
-                    /*else{
-                     console.log('\t',p, prop.type, prop.defined)
-                     }*/
+
+                    if(prop.type === 'Event'){
+                        var args = extractTags(ast, 'arg');
+
+                        prop.args = argumentsParser(args);
+                        events.push(prop);
+                    }else if(prop.type === 'Function'){
+                        fns.push(prop);
+                    }else{
+                        props.push(prop);
+                    }
+
+
+
+
                 }
                 props.sort(function (a, b) {
                     return a.name > b.name ? 1 : -1;

@@ -17,4 +17,11 @@ def UIComponent Button
     public String value
 
     @info: Click event
-    public Boolean click
+    @arg: PointEvent e
+      rot ebal
+    @arg: [String, Number]
+      Array with Name and Age
+    @example: Change color on click
+        Button btn: Click me
+          .click: ()-> btn.color = '#f00';
+    public Event click

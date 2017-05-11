@@ -69,6 +69,11 @@ module.exports = (function () {
             public: {
                 value: p('Array')
             }
+        },
+        Event: {
+            public: {
+                value: p('Array')
+            }
         }/*,
         UIComponent: {
             public: {

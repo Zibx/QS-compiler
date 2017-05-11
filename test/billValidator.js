@@ -15,29 +15,29 @@ module.exports = (function () {
         fs = require('fs');
     var fileName = 'billValidator';
     var mainComponent = 'ValidatorTestPage';
+    var build = require('../build');
+    var compile = function(fileName, cb){
+        var crafted = build({
+            lib: 'test/lib/QComponent4/src',
+            typeTable: 'Core/TypeTable.js',
+            source: fs.readFileSync(fileName) + ''
+        }, cb);
+    };
+
     describe('Compile '+ fileName, function() {
 
-        it('extract', function () {
-            var data = fs.readFileSync('test/qs/'+fileName+'.qs') + '',
-                tokens = tokenizer(data, fileName+'.qs'),
-                lex = lexer(tokens);
+        compile('test/qs/'+fileName+'.qs', function(result){
 
-            var compiler  = new Compiler();
 
-            lex.forEach(function(item){
-                compiler.add(item);
-                //item.metadata = metadata.extract(item);
+            it('extract', function () {
+
+                fs.writeFileSync('test/generate/'+ fileName +'.js', result.js);
+
+                //console.log(compiler.world.main)
+
+                //console.log(JSON.stringify(compiler.world.main.require,null,2))
             });
-
-            //console.log(lex[0])
-            var out = compiler.compile(mainComponent);
-            console.log(out);
-            fs.writeFileSync('test/generate/'+ fileName +'.js', out);
-
-            //console.log(compiler.world.main)
-
-            //console.log(JSON.stringify(compiler.world.main.require,null,2))
-        });
+        })
     });
 
 })();

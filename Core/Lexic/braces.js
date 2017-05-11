@@ -26,7 +26,7 @@ module.exports = (function(){
     var process = function (tokens) {
         var i, _i, token, delta,
 
-            stack = [], last;
+            stack = [], last = {wait: Infinity};
 
         for( i = 0, _i = tokens.length; i<_i;i++){
             token = tokens[i];
@@ -59,7 +59,10 @@ module.exports = (function(){
             }
         }
         if(stack.length)
-            throw new Error('MNOGO');
+            throw new Error('Unclosed braces:\n'+stack.map(function(token){
+                var waiter = tokens[token.start].pointer;
+                return '\t'+token.info + ' at ('+ waiter.source + ':'+ waiter.row +':'+ waiter.col+')';
+            }).join('\n'));
 
 
         return tokens.map(function(token){

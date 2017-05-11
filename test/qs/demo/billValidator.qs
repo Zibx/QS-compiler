@@ -7,6 +7,7 @@
 // By zibx on 4/10/17.
 
 def Page ValidatorTestPage
+
     CheckBox cb1: false
     BillValidator bv1
         enabled: {{cb1}}

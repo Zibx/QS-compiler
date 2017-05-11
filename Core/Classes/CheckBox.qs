@@ -10,3 +10,6 @@ def UIComponent CheckBox
 
   @info: The currently selected value
   public Boolean value: false
+
+  @info: Label of checkbox
+  public String label
