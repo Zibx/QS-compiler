@@ -8,6 +8,32 @@
 
 module.exports = (function () {
     'use strict';
+    var Fs = require('fs'),
+        Path = require('path')
+    function readDirRecursive(path, base) {
+        if(!base)
+            base = '';
+
+        var entries = Fs.readdirSync(path);
+        var ret = [];
+        for (var i = 0; i < entries.length; i++) {
+            var entry = entries[i];
+            var fullPath = Path.join(path, entry);
+            var stat = Fs.statSync(fullPath);
+            if (stat.isFile()) {
+                /*if (entry == "TypeTable.js")
+                 ret.push("module.exports.TypeTable=require('../" + fullPath.replace(/\\/g, "/") + "')");
+                 else*/
+                ret.push(Path.join(base,entry).replace(/\\/g, "/"));
+            }
+            if (stat.isDirectory()) {
+
+                if(entry[0] !== '.') // SYSTEM
+                    ret = ret.concat(readDirRecursive(fullPath, base?Path.join(base, entry):entry));
+            }
+        }
+        return ret;
+    };
     var extractTags = function(obj, name){
         if(!obj.tags || !obj.tags[name])
             return false;
@@ -170,6 +196,10 @@ module.exports = (function () {
             if (o.name === 'Slider')
                 console.log(JSON.stringify(o, null, 2))
         });*/
+
+        var docs = readDirRecursive('Core/Docs');
+        console.log(docs)
+
         return out;
     };
     if(module.parent){
