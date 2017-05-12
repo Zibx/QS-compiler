@@ -59,6 +59,9 @@ module.exports = (function () {
     var marked = require('marked');
     var tokenTools = require('./Core/tokenTools');
     var renderer = function(text){
+        extracted = {
+            heading: {}
+        };
         return marked(text);
     };
     var argumentsParser = function(args){
@@ -81,12 +84,15 @@ module.exports = (function () {
             return {
                 type: info.substr(0, i),
                 name: info.substr(i+1),
-                info: marked(arg.text)
+                info: renderer(arg.text)
             };
         });
     };
+    var render = new marked.Renderer();
     marked.setOptions({
+        renderer: render,
         highlight: function (code, lang) {
+
             return ('<div style="overflow: visible; position: relative; width: 95%; height: 100%; font-size: 14px;" class="Q-UI-LiveQS">' +
             '<div class="LiveQSCode" style="font-family: monospace;">'+
                 code +
@@ -96,7 +102,23 @@ module.exports = (function () {
         code: function(code){
             return code;
         }
+
     });
+    var extracted;
+    render.heading = function(text, level){
+        (extracted.heading[level] || (extracted.heading[level] = [])).push(text);
+        extracted.heading.max = Math.max(extracted.heading.max|0, level);
+
+        var escapedText = text.toLowerCase().replace(/[^\w]+/g, '-');
+
+        return '<h' + level + '><a name="' +
+            escapedText +
+            '" class="anchor" href="#' +
+            escapedText +
+            '"><span class="header-link"></span></a>' +
+            text + '</h' + level + '>';
+    };
+
     var drawChildrenData = function(childrenData){
         var minLength = childrenData.lines.filter(function(line){
             return line.length>0;
@@ -196,9 +218,27 @@ module.exports = (function () {
             if (o.name === 'Slider')
                 console.log(JSON.stringify(o, null, 2))
         });*/
+        var docsDir = Path.join(__dirname, 'Core/Docs');
+        readDirRecursive(docsDir).forEach(function(fileName){
+            var content = Fs.readFileSync(
+                Path.join(docsDir, fileName)
+            );
+            var parts = Path.parse(fileName);
+            var item = {
+                type: parts.dir,
+                file: fileName,
+                fileName: parts.name,
+                data: renderer(content+'')
+            };
 
-        var docs = readDirRecursive('Core/Docs');
-        console.log(docs)
+            if(extracted.heading.max)
+                item.title = extracted.heading[extracted.heading.max][0];
+
+            out.push(item);
+        });
+
+
+        //console.log(docs)
 
         return out;
     };

@@ -1,4 +1,5 @@
-====Main concepts====
+# Main concepts
+
 The QuokkaScript programming language -- which is further referred to as QS -- is intended to streamline the development of user-oriented **applications** and services. It enables to develop desktop, web, and mobile applications, including distributed applications and those enhanced with a server backend.\\
 The accelerated application development is provided by the following features:\\
   * Clear, intuitive, and extensible model of encapsulated **components**
