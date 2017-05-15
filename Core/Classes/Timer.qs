@@ -13,5 +13,7 @@ def Class Timer
     @info: The timer interval in milliseconds
     public Number interval
 
+    @arg: time
+      Current time
     @info: Timer reactive property that change it value to true and than immediately to false on every .tick event
-    public Boolean tick: false
+    public Event tick

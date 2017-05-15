@@ -18,3 +18,5 @@ def UIComponent TextBox
     @info: Color of the text in the field. **String**, uses the CSS notation for colors.
     public String color
 
+    @info: Label of $className
+    public String label

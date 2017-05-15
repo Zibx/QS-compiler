@@ -18,10 +18,15 @@ def UIComponent Button
 
     @info: Click event
     @arg: PointEvent e
-      rot ebal
     @arg: [String, Number]
       Array with Name and Age
     @example: Change color on click
         Button btn: Click me
           .click: ()-> btn.color = '#f00';
     public Event click
+
+    @info: direction of button arrow
+    public String direction
+
+    @info: flag that make the button filled
+    public Boolean filled
