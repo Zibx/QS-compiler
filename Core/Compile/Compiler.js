@@ -589,7 +589,7 @@ module.exports = (function () {
 
             if(!('value' in item.item)) {
                 global.console.log('No value in `'+ propName +'`')
-                return void 0;
+                return property.type==='Variant' ? '{}' : void 0;
             }
 
             arr = item.item.value.map(function (val, i, list) {

@@ -48,7 +48,7 @@ module.exports = (function () {
             /** REQUIRES */
             for(i in obj.require){
                 if(!(i in this.world)){
-                    throw new Error('Unknown class `'+ i +'`')
+                    throw new Error('Unknown class `'+ i +'` '+ obj.require[i][0].pointer)
                 }
                 if(this.world[i].namespace) {
                     var nsString = ['Q'].concat(this.world[i].namespace);
@@ -384,6 +384,50 @@ module.exports = (function () {
                             cls.values[objectName] = {};
 
                         cls.values[objectName][itemName] = value;
+
+                        if(item.cls && item.cls.length){
+                            var childObjectName = objectName;
+
+                            if(!(childObjectName in cls.values))
+                                cls.values[childObjectName] = {};
+
+                            prop = this.callMethod('__isProperty', prop, 'cls');
+
+                            var value = {
+                                type: 'property',
+                                name: itemName+'.cls',
+                                item: Object.assign(Object.create(item),{value: item.cls}),
+                                info: prop
+                            };
+
+
+                            cls.values[childObjectName][itemName+'.cls'] = value;
+                        }
+
+                        var childItem = {
+                            type: 'property',
+                            class: 'Variant',
+                            ast: item,
+                            name: itemName,
+                            values: {}
+                        };
+                        if(childItem.class === 'Function'){
+                            childItem.type = 'inline';
+                        }
+                        childItem.name = itemName;
+
+                        var fake = Object.create(cls);
+                        fake.values = {};
+                        this.callMethod('__dig', childItem, fake);
+                        var fakes = fake.values[itemName];
+                        if(fakes) {
+
+                            for (var x in fakes) {
+                                fakes[x].name = itemName+'.'+fakes[x].name;
+                                cls.values[childObjectName][itemName + '.' + x] = fakes[x];
+                                var j = fake;
+                            }
+                        }
 
                     }else if (itemName in this.world) {
                         //console.log(itemName, item.name)

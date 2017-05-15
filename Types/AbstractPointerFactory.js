@@ -40,6 +40,9 @@ module.exports = (function () {
                     col: info && info.col !== void 0 ? info.col : this.col,
                     row: info && info.row !== void 0 ? info.row : this.row
                 });
+            },
+            toString: function () {
+                return '('+ [this.source,this.row, this.col].join(':') +')';
             }
         };
 

@@ -88,11 +88,20 @@ module.exports = (function () {
             };
         });
     };
+    var world;
     var render = new marked.Renderer();
     marked.setOptions({
         renderer: render,
         highlight: function (code, lang) {
-
+            code = code
+                .replace(
+                    new RegExp('('+Object.keys(world).join('|')+')','g'),
+                    '<span class="qs-hl-key">$1</span>'
+                )
+                .replace(/(def|define|function|public|:)/g,'<span class="qs-hl-kkwd">$1</span>')
+                .replace(/(\/\/.*)/g,'<span class="qs-hl-cmt">$1</span>')
+                .replace(/([\d]+\.*[\d]*|true|false)/g,'<span class="qs-hl-val">$1</span>')
+                .replace(/({|}|\(|\))/g,'<span class="qs-hl-brace">$1</span>');
             return ('<div style="overflow: visible; position: relative; width: 95%; height: 100%; font-size: 14px;" class="Q-UI-LiveQS">' +
             '<div class="LiveQSCode" style="font-family: monospace;">'+
                 code +
@@ -100,14 +109,25 @@ module.exports = (function () {
             '<div style="clear: both;"></div></div>');
         },
         code: function(code){
-            return code;
-        }
-
+            return code.replace(/(\/\/.*)/g,'<span class="qs-hl-cmt">$1</span>');
+        },
+        gfm: true,
+        tables: true,
+        breaks: true,
+        pedantic: true,
+        sanitize: false,
+        smartLists: true,
+        smartypants: true
     });
+
     var extracted;
+    render.smartypants = true;
+    render.breaks = true;
+    render.gfm = true;
+
     render.heading = function(text, level){
         (extracted.heading[level] || (extracted.heading[level] = [])).push(text);
-        extracted.heading.max = Math.max(extracted.heading.max|0, level);
+        extracted.heading.max = Math.min(extracted.heading.max||100, level);
 
         var escapedText = text.toLowerCase().replace(/[^\w]+/g, '-');
 
@@ -153,7 +173,8 @@ module.exports = (function () {
 
         compiler = new Compiler({});
 
-        var world = compiler._world, item;
+        world = compiler._world;
+        var item;
         var out = [];
         for (var i in world) {
             item = world[i];
