@@ -70,7 +70,7 @@ module.exports = (function () {
             stack.push(pointer);
         }
 
-        info = getVarInfo.call(this, stack, cls);
+        info = getVarInfo.call(this, stack, cls, scope);
         if(!info)
             return false;
         if (info.valueFlag)
@@ -169,7 +169,7 @@ module.exports = (function () {
                 for (var i = 0, _i = pipeVars.length; i < _i; i++) {
                     var pipeVar = pipeVars[i];
                     //var source;// = '\'' + fullName + '\'';
-                    var source = getVarAccessor.call(this, pipeVar, obj);
+                    var source = getVarAccessor.call(this, pipeVar, obj, pipe);
                     if(source === false)
                         return false;
                     if (!cache[source]) {
@@ -194,7 +194,11 @@ module.exports = (function () {
         parts.push('function('+mutatorArgs.join(',')+'){\n' +
             '\t'+sm(pipe)+'return '+ pipe.fn +';\n' +
             '}');
-        return 'new Pipe('+parts.join(', ')+')';
+        if(pipeSources.length) {
+            return 'new Pipe(' + parts.join(', ') + ')';
+        }else{
+            return  '('+parts[0]+')()';
+        }
 
         /*'this.createDependency([\n' +
             '\t\t' +
@@ -377,11 +381,38 @@ module.exports = (function () {
             out = Object.assign({}, additional, out);
         return out;
     };
+    function readDirRecursive(dirPath, base) {
+        if(!base)
+            base = '';
+
+        var entries = fs.readdirSync(dirPath);
+        var ret = [];
+        for (var i = 0; i < entries.length; i++) {
+            var entry = entries[i];
+            var fullPath = path.join(dirPath, entry);
+            var stat = fs.statSync(fullPath);
+            if (stat.isFile()) {
+                /*if (entry == "TypeTable.js")
+                 ret.push("module.exports.TypeTable=require('../" + fullPath.replace(/\\/g, "/") + "')");
+                 else*/
+                ret.push(path.join(base,entry).replace(/\\/g, "/"));
+            }
+            if (stat.isDirectory()) {
+
+                if(entry[0] !== '.') // SYSTEM
+                    ret = ret.concat(readDirRecursive(fullPath, base?path.join(base, entry):entry));
+            }
+        }
+        return ret;
+    };
+    var files = readDirRecursive(path.join(__dirname,'../Classes'));
+
     var system = [
         systemJS('Class'),
         systemJS('QObject'),
         systemJS('Primitives', true),
-        systemQS('Page'),
+
+        /*systemQS('Page'),
         systemQS('UIComponent'),
         systemQS('VBox'),
         systemQS('Timer'),
@@ -393,9 +424,14 @@ module.exports = (function () {
         systemQS('Video'),
         systemQS('Image'),
         systemQS('Grid'),
-        systemQS('Label')
+        systemQS('Label')*/
 
     ];
+    files.forEach(function(file){
+        var parts = path.parse(file);
+        if(parts.ext === '.qs')
+            system.push(systemQS(parts.name))
+    })
 
     var Compiler = function(cfg){
         this.objectCounter = 0;
@@ -610,7 +646,7 @@ module.exports = (function () {
 
                 // HAIL TAUTOLOGY!
                 if(out === false)
-                    return new Error('Can not get value');
+                    return new Error('Can not get value '+item.item.value[0].pointer);
 
                 return out;
 

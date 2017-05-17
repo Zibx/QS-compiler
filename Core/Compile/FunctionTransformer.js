@@ -65,13 +65,18 @@ module.exports = (function () {
             var meta = cls.metadata;
             var _self = this;
             var transformFnGet = function (node, stack, scope, parent) {
-                    var c0 = cls;
-                    var list = stack.slice().reverse(),
-                        varParts,
+                var c0 = cls;
+                var list = stack.slice().reverse(),
+                    varParts;
 
-                        info = tools.getVarInfo.call(_self, list, cls, child),
-                        firstToken = info.varParts[0],
-                        who;
+                var info = tools.getVarInfo.call(_self, list, cls, child);
+                if(!info) {
+                    throw new Error('Can not resolve '+
+                        list.map(function(token){return token.name}).join('.') +
+                        ' at (' + fnObj.fn.pointer+')')
+                }
+                var firstToken = info.varParts[0],
+                    who;
 
                 var what = cls.itemsInfo[info.varParts[0].name];
 

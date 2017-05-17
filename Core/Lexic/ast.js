@@ -179,7 +179,7 @@ module.exports = (function(){
                 }else if(matched = matchers.metadata(child)){
                     tags.addTag(matched.name.data, matched, child.children);
                 }else{
-                    throw new Error('can not match')
+                    throw new Error('can not match '+child.pointer)
                 }
             }
             tree = tree.children[0];

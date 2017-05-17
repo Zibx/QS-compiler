@@ -1,5 +1,5 @@
 @description: Array class (primitive)
-@unknownProperty:
+@unknownProperty: a
   @argument key: Number
   @argument val: Variant
   set: function(key, val){
@@ -11,7 +11,8 @@
   get: function(key){
     return that[key];
   }
-define Class Array
+
+def Class Array
   public Function push: (val) -> return that.push(val)
   public Function pop: (val) -> return that.pop(val)
 
