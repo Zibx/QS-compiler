@@ -62,7 +62,7 @@ module.exports = (function () {
         extracted = {
             heading: {}
         };
-        return marked(text);
+        return marked(text+'');
     };
     var argumentsParser = function(args){
         return args.map(function(arg){
