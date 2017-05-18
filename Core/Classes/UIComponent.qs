@@ -10,6 +10,8 @@ define QObject UIComponent
   public String scroll
 
   public String padding
+  public String margin
+  public String fontSize
 
   @info: Height of the element
   public String height
