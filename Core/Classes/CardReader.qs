@@ -20,7 +20,7 @@ def QObject CardReader
   @info: Dispense card from tract
   public Function dispense
 
-  //public Function dispense
+  public Function entry
   public Function eject
 
 
@@ -38,3 +38,9 @@ def QObject CardReader
 
   @info: Third track of card
   public String Track3
+
+  @info: text status of device
+  public String status
+
+  @info: code status of device
+  public String statusCode
