@@ -20,6 +20,9 @@ def QObject CardReader
   @info: Dispense card from tract
   public Function dispense
 
+  //public Function dispense
+  public Function eject
+
 
   @info: Use emulated device
   public Boolean shim: false
