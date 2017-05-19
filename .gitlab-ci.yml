@@ -3,6 +3,7 @@
 devel:
   script:
     - npm install
+    - mkdir test/lib
     - cd test/lib
     - git clone git@gitlab.quokka.pub:LikeAWildfire/QComponent4.git
     - cd QComponent4
