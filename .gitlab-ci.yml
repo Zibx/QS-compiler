@@ -3,5 +3,13 @@
 devel:
   script:
     - npm install
+    - cd test/lib
+    - git clone git@gitlab.quokka.pub:LikeAWildfire/QComponent4.git
+    - cd QComponent4
+    - npm install
+    - node make
+#    - mkdir node_modules
+#    - cd node_moules
+#    - ln -s ../
     - rsync -av --delete --filter='- .git*' ./ quokka@192.168.1.108:/home/quokka/QComponent4/ && ssh root@192.168.1.108 -- 'systemctl restart quokka-node-1.service'
 
