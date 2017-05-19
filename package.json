@@ -4,7 +4,7 @@
   "description": "QuokkaScript compiler.",
   "main": "index.js",
   "scripts": {
-    "test": "node_modules/.bin/mocha -w",
+    "test": "node_modules/.bin/mocha",
     "build": "node build -c test/config.json"
   },
   "dependencies": {
