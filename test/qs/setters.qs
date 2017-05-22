@@ -1,5 +1,5 @@
 def Page main
-    Slider mySlider: 10
+    Slider mySlider: {{num}}
       from: 5
       to: 20
 
@@ -15,3 +15,4 @@ def Page main
     CheckBox: false
 
     Label: {{mySlider}}
+    public Number num: 10
