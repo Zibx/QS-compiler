@@ -146,7 +146,7 @@ module.exports = (function () {
             sourcePath = 'inline';
             data = config.source;
         }else{
-            showHelp('Specify `build` option or give source' + typeTableDir, e)
+            showHelp('Specify `build` option or give source' + typeTableDir)
         }
 
         data = data.replace(/\r/g, '');
