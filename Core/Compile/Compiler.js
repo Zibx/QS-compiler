@@ -628,7 +628,9 @@ module.exports = (function () {
                 return property.type==='Variant' ? '{}' : void 0;
             }
 
-            arr = item.item.value.map(function (val, i, list) {
+            arr = item.item.value;
+            if(!Array.isArray(arr))arr = [arr];
+            arr = arr.map(function (val, i, list) {
                 if(searchForPipes(val, i, list))
                     ohNoItSPipe = true;
 
