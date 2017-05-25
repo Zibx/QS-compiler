@@ -37,7 +37,7 @@ module.exports = (function () {
                 }, put: 'scope'}
             ]},
             {type: 'WORD', put: 'class'},
-            {type: '?', items: [ {type: 'WORD', put: 'name'} ] },
+
             {type: '*', count: 'any', items: [
                 {type: 'DOT', put: '*cls'},
                 {type: '*', count: 'any', items: [
@@ -49,6 +49,7 @@ module.exports = (function () {
                     ]}
                 ]}
             ] },
+            {type: '?', items: [ {type: 'WORD', put: 'name'} ] },
             {type: '?', items: [
                 {type: 'SEMICOLON', data: ':', put: 'semiToken'},
                 {type: '?', items: [{type: 'ALL', put: 'value'}]}
