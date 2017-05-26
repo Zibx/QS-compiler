@@ -103,7 +103,7 @@ module.exports = (function () {
                     for (i = 0, _i = varParts.length; i < _i; i++) {
                         item = varParts[i];
 
-                        if (item.computed) {
+                        if (item.node.computed) {
                             varItem = scope.doTransform.call(scope.me, item.node, scope.options);
                         } else {
                             varItem = {
@@ -149,8 +149,8 @@ module.exports = (function () {
                     var list = stack.slice().reverse(),
                         varParts,
 
-                        info = tools.getVarInfo.call(_self, list, cls, child),
-                        firstToken = info.varParts[0],
+                        info = tools.getVarInfo.call(_self, list, cls, child);
+                    var firstToken = info.varParts[0],
                         who;
 
                     //    first = list[0];
@@ -189,8 +189,8 @@ module.exports = (function () {
                                 'type': 'ArrayExpression',
                                 'elements':
                                     info.varParts.map(function (item) {
-                                        if (item.computed) {
-                                            return scope.doTransform.call(scope.me, item, scope.options);
+                                        if (item.node.computed) {
+                                            return scope.doTransform.call(scope.me, item.node, scope.options);
                                         } else {
                                             var out = {
                                                 'type': 'Literal',

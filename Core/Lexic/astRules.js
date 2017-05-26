@@ -40,14 +40,18 @@ module.exports = (function () {
 
             {type: '*', count: 'any', items: [
                 {type: 'DOT', put: '*cls'},
-                {type: '*', count: 'any', items: [
-                    {type: '?', items:[
+                {type: 'OR', items: [
+                    [{type: 'WORD', put: '*cls'}],
+                    [{type: 'PIPE', put: '*cls'}]
+                ]},
+                /*{type: '*', count: 'any', items: [
+                    /!*{type: '?', items:[
                         {type: 'WORD', put: '*cls'}
-                    ]},
+                    ]},*!/
                     {type: '?', items:[
                         {type: 'PIPE', put: '*cls'}
                     ]}
-                ]}
+                ]}*/
             ] },
             {type: '?', items: [ {type: 'WORD', put: 'name'} ] },
             {type: '?', items: [

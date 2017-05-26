@@ -183,7 +183,12 @@ module.exports = (function(){
                 //console.log(JSON.stringify(node,null,2));
                 var ending = [], pointer = node, stack = [];
                 //console.log(pointer, pointer.object)
-                while(pointer.object.type !== 'Identifier' && pointer.object.type !== 'ThisExpression'){
+                while(
+                    pointer.object.type !== 'Identifier' &&
+                    //pointer.object.type !== 'AssignmentExpression' &&
+                    pointer.object.type !== 'ThisExpression'
+                    ){
+
                     stack.push(pointer.property);
                     pointer = pointer.object;
                 }
@@ -367,8 +372,14 @@ module.exports = (function(){
             options = options || {};
 
             var before = doTransform.call(list,esprimaTree, options);
+            try {
+                return escodegen.generate(before, options.escodegen);
+            }catch(e){
+                console.log(before);
 
-            return escodegen.generate(before, options.escodegen);
+                debugger;
+                var before = doTransform.call(list,esprimaTree, options);
+            }
         }
 
     };

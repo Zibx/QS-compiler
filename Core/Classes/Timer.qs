@@ -1,6 +1,9 @@
 @info: Timer capable of measuring time intervals, which are marked by firing the Timer's .tick event.
 @ns: Core
 def Class Timer
+    @info: Counter of all happened ticks
+    public Number counter: 0
+
     @info: Switch timer enabled flag to true and start firing .tick event
     public Function start
 

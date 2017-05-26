@@ -189,6 +189,6 @@ module.exports = (function(){
 
         return ast;
     };
-
+    process.matchers = matchers;
     return process;
 })();

@@ -68,7 +68,8 @@ module.exports = (function () {
         Array: {
             public: {
                 value: p('Array')
-            }
+            },
+            _anything: true
         },
         Event: {
             public: {
