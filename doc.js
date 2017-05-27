@@ -217,7 +217,8 @@ module.exports = (function () {
                     if(prop.type === 'Event'){
                         var args = extractTags(ast, 'arg');
 
-                        prop.args = argumentsParser(args);
+                        if(args)
+                            prop.args = argumentsParser(args);
                         events.push(prop);
                     }else if(prop.type === 'Function'){
                         fns.push(prop);
