@@ -155,6 +155,7 @@ module.exports = (function () {
 
         var compiler  = new Compiler({
             searchDeps: function (fileNames) {
+
                 var i, _i, fileName, matched;
                 for(i = fileNames.length - 1; i >= 0; i--){
                     fileName = fileNames[i];
@@ -165,6 +166,7 @@ module.exports = (function () {
                     }
                     if(matched.length){
                         if(matched.length === 1){
+                            console.log(matched[0]);
                             compiler.addNative(matched[0]);
                             console.log('Dep resolved ', fileName, matched[0].namespace)
                         }else{

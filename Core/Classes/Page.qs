@@ -9,3 +9,6 @@ define UIComponent Page
 
   @info: Data stored in this page. Can be used to store any information related to the page.
   public Variant dataContext
+
+  @info: Show page in full screen
+  public Boolean fullScreen: true

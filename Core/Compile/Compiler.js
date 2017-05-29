@@ -561,6 +561,8 @@ module.exports = (function () {
                             i = i.substr(1);
 
                         (obj.tags[i] || (obj.tags[i] = [])).push({value: prop});
+                    }else if(typeof prop === 'function'){
+                        obj.public[i] = {type: 'Function', defined: ns };
                     }
             }
             this.loaded(name);

@@ -124,6 +124,7 @@ module.exports = (function () {
 
             for(var where in obj.values){
                 var properties = obj.values[where];
+                var iInfo = itemsInfo[where];
                 for(var propName in properties){
                     var prop = properties[propName];
                     var whos = (where === '___this___' ? 'this' : where );
@@ -132,7 +133,7 @@ module.exports = (function () {
                     if(!(propValue instanceof Error)) {
                         prop._val = propValue;
                         var scope = prop.item.scope && prop.item.scope.data;
-                        var isPublic = scope === 'public' || whos === 'this';// && propName in obj.public);
+                        var isPublic = scope === 'public' || whos === 'this' || iInfo.isPublic;// && propName in obj.public);
                         if( isPublic ){
 
                             if(whos === 'this') {
