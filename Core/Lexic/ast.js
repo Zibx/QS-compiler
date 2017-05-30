@@ -69,6 +69,19 @@ module.exports = (function(){
         apply: function (cfg) {
             Z.apply(this, cfg);
             return this;
+        },
+        getTag: function(name){
+            if(!this.tags || !this.tags[name])
+                return false;
+
+            var tag = this.tags[name];
+            if(!tag[0])
+                return false;
+            if(Array.isArray(tag[0].value))
+                return tag[0].value.map(function(item){return item.data;}).join('');
+            else
+                return tag[0].value;
+
         }
     };
 
