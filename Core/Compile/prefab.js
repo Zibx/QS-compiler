@@ -28,7 +28,7 @@ module.exports = (function () {
             if(compileCfg.sourceMap) {
                 sourceMap = new SourceMap.SourceMapGenerator();
                 var sm = function (ast, name) {
-                    if(!ast)return;
+                    if(!ast)return '';
                     name = name || '';
                     var pos;
                     if(ast.pointer)
