@@ -5,7 +5,7 @@
 def QObject SIP
 
   @info: Start call
-  public Function call1
+  public Function call
 
 
   @info: Use emulated device
