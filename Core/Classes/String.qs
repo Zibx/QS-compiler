@@ -1,5 +1,5 @@
 @description: String class (primitive)
-define Class String
+define QObject String
 
   @description: return length of string
   @outType: Number

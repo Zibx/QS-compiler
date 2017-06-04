@@ -22,6 +22,9 @@ module.exports = (function(){
         var i, _i, token, data, newLine = true, type, spaceCounter = 0,
 
             lineStart = 0, lines = [];
+        tokens = tokens.filter(function(token){
+            return token.type !== 'NEWLINE' || token.data !== '\r';
+        });
 
         for (i = 0, _i = tokens.length; i < _i; i++) {
             token = tokens[i];
@@ -44,6 +47,7 @@ module.exports = (function(){
             }
 
             if(type==='NEWLINE') {
+                if(data === '\r')continue;
                 if(newLine === false) {
                     lines.push({
                         type: 'Line',

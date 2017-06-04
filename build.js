@@ -115,7 +115,7 @@ module.exports = (function () {
             if(typeof config.typeTable === 'object') {
                 typeTable = config.typeTable;
             }else{
-                var typeTableDir = path.resolve(config.basePath || __dirname, config.lib, config.typeTable);
+                var typeTableDir = path.resolve(config.basePath || __dirname, config.lib[0], config.typeTable);
                 try {
                     typeTable = require(typeTableDir);
                 } catch (e) {
@@ -189,7 +189,7 @@ module.exports = (function () {
                     }
                     if(matched.length){
                         if(matched.length === 1){
-                            console.log(matched[0]);
+                            //console.log(matched[0]);
                             compiler.addNative(matched[0]);
                             console.log('Dep resolved ', fileName, matched[0].namespace)
                         }else{
@@ -236,7 +236,7 @@ module.exports = (function () {
 
 
         if(!config.output){
-            console.log(finalSource);
+            //console.log(finalSource);
             typeof callback === 'function' && callback({
                 ast: asts, js: finalSource, lex: lex, world: compiler.world, main: mainObj
             });
