@@ -21,7 +21,14 @@ module.exports = (function () {
     var p = function(type, description){
         return new Property(type, description);
     };
-
+    var primitiveInstantiate = function(defaultValue){
+        return function(vals){
+            if(vals.value)
+                return vals.value;
+            else
+                return defaultValue;
+        }
+    };
     return {
         String: {
             _description: 'String class (primitive)',
@@ -31,12 +38,14 @@ module.exports = (function () {
             },
             __compileValue: function(arr, value){
                 return JSON.stringify(arr.join(''));
-            }
+            },
+            __instantiate: primitiveInstantiate('""')
         },
         Boolean: {
             public: {
                 value: p('Boolean')
-            }
+            },
+            __instantiate: primitiveInstantiate('false')
         },
         Number: {
             public: {
@@ -44,7 +53,8 @@ module.exports = (function () {
             },
             __compileValue: function(arr, value){
                 return arr.join('');
-            }
+            },
+            __instantiate: primitiveInstantiate('0')
         },
         Variant: {
             public: {

@@ -8,16 +8,22 @@
 
 module.exports = (function () {
     'use strict';
+    var exclude = {
+        'node_modules': true
+    };
     var fs = require('fs'),
         path = require('path')
         ;
     var showHelp;
-    var console = new (require('./console'))('build');
+    //var console = new (require('./console'))('build');
     function readDirRecursive(dir) {
         var entries = fs.readdirSync(dir);
         var ret = [];
         for (var i = 0; i < entries.length; i++) {
             var entry = entries[i];
+            if(entry.indexOf('.') === 0 || exclude[entry])
+                continue;
+
             var fullPath = path.join(dir, entry);
             var stat = fs.statSync(fullPath);
             if (stat.isFile()) {
@@ -69,7 +75,7 @@ module.exports = (function () {
     };
 
     var build = function build(cfg, callback){
-        var config, i, opt;
+        var config, i, opt, _i;
 
         for(i in options){
             opt = options[i];
@@ -96,29 +102,9 @@ module.exports = (function () {
         }
 
         if(config.lib) {
-            /** READ ALL MODULES OF LIB */
-            var libDir = path.resolve(config.basePath || __dirname, config.lib);
-
-            try {
-                var files = readDirRecursive(libDir);
-            } catch (e) {
-                showHelp('Error reading directory (' + libDir + ')', e);
+            if(!Array.isArray(config.lib)){
+                config.lib = [config.lib];
             }
-
-            config.verbose && console.log('List of lib files: ' + files.map(function (filePath) {
-                    return path.basename(filePath);
-                }).join(', '));
-
-
-            /** LOAD LIB MODULES */
-            var classes = {};
-            files.forEach(function (filePath) {
-                try {
-                    classes[filePath] = require(filePath);
-                } catch (e) {
-                    showHelp('Can not load module ' + filePath, e)
-                }
-            });
 
             /** LOAD TYPE TABLE */
             var typeTable;
@@ -126,12 +112,49 @@ module.exports = (function () {
                 showHelp('type table dir is not specified in config');
             }
 
-            var typeTableDir = path.resolve(config.basePath || __dirname, config.lib, config.typeTable);
-            try {
-                typeTable = require(typeTableDir);
-            } catch (e) {
-                showHelp('Can not load type table ' + typeTableDir, e)
+            if(typeof config.typeTable === 'object') {
+                typeTable = config.typeTable;
+            }else{
+                var typeTableDir = path.resolve(config.basePath || __dirname, config.lib, config.typeTable);
+                try {
+                    typeTable = require(typeTableDir);
+                } catch (e) {
+                    showHelp('Can not load type table ' + typeTableDir, e)
+                }
             }
+            var currentFile;
+
+            for(i = 0, _i = config.lib.length; i < _i; i++) {
+
+                var lib = config.lib[i];
+                /** READ ALL MODULES OF LIB */
+                var libDir = path.resolve(config.basePath || __dirname, lib);
+
+                try {
+                    var files = readDirRecursive(libDir);
+                } catch (e) {
+                    showHelp('Error reading directory (' + libDir + ')', e);
+                }
+
+                config.verbose && console.log('List of lib files in ' + lib + ': ' + files.map(function (filePath) {
+                        return path.basename(filePath);
+                    }).join(', '));
+
+                /** LOAD LIB MODULES */
+                var classes = {};
+                files.forEach(function (filePath) {
+                    try {
+                        currentFile = filePath;
+                        classes[filePath] = require(filePath);
+                    } catch (e) {
+                        showHelp('Can not load module ' + filePath, e)
+                    }
+                });
+            }
+
+
+
+
 
         }
         /** TRY BUILDING */
@@ -202,7 +225,7 @@ module.exports = (function () {
         var mainObj = config.main || 'main';
         var asts = {};
         asts[mainObj] = compiler.world[mainObj];
-        var result = compiler.compile(mainObj, {sourceMap: true}),
+        var result = compiler.compile(mainObj, {sourceMap: true, newWay: config.newWay}),
             finalSource = lex.map(function(item) {
                     asts[item.name.data] = compiler.world[item.name.data];
                 return mainObj !== item.name.data ? compiler.compile(item.name.data, {sourceMap: true}).source : ''
@@ -214,7 +237,9 @@ module.exports = (function () {
 
         if(!config.output){
             console.log(finalSource);
-            typeof callback === 'function' && callback({js: finalSource, lex: lex, ast: asts});
+            typeof callback === 'function' && callback({
+                ast: asts, js: finalSource, lex: lex, world: compiler.world, main: mainObj
+            });
         }else{
             if(typeof config.output === 'string'){
                 /* lets predict! */
@@ -260,10 +285,9 @@ module.exports = (function () {
 
 
             fs.writeFileSync(mapPath, JSON.stringify(map));
-
-
             fs.writeFileSync(qsPath, data);
-            typeof callback === 'function' && callback({outputPath: outputPath, ast: asts, js: finalSource, lex: lex});
+
+            typeof callback === 'function' && callback({outputPath: outputPath, ast: asts, js: finalSource, lex: lex, world: compiler.world, main: mainObj});
             console.log('OUTPUT: '+ outputPath)
         }
         //typeTable.search('Timer'))
@@ -275,8 +299,8 @@ module.exports = (function () {
 
     if(module.parent){
 
-        showHelp = function(error){
-            throw new Error(error);
+        showHelp = function(error, e){
+            throw new Error(error+(e?'\n'+e+'\n'+e.stack:''));
         };
     }else{
         showHelp = function(error, more){

@@ -1,4 +1,4 @@
 def Page main
-  Button b1.aaa.bbb: text
+  Button.aaa.bbb b1: text
 
-  Slider s1.aaa.{{s1>50?'enabled':'disabled'}}:2
+  Slider.aaa.{{s1>50?'enabled':'disabled'}} s1:2

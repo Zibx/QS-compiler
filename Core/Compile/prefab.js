@@ -28,7 +28,7 @@ module.exports = (function () {
             if(compileCfg.sourceMap) {
                 sourceMap = new SourceMap.SourceMapGenerator();
                 var sm = function (ast, name) {
-                    if(!ast)return;
+                    if(!ast)return '';
                     name = name || '';
                     var pos;
                     if(ast.pointer)
@@ -44,29 +44,54 @@ module.exports = (function () {
 
             var nsName = this.getTag(obj, 'ns');
             ns = fileInfo.name+ (nsName?'.'+ nsName : '');
-
+            
             /** REQUIRES */
-            for(i in obj.require){
-                if(!(i in this.world)){
-                    throw new Error('Unknown class `'+ i +'` '+ obj.require[i][0].pointer)
+            if(compileCfg.newWay){
+                
+                var names = [],
+                    varNames = [];
+                
+                for (i in obj.require) {
+                    if (!(i in this.world)) {
+                        throw new Error('Unknown class `' + i + '` ' + obj.require[i][0].pointer)
+                    }
+                    if (this.world[i].namespace) {
+                        names.push(this.world[i].namespace +'.'+ i)
+                        varNames.push(i);
+                    }
                 }
-                if(this.world[i].namespace) {
-                    var nsString = ['Q'].concat(this.world[i].namespace);
-                    nsString.push(i);
-                    source.push('var ' + i + ' = ' + nsString.join('.') + ';');
-                }
-            }
+                source.push('QRequire('+names.map(function(name){return JSON.stringify(name)}).join(', ') +', function(');
 
+                source.push('\t'+varNames.join('\t\n')+'\n){');
+                source.push('"use strict";');
+                
+            }else {
+                for (i in obj.require) {
+                    if (!(i in this.world)) {
+                        throw new Error('Unknown class `' + i + '` ' + obj.require[i][0].pointer)
+                    }
+                    if (this.world[i].namespace) {
+                        var nsString = ['Q'].concat(this.world[i].namespace);
+                        nsString.push(i);
+                        source.push('var ' + i + ' = ' + nsString.join('.') + ';');
+                    }
+                }
+
+                source.push('var Pipe = Q.Core.Pipe;');
+            }
             source.push('var _AppNamespace = '+JSON.stringify(fileInfo.name)+';');
-            source.push('var Pipe = Q.Core.Pipe;');
             //sm(obj.ast.definition)+ + sm(obj.ast.name, obj.name)
             /*source.push('var ' + obj.name +' = ' + baseClassName +
                 //'.extend(\''+ sm(obj.ast.extend[0], ns) + ns +'\', '+sm(obj.ast.name, obj.name)+'\'' + obj.name+'\', {');
                 '.extend(\''+ ns +'\', '+'\'' + obj.name+'\', {');
 */
-            source.push('var '+ sm(obj.ast.name,obj.name) + obj.name +' = '+ baseClassName +
-                '.extend(\''+ ns +'\', \''+obj.name+'\', {');
-
+            if(compileCfg.newWay) {
+                source.push('return ' + baseClassName +
+                    '.extend(\'' + ns + '\', \'' + obj.name + '\', {');
+            }else{
+                source.push('var ' + sm(obj.ast.name, obj.name) + obj.name + ' = ' + baseClassName +
+                    '.extend(\'' + ns + '\', \'' + obj.name + '\', {');
+            }
 
 
             //console.log('REQUIRES: '+requires.join('\n'));
@@ -74,25 +99,125 @@ module.exports = (function () {
             ctor.push('ctor: function(){');
             ctor.push('var _self = this;');
             var privateDefined = false;
-
-            for(var where in obj.instances){
+            var checkDefinePrivates = function(){
+                if(!privateDefined){
+                    ctor.push('var __private = new Q.Core.QObject();');
+                    privateDefined = true;
+                }
+            };
+            for(var where in obj.instances) {
                 obj.instances[where].forEach(function (what) {
-                    if(what.type === 'child') {
+                    if (what.type === 'child') {
                         itemsInfo[what.name] = what;
+                    }
+                });
+            }
+            var piped = [];
+            var valuesCollector = {};
+            for(var where in obj.values){
+                var properties = obj.values[where];
+                var iInfo = itemsInfo[where];
+                for(var propName in properties){
+                    var prop = properties[propName];
+                    var whos = (where === '___this___' ? 'this' : where );
+                    var propValue = this.getPropertyValue(prop, obj, whos, sm),
+                        isPipe;
+
+                    isPipe = propValue.indexOf('new Pipe') === 0;
+
+                    if(!(propValue instanceof Error)) {
+                        prop._val = propValue;
+                        var scope = prop.item.scope && prop.item.scope.data;
+                        var isPublic = scope === 'public' || whos === 'this' || iInfo.isPublic;// && propName in obj.public);
+
+                        if(!valuesCollector[whos])
+                            valuesCollector[whos] = {};
+
+                        if( isPublic ){
+
+                            if(whos === 'this') {
+                                if(isPipe) {
+                                    piped.push(
+                                        'this.set(\'' + sm(prop.item.semiToken) + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                                }else{
+                                    valuesCollector['this'][prop.name] = propValue;
+                                }
+                                /*ctor.push(
+                                    'this.set(\'' + sm(prop.item.semiToken) + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');*/
+                            }else{
+                                if(prop.name === 'value' && ((prop.item.class && prop.item.class.data) in this._primitives)){
+                                    if(!isPipe) {
+                                        valuesCollector[whos].value = propValue;// + sm(prop.item.semiToken);
+                                    }else {
+                                        piped.push(
+                                            'this.set(\'' + sm(prop.item.class) + whos + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                                    }
+                                }else {
+                                    if(!isPipe) {
+                                        valuesCollector[whos][prop.name] = propValue;
+                                    }else {
+                                        piped.push(
+                                            'this.set(\'' + sm(prop.item.class) + whos + '.' + sm(prop.item.semiToken) + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                                    }
+                                }
+                            }
+
+                        } else {
+                            checkDefinePrivates();
+                            if(prop.name === 'value' && ((prop.item.class && prop.item.class.data) in this._primitives)){
+                                if(!isPipe) {
+                                    valuesCollector[whos].value = propValue;
+                                } else {
+                                    piped.push(
+                                        '__private.set(\'' + sm(prop.item.class) + whos + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                                }
+                            }else {
+                                if(!isPipe) {
+                                    valuesCollector[whos][prop.name] = propValue;
+                                }else {
+                                    piped.push(
+                                        '__private.set(\'' + sm(prop.item.class) + whos + (prop.name !== 'value' || true ? '.' + sm(prop.item.semiToken) + prop.name : '') + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                                }
+                            }
+                        }
+                    }else{
+                        throw propValue;
+                    }
+                }
+            }
 
                         //ctor.push('var ' + what.name + ' = new ' + what.class + '(); '+sm(what.ast.name || what.ast.class)+'var '+sm(what.ast.name || what.ast.class, what.name||what.class)+'DATA_'+what.name+''+(what.ast.semiToken?sm(what.ast.semiToken):'')+'='+what.name+'._data;');
-
+            for(var where in obj.instances) {
+                obj.instances[where].forEach(function (what) {
+                    if (what.type === 'child') {
                         var scope = what.ast.scope && what.ast.scope.data;
                         var isPublic = scope === 'public';
                         what.isPublic = isPublic;
+                        var vals = valuesCollector[what.name],
+                            data = [],
+                            stringData;
+                        for( i in vals){
+                            data.push( '\t'+JSON.stringify(i) + ':'+ vals[i] );
+                        }
+                        if(data.length) {
+                            stringData = '{\n' + data.join(',\n') + '}';
+                        }else{
+                            stringData = '';
+                        }
+
+                        _self.tryCall(what.class, '__instantiate', [vals, data, stringData], function(err, result){
+                            if(!err)
+                                stringData = result;
+                            else
+                                stringData = 'new ' + what.class + '('+ stringData +')';
+                        });
+
                         if(isPublic) {
-                            ctor.push('this.set(\'' + what.name + '\', new ' + what.class + '());')
+                            ctor.push('this.set(\'' + what.name + '\', '+ stringData +');')
                         } else {
-                            if(!privateDefined){
-                                ctor.push('var __private = new Q.Core.QObject();');
-                                privateDefined = true;
-                            }
-                            ctor.push('__private.set(\'' + what.name + '\', new ' + what.class + '());')
+                            checkDefinePrivates();
+
+                            ctor.push('__private.set(\'' + what.name + '\', '+ stringData +');')
                         }
                         console.log(isPublic, what);
 
@@ -120,53 +245,9 @@ module.exports = (function () {
 
             }
 
+            ctor = ctor.concat(piped);
 
 
-            for(var where in obj.values){
-                var properties = obj.values[where];
-                var iInfo = itemsInfo[where];
-                for(var propName in properties){
-                    var prop = properties[propName];
-                    var whos = (where === '___this___' ? 'this' : where );
-                    var propValue = this.getPropertyValue(prop, obj, whos, sm);
-
-                    if(!(propValue instanceof Error)) {
-                        prop._val = propValue;
-                        var scope = prop.item.scope && prop.item.scope.data;
-                        var isPublic = scope === 'public' || whos === 'this' || iInfo.isPublic;// && propName in obj.public);
-                        if( isPublic ){
-
-                            if(whos === 'this') {
-                                ctor.push(
-                                    'this.set(\'' + sm(prop.item.semiToken) + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');
-                            }else{
-                                if(prop.name === 'value' && ((prop.item.class && prop.item.class.data) in this._primitives)){
-                                    ctor.push(
-                                        'this.set(\'' + sm(prop.item.class) + whos + '\', ' + propValue + sm(prop.item.semiToken) + ');');
-                                }else {
-                                    ctor.push(
-                                        'this.set(\'' + sm(prop.item.class) + whos + '.' + sm(prop.item.semiToken) + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');
-                                }
-                            }
-                            
-                        } else {
-                            if (!privateDefined) {
-                                ctor.push('var __private = new Q.Core.QObject();');
-                            }
-                            if(prop.name === 'value' && ((prop.item.class && prop.item.class.data) in this._primitives)){
-                                ctor.push(
-                                    '__private.set(\'' + sm(prop.item.class) + whos + '\', ' + propValue + sm(prop.item.semiToken) + ');');
-                            }else {
-                                ctor.push(
-                                    '__private.set(\'' + sm(prop.item.class) + whos + (prop.name !== 'value' || true ? '.' + sm(prop.item.semiToken) + prop.name : '') + '\', ' + propValue + sm(prop.item.semiToken) + ');');
-                            }
-                            privateDefined = true;
-                        }
-                    }else{
-                        throw propValue;
-                    }
-                }
-            }
 
             for(var where in obj.instances) {
                 obj.instances[where].forEach(function (what) {
@@ -240,7 +321,9 @@ module.exports = (function () {
 
 
             source.push('});');
-
+            if(compileCfg.newWay) {
+                source.push('});');
+            }
 
             obj.extend.forEach(function(name){
                 _self.tryCall(name, '__afterCompile', [source, obj.name], function(err, result){

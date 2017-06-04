@@ -20,3 +20,6 @@ def UIComponent TextBox
 
     @info: Label of $className
     public String label
+
+    @info: Layout of corresponding keyboard
+    public String layout: full

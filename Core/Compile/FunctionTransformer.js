@@ -189,7 +189,7 @@ module.exports = (function () {
                                 'type': 'ArrayExpression',
                                 'elements':
                                     info.varParts.map(function (item) {
-                                        if (item.node.computed) {
+                                        if (item.node && item.node.computed) {
                                             return scope.doTransform.call(scope.me, item.node, scope.options);
                                         } else {
                                             var out = {
