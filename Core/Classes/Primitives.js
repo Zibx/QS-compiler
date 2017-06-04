@@ -23,7 +23,7 @@ module.exports = (function () {
     };
     var primitiveInstantiate = function(defaultValue){
         return function(vals){
-            if(vals.value)
+            if(vals && vals.value)
                 return vals.value;
             else
                 return defaultValue;
