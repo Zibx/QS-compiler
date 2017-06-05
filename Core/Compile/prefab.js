@@ -62,7 +62,7 @@ module.exports = (function () {
                 }
                 source.push('QRequire('+names.map(function(name){return JSON.stringify(name)}).join(', ') +', function(');
 
-                source.push('\t'+varNames.join('\t\n')+'\n){');
+                source.push('\t'+varNames.join(',\t\n')+'\n){');
                 source.push('"use strict";');
                 
             }else {

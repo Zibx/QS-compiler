@@ -115,7 +115,7 @@ module.exports = (function () {
             if(typeof config.typeTable === 'object') {
                 typeTable = config.typeTable;
             }else{
-                var typeTableDir = path.resolve(config.basePath || __dirname, config.lib, config.typeTable);
+                var typeTableDir = path.resolve(config.basePath || __dirname, config.lib[0], config.typeTable);
                 try {
                     typeTable = require(typeTableDir);
                 } catch (e) {
