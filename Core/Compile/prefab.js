@@ -48,8 +48,8 @@ module.exports = (function () {
             /** REQUIRES */
             if(compileCfg.newWay){
                 
-                var names = [],
-                    varNames = [];
+                var names = ['Core.Pipe'],
+                    varNames = ['Pipe'];
                 
                 for (i in obj.require) {
                     if (!(i in this.world)) {

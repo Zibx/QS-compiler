@@ -14,7 +14,7 @@
           background: darkblue
 @info: Layout element capable of aligning child elements. The nested elements are aligned in a single vertical column. Child components can be dynamically added to a VBox.
 @ns: UI.Controls
-def UIComponent VBox
+def FlexSizeComponent VBox
     @info: Contains all elements widths specifications for your [[HBox]] or all elements heights specifications for your [[VBox]]. In either case the values are separated by spaces.
     public String flexDefinition
 
@@ -38,6 +38,6 @@ def UIComponent VBox
           background: darkred
 @info: Layout element capable of aligning child elements. The nested elements are left-aligned in a single horizontal row. Child components can be dynamically added to an HBox.
 @ns: UI.Controls
-def UIComponent HBox
+def FlexSizeComponent HBox
     @info: Contains all elements widths specifications for your [[HBox]] or all elements heights specifications for your [[VBox]]. In either case the values are separated by spaces.
     public String flexDefinition
