@@ -189,7 +189,7 @@ module.exports = (function () {
                     }
                     if(matched.length){
                         if(matched.length === 1){
-                            console.log(matched[0]);
+                            //console.log(matched[0]);
                             compiler.addNative(matched[0]);
                             console.log('Dep resolved ', fileName, matched[0].namespace)
                         }else{
@@ -236,7 +236,7 @@ module.exports = (function () {
 
 
         if(!config.output){
-            console.log(finalSource);
+            //console.log(finalSource);
             typeof callback === 'function' && callback({
                 ast: asts, js: finalSource, lex: lex, world: compiler.world, main: mainObj
             });

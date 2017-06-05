@@ -18,7 +18,7 @@ module.exports = (function () {
         '@': 'DOG',
         '!+-*/^%|&~': 'OPERATION',
         '><=': 'COMPARE',
-        '\n': 'NEWLINE',
+        '\n\r': 'NEWLINE',
         '\t': 'SPACE',
         ' ': 'SPACE',
         '"\'': 'QUOTE',
