@@ -17,6 +17,7 @@ module.exports = (function () {
     var showHelp;
     //var console = new (require('./console'))('build');
     function readDirRecursive(dir) {
+        console.log('Read', dir)
         var entries = fs.readdirSync(dir);
         var ret = [];
         for (var i = 0; i < entries.length; i++) {
