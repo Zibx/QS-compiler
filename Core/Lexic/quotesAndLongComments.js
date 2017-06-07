@@ -74,7 +74,7 @@ module.exports = (function(){
                                 });
 
                                 //todo check this
-                                i -= delta+1;
+                                i -= delta;
                                 _i -= delta;
                                 break;
                             }

@@ -19,5 +19,19 @@ def Page main
         .change: ()->
             nInner = s1;
             console.log(nInner, nMain);
+
     VBox
       Number nInner
+
+
+
+def UIComponent Property
+    public String key
+    public String value
+    //String query: {{key+'="'+value+'"'}}
+
+    Button b1:
+      .click: function(){
+         debugger;
+         console.log(key+'="' + value + '"');
+      }
