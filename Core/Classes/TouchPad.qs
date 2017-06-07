@@ -11,7 +11,7 @@ def QObject TouchPad
   @info: Event that fires on each change of pointer position
   public Event move
 
-  @info: the calibrate function
+  @info: calibrate function
   public Function calibrate
 
   @info: Filter events to keep only changed
