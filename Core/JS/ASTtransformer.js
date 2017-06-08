@@ -290,7 +290,7 @@ module.exports = (function(){
                     return options.variableTransformer(node);
                 }
                 if(options.variableTransformerGet){
-                    return options.variableTransformerGet(node, [node]);
+                    return options.variableTransformerGet(node, [node], {options: options});
                 }
                 return {
                         "type": "CallExpression",

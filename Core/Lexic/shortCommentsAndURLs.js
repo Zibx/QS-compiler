@@ -78,14 +78,15 @@ module.exports = (function(){
                         if(tokens[end].type === 'NEWLINE')
                             break;
                     }
-
-                    tokens.splice(start, end - start, {
+                    var obj = {
                         type: 'Comment',
                         tokens: tokens.slice(start, end),
                         data: tokens.slice(start+2, end).map(getData).join(''),
                         _info: 'singleline',
                         pointer: tokens[start].pointer
-                    });
+                    };
+                    obj._data = '//'+obj.data;
+                    tokens.splice(start, end - start, obj);
 
                     delta = i - start;
                     i -= delta-1;

@@ -77,6 +77,18 @@ module.exports = (function () {
             });
 
         });
+
+        it('comments', function (done) {
+            compile('test/qs/functions.qs', function (result) {
+                assert.equal(
+                    compact(result.ast.main.events.s1.change[4]._js),
+                    'if(true){var a}'
+                );
+                done();
+            });
+
+        });
+
         it('complicated quotes', function (done) {
             compile('test/qs/complicatedBraces.qs', function (result) {
                 assert.equal(

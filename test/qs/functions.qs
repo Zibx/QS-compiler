@@ -19,6 +19,11 @@ def Page main
         .change: ()->
             nInner = s1;
             console.log(nInner, nMain);
+        .change: ()->
+            if(true){
+                var a;
+                //var b;
+            }
 
     VBox
       Number nInner
