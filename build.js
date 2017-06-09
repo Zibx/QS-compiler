@@ -102,6 +102,9 @@ module.exports = (function () {
             showHelp('lib dir is not specified in config');
         }
 
+
+        var libCache = {};
+
         if(config.lib) {
             if(!Array.isArray(config.lib)){
                 config.lib = [config.lib];
@@ -151,6 +154,12 @@ module.exports = (function () {
                         showHelp('Can not load module ' + filePath, e)
                     }
                 });
+                files.forEach(function (filePath) {
+                    if(classes[filePath] instanceof QRequire.Waiter) {
+                        var c = classes[filePath] = classes[filePath].res;
+                        libCache[c.name] = c;
+                    }
+                });
             }
 
 
@@ -196,6 +205,8 @@ module.exports = (function () {
                         }else{
                             throw new Error('TOO COMPLEX (сложна)');
                         }
+                    }else{
+                        return libCache[fileName];
                     }
                 }
 
