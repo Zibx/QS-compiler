@@ -154,12 +154,13 @@ module.exports = (function () {
                         showHelp('Can not load module ' + filePath, e)
                     }
                 });
-                files.forEach(function (filePath) {
-                    if(classes[filePath] instanceof QRequire.Waiter) {
-                        var c = classes[filePath] = classes[filePath].res;
-                        libCache[c.name] = c;
-                    }
-                });
+                if(typeof QRequire !== 'undefined')
+                    files.forEach(function (filePath) {
+                        if(classes[filePath] instanceof QRequire.Waiter) {
+                            var c = classes[filePath] = classes[filePath].res;
+                            libCache[c.name] = c;
+                        }
+                    });
             }
 
 
