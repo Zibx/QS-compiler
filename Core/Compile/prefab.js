@@ -60,6 +60,7 @@ module.exports = (function () {
                         varNames.push(i);
                     }
                 }
+                source.push('var _AppNamespace = '+JSON.stringify(fileInfo.name)+';');
                 source.push('QRequire('+names.map(function(name){return JSON.stringify(name)}).join(', ') +', function(');
 
                 source.push('\t'+varNames.join(',\t\n')+'\n){');
@@ -78,8 +79,9 @@ module.exports = (function () {
                 }
 
                 source.push('var Pipe = Q.Core.Pipe;');
+                source.push('var _AppNamespace = '+JSON.stringify(fileInfo.name)+';');
             }
-            source.push('var _AppNamespace = '+JSON.stringify(fileInfo.name)+';');
+
             //sm(obj.ast.definition)+ + sm(obj.ast.name, obj.name)
             /*source.push('var ' + obj.name +' = ' + baseClassName +
                 //'.extend(\''+ sm(obj.ast.extend[0], ns) + ns +'\', '+sm(obj.ast.name, obj.name)+'\'' + obj.name+'\', {');

@@ -173,9 +173,10 @@ module.exports = (function () {
             lexer = require('./Core/Preprocess'),
             Compiler = require('./Core/Compile/Compiler');
         if(config.build) {
+            
             var sourcePath = path.resolve(config.basePath || __dirname, config.build);
-
             var data = (fs.readFileSync(sourcePath) + '');
+            
         }else if(config.source){
             sourcePath = 'inline';
             data = config.source;
@@ -193,11 +194,18 @@ module.exports = (function () {
                 var i, _i, fileName, matched;
                 for(i = fileNames.length - 1; i >= 0; i--){
                     fileName = fileNames[i];
-                    try {
-                        matched = typeTable.search(fileName);
-                    }catch(e){
-                        throw new Error('Error matching `'+fileName+'`')
+                    if(libCache[fileName]){
+                        matched = [libCache[fileName]];
+                        matched[0].ctor = matched[0];
+                    } else {
+                        try {
+                            matched = typeTable.search(fileName);
+                        }catch(e){
+                            throw new Error('Error matching `' + fileName + '`')
+                        }
                     }
+
+
                     if(matched.length){
                         if(matched.length === 1){
                             //console.log(matched[0]);
@@ -206,8 +214,6 @@ module.exports = (function () {
                         }else{
                             throw new Error('TOO COMPLEX (сложна)');
                         }
-                    }else{
-                        return libCache[fileName];
                     }
                 }
 
