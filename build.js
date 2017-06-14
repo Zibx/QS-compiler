@@ -249,7 +249,7 @@ module.exports = (function () {
             });
         });
 
-
+        var lex = [].concat.apply([],lexes);
         if(!config.main){
             if(lex.length === 1){
                 config.main = lex[0].name.data;
