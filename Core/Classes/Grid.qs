@@ -27,9 +27,66 @@
 @info: Grid object with addressable rows and columns. A Grid is not displayed and only serves to markup the area that it occupies on the screen with the specified quantity of //rows// and //columns//. This Grid’s child elements should specify their //left// and //top// property values, which will indicate (respectively) the column and the row of this Grid in which the corresponding child element is positioned.\\
 def UIComponent Grid
 
+    @example: Demo of rows
+        Grid
+            rows: 5
+
+            Border
+                height: 100px
+                background: purple
+                top: 0
+
+            Border
+                height: 100px
+                background: red
+                top: 1
+
+            Border
+                height: 100px
+                background: green
+                top: 2
+
+            Border
+                height: 100px
+                background: yellow
+                top: 3
+
+            Border
+                height: 100px
+                background: grey
+                top: 4
     @info: **Number** of rows in the grid. Default: //1//
     public Number rows
 
+    @example: Demo of columns
+        Grid
+            width: 500px
+            columns: 5
+
+            Border
+                width: 70px
+                background: purple
+                left: 0
+
+            Border
+                width: 70px
+                background: red
+                left: 1
+
+            Border
+                width: 70px
+                background: green
+                left: 2
+
+            Border
+                width: 70px
+                background: yellow
+                left: 3
+
+            Border
+                width: 70px
+                background: grey
+                left: 4
     @info: **Number** of columns in the grid. Default: //1//
     public Number columns
 
