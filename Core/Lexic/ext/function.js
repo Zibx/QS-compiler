@@ -42,7 +42,7 @@ module.exports = wrapper(function (fn, data) {
     if(item.children)
         bodyTokens = bodyTokens.concat(item.children);
 
-    console.log(fn.returnType);
+    //console.log(fn.returnType);
     matched.value = {
         type: 'FUNCTION',
         arguments: fn.arguments.tokens.length < 3 ? [] : tTools.split(

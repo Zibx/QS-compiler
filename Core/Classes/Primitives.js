@@ -62,9 +62,12 @@ module.exports = (function () {
             },
             __compileValue: function(arr, value){
                 var result;
+
                 try{
                     return JSON.stringify(evaluteSafe(arr.join('')),null,2)
                 }catch(e){
+                    if(value && value.length === 1 && value[0].type==='Quote')
+                        return JSON.stringify(value[0].data);
                     return JSON.stringify(arr.join(''));
                 }
             },

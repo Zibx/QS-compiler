@@ -17,7 +17,7 @@ module.exports = (function () {
     var showHelp;
     //var console = new (require('./console'))('build');
     function readDirRecursive(dir) {
-        console.log('Read', dir)
+        //console.log('Read', dir)
         var entries = fs.readdirSync(dir);
         var ret = [];
         for (var i = 0; i < entries.length; i++) {
@@ -209,9 +209,10 @@ module.exports = (function () {
                 lex = lexer(tokens);
             return lex;
         });
-
+        var lex = [].concat.apply([],lexes);
 
         var compiler  = new Compiler({
+            ns: config.ns,
             searchDeps: function (fileNames) {
 
                 var i, _i, fileName, matched;
@@ -233,7 +234,7 @@ module.exports = (function () {
                         if(matched.length === 1){
                             //console.log(matched[0]);
                             compiler.addNative(matched[0]);
-                            console.log('Dep resolved ', fileName, matched[0].namespace)
+                            //console.log('Dep resolved ', fileName, matched[0].namespace)
                         }else{
                             throw new Error('TOO COMPLEX (сложна)');
                         }
@@ -243,13 +244,20 @@ module.exports = (function () {
 
             }
         });
+
+
+
         lexes.forEach(function(lex){
             lex.forEach(function(item){
                 compiler.add(item);
             });
         });
 
-        var lex = [].concat.apply([],lexes);
+        lex.forEach(function(lex){
+            var name = lex.name.data;
+            compiler.world[name].namespace = config.ns;
+        });
+
         if(!config.main){
             if(lex.length === 1){
                 config.main = lex[0].name.data;
@@ -278,7 +286,7 @@ module.exports = (function () {
             }).join('\n\n') + result.source;
 
 
-        console.log('Compiled')
+        //console.log('Compiled')
 
 
         if(!config.output){
@@ -354,7 +362,7 @@ module.exports = (function () {
         //typeTable.search('Timer'))
         
         
-        console.log(config);
+        //console.log(config);
         //console.dir(cfg);
     };
 
