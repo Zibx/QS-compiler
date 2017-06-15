@@ -13,6 +13,15 @@
 @info: Pushable button with a caption
 @ns: UI.Controls
 def UIComponent Button
+    @example: Set the direction of arrow button
+        Button: "here's btn"
+            direction: left
+
+        Button: "here's btn2"
+            direction: right
+
+    @info: direction of button arrow
+    public String direction
 
     @example: Button's label
         Button
@@ -43,14 +52,7 @@ def UIComponent Button
           .click: ()-> btn.color = '#f00';
     public Event click
 
-    @example: Set the direction of arrow button
-        Button: "here's btn"
-            direction: left
 
-        Button: "here's btn2"
-            direction: right
-    @info: direction of button arrow
-    public String direction
 
     @example: Set filled property
         Button: "here's btn"
