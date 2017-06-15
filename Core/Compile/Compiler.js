@@ -556,6 +556,9 @@ module.exports = (function () {
                         continue;
                     var origI = i;
                     var prop = proto[i];
+
+                    if(i.indexOf('#')===0)
+                        i = i.substr(1);
                     if(i.indexOf('_')===0){
                         if(i.indexOf('__')!=0)
                             i = i.substr(1);

@@ -44,3 +44,12 @@ def QObject CardReader
 
   @info: code status of device
   public String statusCode
+
+  @info: card holder name
+  public String cardHolder
+
+  @info: card expiration date
+  public String expiration
+
+  @info: stripped card number
+  public String number
