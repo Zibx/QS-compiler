@@ -34,17 +34,54 @@
 @ns: UI.Controls
 def UIComponent Slider
 
+    @example: Lower bound of range
+        VBox
+            height: 100px
+            Slider s1
+                width: 500px
+                from: -20
+
+            Label: {{s1}}
     @info: Lower bound of range
     public Number from
 
+    @example:
+        VBox
+            height: 100px
+            Slider s1
+                width: 500px
+                to: 100
+
+            Label: {{s1}}
     @info: Upper bound of range
     public Number to
 
+    @example: Set the step of slider
+        VBox
+            height: 100px
+            Slider s1
+                width: 500px
+                step: 10
+
+            Label: {{s1}}
     @info: Step of the values while moving the slider.
     public Number step
 
+    @example: Color of the Filled part of the slider
+        Slider
+            width: 500px
+            fillColor: #0f0
     @info: Color of the Filled part of the slider
     public String fillColor
 
+    @example: Current value
+        VBox
+            height: 100px
+            Slider s1
+                width: 500px
+                to: 200
+                value: 75
+
+            Label: {{s1}}
     @info: Current value of slider. You can also set this property, using a value from the current range //from-to//. The slider position will be automatically updated.
     public Number value
