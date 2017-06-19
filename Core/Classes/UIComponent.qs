@@ -20,3 +20,5 @@ define AbstractComponent UIComponent
   public String width
 
   public String cls
+
+  public String visibility
