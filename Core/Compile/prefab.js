@@ -13,7 +13,7 @@ module.exports = (function () {
         SourceMap = require('source-map'),
         path = require('path');
 
-    //var console = new (require('../../console'))('Compile');
+    var console = new (require('../../console'))('Compile');
 
     return {
         __compile: function(obj, compileCfg){
@@ -289,7 +289,9 @@ module.exports = (function () {
                     obj.events[who][whatHappens].forEach(function(evt){
                         var getter,
                             what = itemsInfo[who];
-                        if(what.isPublic){
+                        if(who === '___this___') {
+                            getter = 'this';
+                        }else if(what.isPublic){
                             getter = 'this.get(\''+ what.name +'\')';
                         }else{
                             getter = '__private.get(\''+ what.name +'\')';
@@ -452,6 +454,23 @@ module.exports = (function () {
                     objectName = '___this___';
                 }
 
+                for(var eventName in obj.ast.events) {
+                    obj.ast.events[eventName].forEach(function (event) {
+
+                        if (!('events' in cls)) {
+                            cls.events = {};
+                        }
+                        if (!(objectName in cls.events))
+                            cls.events[objectName] = {};
+
+                        var name = event.name.data;
+
+                        (cls.events[objectName][name] ||
+                        (cls.events[objectName][name] = []))
+                            .push(event.value);
+
+                    });
+                }
 
                 for (i = 0, _i = items.length; i < _i; i++) {
                     item = items[i];
