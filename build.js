@@ -234,6 +234,9 @@ module.exports = (function () {
                         if(matched.length === 1){
                             //console.log(matched[0]);
                             compiler.addNative(matched[0]);
+                            var parent = matched[0].parent;
+                            if(parent)
+                                this.searchDeps([parent.name]);
                             //console.log('Dep resolved ', fileName, matched[0].namespace)
                         }else{
                             throw new Error('TOO COMPLEX (сложна)');

@@ -11,8 +11,9 @@ module.exports = (function () {
     var esprima = require('esprima'),
         escodegen = require('escodegen'),
         SourceMap = require('source-map'),
-        path = require('path'),
-        console = new (require('../../console'))('Compile');
+        path = require('path');
+
+    //var console = new (require('../../console'))('Compile');
 
     return {
         __compile: function(obj, compileCfg){
@@ -222,7 +223,7 @@ module.exports = (function () {
 
                             ctor.push('__private.set(\'' + what.name + '\', '+ stringData +');')
                         }
-                        console.log(isPublic, what);
+                        //console.log(isPublic, what);
 
                     }else if(what.type === 'inline'){
                         var trailingComment = [], tag;
@@ -255,13 +256,14 @@ module.exports = (function () {
             for(var where in obj.instances) {
                 obj.instances[where].forEach(function (what) {
                     if(what.type === 'child') {
+
                         var name = what.name,
                             info = itemsInfo[name],
                             fromQObject = _self.isInstanceOf(info.class, 'QObject'),
                             childGetter,
                             parent,
                             parentGetter;
-
+                        console.log(info.class +' is '+(fromQObject?'':'not ')+'instance of QObject ');
                         if(fromQObject) {
                             if(what.isPublic){
                                 childGetter = 'this.get(\''+ what.name +'\')';
