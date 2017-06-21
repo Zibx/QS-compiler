@@ -19,4 +19,9 @@ define AbstractComponent UIComponent
   @info: Width of the element
   public String width
 
+  public String top
+  public String left
+
   public String cls
+
+  public String visibility

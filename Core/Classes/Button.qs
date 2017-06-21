@@ -59,3 +59,5 @@ def UIComponent Button
             filled: true
     @info: flag that make the button filled
     public Boolean filled
+
+    public Function click
