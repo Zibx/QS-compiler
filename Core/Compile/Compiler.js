@@ -529,11 +529,11 @@ module.exports = (function () {
                 props = ctor.prototype._prop, i,
                 proto = ctor.prototype;
 
-            var obj = this.world[name] = {
+            var obj = this.world[name] = this._world[name] = {
                 public: {},
                 private: {},
                 values: {},
-                require: info.require,
+                require: {},//info.require,
                 extend: [],
                 name: name,
                 namespace: ns,
@@ -541,7 +541,8 @@ module.exports = (function () {
                 props: {},
                 tags: {ns: [{data: ns}]},
                 ready: true,
-                js: true
+                js: true,
+                ast: {native: true}
 //                ast: ast
             };
             if(info.ctor.parent)
@@ -568,7 +569,15 @@ module.exports = (function () {
                         obj.public[i] = {type: 'Function', defined: ns };
                     }
             }
+
+            this.wait[name] = [];
+
+            /*if(obj.ast.extend)
+                obj.ast.extend
+                    .forEach(this.addDependency.bind(this, name));*/
+
             this.loaded(name);
+
 
             //debugger;
         },
