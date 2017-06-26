@@ -25,3 +25,5 @@ define AbstractComponent UIComponent
   public String cls
 
   public String visibility
+
+  public String pureCss
