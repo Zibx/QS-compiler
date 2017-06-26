@@ -48,3 +48,6 @@ def UIComponent TextBox
                 layout: en
     @info: Layout of corresponding keyboard
     public String layout: full
+
+    @info: is interactive?
+    public Boolean enabled: true

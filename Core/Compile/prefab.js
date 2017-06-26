@@ -452,26 +452,26 @@ module.exports = (function () {
                 var objectName = obj.name;
                 if(obj === cls) {
                     objectName = '___this___';
+
+
+                    for (var eventName in obj.ast.events) {
+                        obj.ast.events[eventName].forEach(function (event) {
+
+                            if (!('events' in cls)) {
+                                cls.events = {};
+                            }
+                            if (!(objectName in cls.events))
+                                cls.events[objectName] = {};
+
+                            var name = event.name.data;
+
+                            (cls.events[objectName][name] ||
+                            (cls.events[objectName][name] = []))
+                                .push(event.value);
+
+                        });
+                    }
                 }
-
-                for(var eventName in obj.ast.events) {
-                    obj.ast.events[eventName].forEach(function (event) {
-
-                        if (!('events' in cls)) {
-                            cls.events = {};
-                        }
-                        if (!(objectName in cls.events))
-                            cls.events[objectName] = {};
-
-                        var name = event.name.data;
-
-                        (cls.events[objectName][name] ||
-                        (cls.events[objectName][name] = []))
-                            .push(event.value);
-
-                    });
-                }
-
                 for (i = 0, _i = items.length; i < _i; i++) {
                     item = items[i];
                     itemName = (item.class && item.class.data) || (item.name && item.name.data);
