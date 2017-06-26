@@ -14,7 +14,22 @@ def UIComponent GeoMap
     @example: [55.64, 37.59]
     public Array home
 
-    @example: [[55.64, 37.59],[55.75, 37.65]]
+    @example: Set array of pins on the map
+        GeoMap
+        pins: [
+                {
+                    name: "one",
+                coordinates: [56.3153305, 43.7909254]
+                },
+                {
+                name: "hell's gates",
+                coordinates: [55.788478, 37.603127]
+                },
+                {
+                name: 123,
+                coordinates: [55.764293, 37.567474]
+                }
+            ]
     @info: Current pin markers on the map. An **Array** containing **Array**-s of two **Number** coordinates each: [latitude, longitude]
     public Array pins
 

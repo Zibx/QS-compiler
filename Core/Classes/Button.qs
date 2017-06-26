@@ -23,13 +23,13 @@ def UIComponent Button
     @info: direction of button arrow
     public String direction
 
-    @example: Button's label
+    @example: "Button's label"
         Button
             value: "here's btn"
     @info: Caption of the button
     public String value
 
-
+/*
     @example: Set the list of commands that would be executed when the button is clicked
         Number count: 0
         Button btn: Меня нажали {{count}} раз
@@ -51,7 +51,7 @@ def UIComponent Button
         Button btn: Click me
           .click: ()-> btn.color = '#f00';
     public Event click
-
+*/
 
 
     @example: Set filled property
