@@ -203,6 +203,7 @@ module.exports = (function () {
                         for( i in vals){
                             data.push( '\t'+JSON.stringify(i) + ':'+ vals[i] );
                         }
+                        data.push('\t"#": '+JSON.stringify(what.name));
                         if(data.length) {
                             stringData = '{\n' + data.join(',\n') + '}';
                         }else{
