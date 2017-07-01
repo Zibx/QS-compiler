@@ -1,46 +1,51 @@
-@info: # Cardreader and Carddispenser device
-  Device is build from 4 parts:
-  - outer part that Human interacts with
-  - tract - part where we can read card info
-  - trash - part where we put cards that shouldn't be returned
-  - new cards stack - tower with new cards that can be dispensed to Human through tract
+@info:
+  # The Card reader and Card dispenser device
+  The device consists of four parts:
+  - The external interface, which the user interacts with
+  - The **tract** - the magnetic stripe tracks reader, as well as the dispensing tract
+  - The **reject tray**
+  - A **stack** of new cards to be dispensed through the tract
 @ns: Devices
 def QObject CardReader
+
+  @info ...To be described
   public Function cross
 
-  @info: Read magnetic tracks from card in the tract
+  @info: Grip a card and move it into the tract
+  public Function entry
+
+  @info: Read magnetic stripe tracks of card in the tract
   public Function read
 
-  @info: Move card from tract to trash container
-  public Function trash
-
-  @info: Dispense a new card to the devices tract
-  public Function newCard
-
-  @info: Dispense card from tract
-  public Function dispense
-
-  public Function entry
+  @info: Eject a card from the tract and release it
   public Function eject
 
+  @info: Move a card from the tract to the reject tray
+  public Function trash
 
-  @info: Use emulated device
+  @info: Prepare a new card to be dispensed though the tract
+  public Function newCard
+
+  @info: Dispense a card from tract
+  public Function dispense
+
+  @info: Device emulation mode flag
   public Boolean shim: false
 
-  @info: Switch device to active state
+  @info: Switch device on
   public Boolean enabled: false
 
-  @info: First track of card
+  @info: Content of the Track 1
   public String Track1
 
-  @info: Second track of card
+  @info: Content of the Track 2
   public String Track2
 
-  @info: Third track of card
+  @info: Content of the Track 3
   public String Track3
 
-  @info: text status of device
+  @info: Status of the device in a readable form
   public String status
 
-  @info: code status of device
+  @info: Status code of the device
   public String statusCode

@@ -1,7 +1,9 @@
-@info: The base class for most of the visual components. Defines their most basic properties and operations. A UIComponent element can be instantiated. It looks like an empty placeholder
+@info: The base class for most of the visual components. Defines their most basic properties and operations.
+A UIComponent element can be instantiated. It looks like an empty placeholder.
 @ns: UI
 define AbstractComponent UIComponent
-  @info: Transparency of element in range [0-1]
+
+  @info: HTML opacity of the element in the range from 0 to 1
   public Number opacity
 
   @info: Background color of the element
@@ -13,10 +15,10 @@ define AbstractComponent UIComponent
   public String margin
   public String fontSize
 
-  @info: Height of the element
+  @info: Height of the element. For example: //100%//, //30px//, //200//, //200*//
   public String height
 
-  @info: Width of the element
+  @info: Width of the element. For example: //100%//, //30px//, //200//, //200*//
   public String width
 
   public String cls

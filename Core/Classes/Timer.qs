@@ -1,13 +1,13 @@
-@info: Timer capable of measuring time intervals, which are marked by firing the Timer's .tick event.
+@info: Timer capable of measuring time intervals, which are marked by firing the Timer's //.tick// event.
 @ns: Core
 def Class Timer
-    @info: Counter of all happened ticks
+    @info: Total ticks counter
     public Number counter: 0
 
-    @info: Switch timer enabled flag to true and start firing .tick event
+    @info: Switch the timer `enabled` flag to //true// and start firing `.tick` event
     public Function start
 
-    @info: Switch timer enabled flag to false and stop firing .tick event
+    @info: Switch the timer `enabled` flag to //false// and stop firing `.tick` event
     public Function stop
 
     @info: Flag defining whether this timer is enabled (started).
@@ -18,5 +18,5 @@ def Class Timer
 
     @arg: time
       Current time
-    @info: Timer reactive property that change it value to true and than immediately to false on every .tick event
+    @info: Timer reactive property that changes its value to //true// and then immediately to //false// upon each `.tick` event
     public Event tick

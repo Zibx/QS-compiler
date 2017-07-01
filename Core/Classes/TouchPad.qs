@@ -1,4 +1,4 @@
-@info: Touchpad abstration
+@info: The touchpad device abstraction
 @ns: Devices
 def QObject TouchPad
 

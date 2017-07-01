@@ -10,13 +10,13 @@
       this.value = 'You pressed me!'
 
 
-@info: Pushable button with a caption
+@info: Push button with a caption, capable of firing `click` events. The default button size (unless set explicitly) is 100px by 30px.
 @ns: UI.Controls
 def UIComponent Button
     @info: Caption of the button
     public String value
 
-    @info: Click event
+    @info: The click event of this object
     @arg: PointEvent e
     @arg: [String, Number]
       Array with Name and Age
@@ -25,8 +25,8 @@ def UIComponent Button
           .click: ()-> btn.color = '#f00';
     public Event click
 
-    @info: direction of button arrow
+    @info: Direction of the button arrow
     public String direction
 
-    @info: flag that make the button filled
+    @info: Flag making the button filled
     public Boolean filled
