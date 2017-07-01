@@ -18,7 +18,7 @@ This document is a manual of the QS language and library. Referring to this manu
 ### Main concepts
 &nbsp;
 
-The QuokkaScript programming language -- which is further referred to as QS -- is intended to streamline the development of user-oriented **applications** and services. It enables to develop desktop, web, and mobile applications, including distributed applications and those enhanced with a server backend.
+The QuokkaScript programming language -- which is further referred to as QS -- is intended to streamline the development of user-oriented **applications** and services. It enables the development of desktop, web, and mobile applications, including distributed applications and those enhanced with a server backend.
 &nbsp;
 
 The accelerated application development is provided by the following features:
@@ -303,8 +303,4 @@ Every modification of this component’s properties will invoke the subscribed c
 [TextBox](UI.TextBox)
 [VBox](UI.VBox)
 [WrapPanel](UI.WrapPanel)
-&nbsp;
-
-## Using QuokkaScript components
-[The link to be provided]
 &nbsp;
