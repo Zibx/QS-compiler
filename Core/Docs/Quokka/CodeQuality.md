@@ -89,9 +89,10 @@ Ordinary string literals may not span multiple lines.
 
 ### 2.1) Modern features
 
-We do not use sugar. export, import, modern classes, let, const, setters, getters, weakMaps, array functions, generators and so on.
+We do not use sugar. export, import, modern classes, let, const, setters, getters, weakMaps, generators and so on.
 We know that they exist and how they work, but we have got reasons for all of them.
-Good old js gives a developer tiny set of tools that do exactly specific jobs. If you know what you are doing - that tools are enough.
+Good old js gives developer a tiny set of tools that do exactly the specific job that they were designed for.
+If you know what you are doing - that tools are enough.
 
 
 ### 2.2) Syntax of native class
@@ -153,7 +154,7 @@ You must help him in situations when it should collect children that are subscri
 In classes extended from QObject we have ~destroy method which is called when parent wants to exterminate children.
 
 
-## Inheritance
+### 2.5) Inheritance
 Always divide your abstractions in two parts:
 1) Unique instance data.
 2) Not unique data that is required to all instances, and methods.
@@ -163,7 +164,7 @@ Put the second part to class prototype.
 !Remember: if you store some data in instance code in property that came from prototype - it will.
 
 
-### 2.5) Modifying builtin objects
+### 2.6) Modifying builtin objects
 
 Never modify builtin types, either by adding methods to their constructors or to their prototypes.
 Avoid depending on libraries that do this.
@@ -171,18 +172,18 @@ Note that the JSCompiler’s runtime library will provide standards-compliant po
 nothing else may modify builtin objects.
 
 
-### 2.6) Preferable constructions
+### 2.7) Preferable constructions
 
 Functional programming is a good part, but do not use it in cpu heavy code.
 Simple for is still 5 times faster than map\filter\reduce.
 
 
-### 2.7) Must Not
+### 2.8) Must Not
 
-Developer must not
- - allocate memory using ...Array.alloc
- - use constructors for Boolean, String, Array, Object. !!(new Boolean(false)) is true in js.
- - use double equal check.
+Developer must
+ - do not allocate memory using ...Array.alloc
+ - do not use constructors for Boolean, String, Array, Object. !!(new Boolean(false)) is true in js.
+ - do not use double equal check `==`. Only triple `===` and `!==`.
 
 ## 3) DRY Principle
 
