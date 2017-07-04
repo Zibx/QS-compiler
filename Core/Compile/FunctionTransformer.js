@@ -78,6 +78,9 @@ module.exports = (function () {
                 var firstToken = info.varParts[0],
                     who;
 
+                if(info.thisFlag){
+                    info.varParts[0].name = info.varParts[0].e;
+                }
                 var what = cls.itemsInfo[info.varParts[0].name];
 
                     if (what.isPublic) {
@@ -156,7 +159,11 @@ module.exports = (function () {
                     //    first = list[0];
                     // var env = tools.isNameOfEnv(first.name, meta),
                     //     who;
+                    if(info.thisFlag){
+                        info.varParts[0].name = info.varParts[0].e;
+                    }
                     var what = cls.itemsInfo[info.varParts[0].name];
+
                     if (what.isPublic) {
                         who = ASTtransformer.craft.Identifier('_self');
                     } else {

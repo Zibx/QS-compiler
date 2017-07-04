@@ -291,7 +291,15 @@ module.exports = (function () {
 
         //console.log('Compiled')
 
-
+        for( i in asts ){
+            var item = asts[i],
+                pointer = item.ast.name.pointer;
+            if(pointer.errors.length){
+                pointer.errors.forEach(function(err){
+                    console.error(err);
+                });
+            }
+        }
         if(!config.output){
             //console.log(finalSource);
             typeof callback === 'function' && callback({
@@ -353,14 +361,14 @@ module.exports = (function () {
 
 
             typeof callback === 'function' && callback({
-                outputPath: buildResults.map((r)=>r.outputPath),
+                outputPath: buildResults.map(function(r){return r.outputPath;}),
                 ast: asts,
                 js: finalSource,
                 lex: [].concat.apply([],lexes),
                 world: compiler.world,
                 main: mainObj
             });
-            console.log('OUTPUT: '+ buildResults.map((r)=>r.outputPath))
+            console.log('OUTPUT: '+ buildResults.map(function(r){return r.outputPath;}))
         }
         //typeTable.search('Timer'))
         
@@ -370,7 +378,6 @@ module.exports = (function () {
     };
 
     if(module.parent){
-
         showHelp = function(error, e){
             throw new Error(error+(e?'\n'+e+'\n'+e.stack:''));
         };

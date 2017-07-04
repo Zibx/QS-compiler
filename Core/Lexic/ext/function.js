@@ -13,6 +13,7 @@ var bodyParser = function(body) {
         body.ast = parsed.getAST();
         vars = parsed.getFullUnDefined();
     } catch (e) {
+        throw e;
         body.pointer.error(e.description, {
             col: e.column,
             row: e.lineNumber - 1 + body.pointer.row
