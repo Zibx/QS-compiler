@@ -250,7 +250,7 @@ module.exports = (function () {
                 type: parts.dir,
                 file: fileName,
                 fileName: parts.name,
-                data: renderer(content+'')
+                data: '<div class="docArticle">'+renderer(content+'')+'</div>'
             };
 
             if(extracted.heading.max)

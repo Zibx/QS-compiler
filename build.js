@@ -17,6 +17,7 @@ module.exports = (function () {
     var showHelp;
     //var console = new (require('./console'))('build');
     function readDirRecursive(dir) {
+        //console.log('Read', dir)
         var entries = fs.readdirSync(dir);
         var ret = [];
         for (var i = 0; i < entries.length; i++) {
@@ -101,6 +102,9 @@ module.exports = (function () {
             showHelp('lib dir is not specified in config');
         }
 
+
+        var libCache = {};
+
         if(config.lib) {
             if(!Array.isArray(config.lib)){
                 config.lib = [config.lib];
@@ -150,6 +154,19 @@ module.exports = (function () {
                         showHelp('Can not load module ' + filePath, e)
                     }
                 });
+                if(typeof QRequire !== 'undefined')
+                    files.forEach(function (filePath) {
+                        if(classes[filePath] instanceof QRequire.Waiter) {
+                            var c = classes[filePath] = classes[filePath].res;
+                            if(Array.isArray(c)){
+                                c.forEach(function(c){
+                                    libCache[c.name] = c;
+                                });
+                            }else {
+                                libCache[c.name] = c;
+                            }
+                        }
+                    });
             }
 
 
@@ -162,36 +179,65 @@ module.exports = (function () {
             lexer = require('./Core/Preprocess'),
             Compiler = require('./Core/Compile/Compiler');
         if(config.build) {
-            var sourcePath = path.resolve(config.basePath || __dirname, config.build);
+            if(!Array.isArray(config.build))
+                config.build = [config.build];
 
-            var data = (fs.readFileSync(sourcePath) + '');
+            var sourcePaths = config.build.map(function(buildPath){
+                return path.resolve(config.basePath || __dirname, buildPath);
+            });
+            var data = sourcePaths.map(function(sourcePath, i){
+               // debugger;
+                if(config.fileGetter){
+                    return config.fileGetter(config.build[i]);
+                }else
+                    return (fs.readFileSync(sourcePath) + '');
+            });
+            
         }else if(config.source){
-            sourcePath = 'inline';
-            data = config.source;
+            sourcePaths = ['inline'];
+            data = [config.source];
         }else{
             showHelp('Specify `build` option or give source' + typeTableDir)
         }
 
-        data = data.replace(/\r/g, '');
-        var tokens = tokenizer(data, sourcePath),
-            lex = lexer(tokens);
+        data = data.map(function(data){
+            return data.replace(/\r/g, '');
+        });
+
+        var lexes = sourcePaths.map(function(sourcePath, i){
+            var tokens = tokenizer(data[i], sourcePath),
+                lex = lexer(tokens);
+            return lex;
+        });
+        var lex = [].concat.apply([],lexes);
 
         var compiler  = new Compiler({
+            ns: config.ns,
             searchDeps: function (fileNames) {
 
                 var i, _i, fileName, matched;
                 for(i = fileNames.length - 1; i >= 0; i--){
                     fileName = fileNames[i];
-                    try {
-                        matched = typeTable.search(fileName);
-                    }catch(e){
-                        throw new Error('Error matching `'+fileName+'`')
+                    if(libCache[fileName]){
+                        matched = [libCache[fileName]];
+                        matched[0].ctor = matched[0];
+                    } else {
+                        try {
+                            matched = typeTable.search(fileName);
+                        }catch(e){
+                            throw new Error('Error matching `' + fileName + '`')
+                        }
                     }
+
+
                     if(matched.length){
                         if(matched.length === 1){
                             //console.log(matched[0]);
                             compiler.addNative(matched[0]);
-                            console.log('Dep resolved ', fileName, matched[0].namespace)
+                            var parent = matched[0].parent;
+                            if(parent)
+                                this.searchDeps([parent.name]);
+                            //console.log('Dep resolved ', fileName, matched[0].namespace)
                         }else{
                             throw new Error('TOO COMPLEX (сложна)');
                         }
@@ -202,9 +248,17 @@ module.exports = (function () {
             }
         });
 
-        lex.forEach(function(item){
-            compiler.add(item);
-            //item.metadata = metadata.extract(item);
+
+
+        lexes.forEach(function(lex){
+            lex.forEach(function(item){
+                compiler.add(item);
+            });
+        });
+
+        lex.forEach(function(lex){
+            var name = lex.name.data;
+            compiler.world[name].namespace = config.ns;
         });
 
         if(!config.main){
@@ -223,22 +277,25 @@ module.exports = (function () {
         }
 
         var mainObj = config.main || 'main';
+
         var asts = {};
         asts[mainObj] = compiler.world[mainObj];
-        var result = compiler.compile(mainObj, {sourceMap: true, newWay: config.newWay}),
-            finalSource = lex.map(function(item) {
+        var result = compiler.compile(mainObj, {sourceMap: true, newWay: config.newWay, ns: config.ns}),
+            finalSource = lexes.map(function(lex, i){
+                return '//'+ sourcePaths[i] +'\n' +lex.map(function(item) {
                     asts[item.name.data] = compiler.world[item.name.data];
-                return mainObj !== item.name.data ? compiler.compile(item.name.data, {sourceMap: true}).source : ''
+                    return mainObj !== item.name.data ? compiler.compile(item.name.data, {sourceMap: true, newWay: config.newWay, ns: config.ns}).source : ''
+                }).join('\n\n');
             }).join('\n\n') + result.source;
 
 
-        console.log('Compiled')
+        //console.log('Compiled')
 
 
         if(!config.output){
             //console.log(finalSource);
             typeof callback === 'function' && callback({
-                ast: asts, js: finalSource, lex: lex, world: compiler.world, main: mainObj
+                ast: asts, js: finalSource, lex: [].concat.apply([],lexes), world: compiler.world, main: mainObj
             });
         }else{
             if(typeof config.output === 'string'){
@@ -259,41 +316,56 @@ module.exports = (function () {
             }else{
                 outputBase = config.basePath || __dirname;
             }
-            var fileName = path.basename(config.build);
-            var outputPath = path.resolve(
+
+            var buildResults = config.build.map(function(buildPath, i){
+                var fileName = path.basename(buildPath);
+                var outputPath = path.resolve(
                     outputBase,
-                    config.output.fileName || (path.parse(fileName).name+'.js')
-                ),
-                mapPath = path.resolve(
-                    outputBase,
-                    config.output.mapFileName || (path.parse(fileName).name+'.map')
-                )+(config.ext||''),
-                qsPath = path.resolve(
-                    outputBase,
-                    config.output.qsFileName || (fileName)
-                )+(config.ext||'');
-            var getLine = '';
-            if(config.get){
-                getLine = '?'+require('querystring').stringify(config.get);
-            }
-            fs.writeFileSync(outputPath, finalSource+'\n' +
-                '//# sourceMappingURL='+path.relative(outputBase, mapPath)+getLine+'\n'+
-                '//# sourceURL='+path.relative(outputBase, qsPath)+getLine);
+                        config.output.fileName || (path.parse(fileName).name+'.js')
+                    ),
+                    mapPath = path.resolve(
+                            outputBase,
+                            config.output.mapFileName || (path.parse(fileName).name+'.map')
+                        )+(config.ext||''),
+                    qsPath = path.resolve(
+                            outputBase,
+                            config.output.qsFileName || (fileName)
+                        )+(config.ext||'');
+                var getLine = '';
+                if(config.get){
+                    getLine = '?'+require('querystring').stringify(config.get);
+                }
+                fs.writeFileSync(outputPath, finalSource+'\n' +
+                    '//# sourceMappingURL='+path.relative(outputBase, mapPath)+getLine+'\n'+
+                    '//# sourceURL='+path.relative(outputBase, qsPath)+getLine);
 
-            var map = JSON.parse(result.map);
-            map.sources = [path.relative(outputBase, qsPath)];
+                var map = JSON.parse(result.map);
+                map.sources = [path.relative(outputBase, qsPath)];
 
 
-            fs.writeFileSync(mapPath, JSON.stringify(map));
-            fs.writeFileSync(qsPath, data);
+                fs.writeFileSync(mapPath, JSON.stringify(map));
+                fs.writeFileSync(qsPath, data[i]);
+                return {
+                    outputPath: outputPath,
+                    lex: lexes[i]
+                };
+            });
 
-            typeof callback === 'function' && callback({outputPath: outputPath, ast: asts, js: finalSource, lex: lex, world: compiler.world, main: mainObj});
-            console.log('OUTPUT: '+ outputPath)
+
+            typeof callback === 'function' && callback({
+                outputPath: buildResults.map((r)=>r.outputPath),
+                ast: asts,
+                js: finalSource,
+                lex: [].concat.apply([],lexes),
+                world: compiler.world,
+                main: mainObj
+            });
+            console.log('OUTPUT: '+ buildResults.map((r)=>r.outputPath))
         }
         //typeTable.search('Timer'))
         
         
-        console.log(config);
+        //console.log(config);
         //console.dir(cfg);
     };
 

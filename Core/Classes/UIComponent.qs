@@ -1,5 +1,5 @@
 @info: The base class for most of the visual components. Defines their most basic properties and operations.
-A UIComponent element can be instantiated. It looks like an empty placeholder.
+    A UIComponent element can be instantiated. It looks like an empty placeholder.
 @ns: UI
 define AbstractComponent UIComponent
 
@@ -21,4 +21,11 @@ define AbstractComponent UIComponent
   @info: Width of the element. For example: //100%//, //30px//, //200//, //200*//
   public String width
 
+  public String top
+  public String left
+
   public String cls
+
+  public String visibility
+
+  public String pureCss

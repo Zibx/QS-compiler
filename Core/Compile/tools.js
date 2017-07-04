@@ -12,7 +12,7 @@ module.exports = (function () {
         primitives: {
             'Number': true, 'String': true, 'Array': true, 'Boolean': true, 'Function': true
         },
-        getVarInfo: function (stack, obj, child) {
+        getVarInfo: function (stack, obj, child, scope) {
 
             var metadata = obj;
 
@@ -41,8 +41,22 @@ module.exports = (function () {
                         env = child;
                         thisFlag = true;
                     } else {
-                        if(metadata === void 0)
-                            debugger;
+                        if(metadata === void 0){
+                            var basePointer = scope && scope.options && scope.options.basePointer;
+                            var loc = {col: node.loc.start.column, row: node.loc.start.line-2};
+                            var clonePointer = (basePointer || somePointer).clone();
+                            if(basePointer){
+                                if(loc.row>0)
+                                    clonePointer.col = 0;
+
+                                clonePointer.col+=loc.col;
+                                clonePointer.row+=loc.row;
+
+                            }
+                            throw new Error('Can not resolve `' + name + '` from `' + lastName +' at '+ clonePointer);
+
+                        }
+
                         env = metadata.private[name];// this.isNameOfEnv(name, metadata);
 
                         if (env)
@@ -87,8 +101,19 @@ module.exports = (function () {
                             }
                             //throw new Error('Can not resolve `' + name + '` from `' + lastName + '` <' + lastEnv._type + '>');
                         } else {
+                            var basePointer = scope && scope.options && scope.options.basePointer;
+                            var loc = {col: node.loc.start.column, row: node.loc.start.line-2};
+                            var clonePointer = (basePointer || somePointer).clone();
+                            if(basePointer){
+                                if(loc.row>0)
+                                    clonePointer.col = 0;
+
+                                clonePointer.col+=loc.col;
+                                clonePointer.row+=loc.row;
+
+                            }
                             throw new Error(
-                                'Unknown variable `' + name + '` in `' + obj.name + '` at '+(child && child.pointer || somePointer)
+                                'Unknown variable `' + name + '` in `' + obj.name + '` at '+(clonePointer)//child && child.pointer || somePointer)
                             );
 
                         }

@@ -11,8 +11,9 @@ module.exports = (function () {
     var esprima = require('esprima'),
         escodegen = require('escodegen'),
         SourceMap = require('source-map'),
-        path = require('path'),
-        console = new (require('../../console'))('Compile');
+        path = require('path');
+
+    var console = new (require('../../console'))('Compile');
 
     return {
         __compile: function(obj, compileCfg){
@@ -43,7 +44,8 @@ module.exports = (function () {
             var fileInfo = path.parse(obj.ast.name.pointer.source);
 
             var nsName = this.getTag(obj, 'ns');
-            ns = fileInfo.name+ (nsName?'.'+ nsName : '');
+
+            ns = compileCfg.ns || fileInfo.name+ (nsName?'.'+ nsName : '');
             
             /** REQUIRES */
             if(compileCfg.newWay){
@@ -60,6 +62,7 @@ module.exports = (function () {
                         varNames.push(i);
                     }
                 }
+                source.push('var _AppNamespace = '+JSON.stringify(ns || fileInfo.name)+';');
                 source.push('QRequire('+names.map(function(name){return JSON.stringify(name)}).join(', ') +', function(');
 
                 source.push('\t'+varNames.join(',\t\n')+'\n){');
@@ -78,8 +81,9 @@ module.exports = (function () {
                 }
 
                 source.push('var Pipe = Q.Core.Pipe;');
+                source.push('var _AppNamespace = '+JSON.stringify(ns || fileInfo.name)+';');
             }
-            source.push('var _AppNamespace = '+JSON.stringify(fileInfo.name)+';');
+
             //sm(obj.ast.definition)+ + sm(obj.ast.name, obj.name)
             /*source.push('var ' + obj.name +' = ' + baseClassName +
                 //'.extend(\''+ sm(obj.ast.extend[0], ns) + ns +'\', '+sm(obj.ast.name, obj.name)+'\'' + obj.name+'\', {');
@@ -199,6 +203,7 @@ module.exports = (function () {
                         for( i in vals){
                             data.push( '\t'+JSON.stringify(i) + ':'+ vals[i] );
                         }
+                        data.push('\t"#": '+JSON.stringify(what.name));
                         if(data.length) {
                             stringData = '{\n' + data.join(',\n') + '}';
                         }else{
@@ -219,7 +224,7 @@ module.exports = (function () {
 
                             ctor.push('__private.set(\'' + what.name + '\', '+ stringData +');')
                         }
-                        console.log(isPublic, what);
+                        //console.log(isPublic, what);
 
                     }else if(what.type === 'inline'){
                         var trailingComment = [], tag;
@@ -252,13 +257,14 @@ module.exports = (function () {
             for(var where in obj.instances) {
                 obj.instances[where].forEach(function (what) {
                     if(what.type === 'child') {
+
                         var name = what.name,
                             info = itemsInfo[name],
                             fromQObject = _self.isInstanceOf(info.class, 'QObject'),
                             childGetter,
                             parent,
                             parentGetter;
-
+                        console.log(info.class +' is '+(fromQObject?'':'not ')+'instance of QObject ');
                         if(fromQObject) {
                             if(what.isPublic){
                                 childGetter = 'this.get(\''+ what.name +'\')';
@@ -284,7 +290,9 @@ module.exports = (function () {
                     obj.events[who][whatHappens].forEach(function(evt){
                         var getter,
                             what = itemsInfo[who];
-                        if(what.isPublic){
+                        if(who === '___this___') {
+                            getter = 'this';
+                        }else if(what.isPublic){
                             getter = 'this.get(\''+ what.name +'\')';
                         }else{
                             getter = '__private.get(\''+ what.name +'\')';
@@ -445,9 +453,26 @@ module.exports = (function () {
                 var objectName = obj.name;
                 if(obj === cls) {
                     objectName = '___this___';
+
+
+                    for (var eventName in obj.ast.events) {
+                        obj.ast.events[eventName].forEach(function (event) {
+
+                            if (!('events' in cls)) {
+                                cls.events = {};
+                            }
+                            if (!(objectName in cls.events))
+                                cls.events[objectName] = {};
+
+                            var name = event.name.data;
+
+                            (cls.events[objectName][name] ||
+                            (cls.events[objectName][name] = []))
+                                .push(event.value);
+
+                        });
+                    }
                 }
-
-
                 for (i = 0, _i = items.length; i < _i; i++) {
                     item = items[i];
                     itemName = (item.class && item.class.data) || (item.name && item.name.data);

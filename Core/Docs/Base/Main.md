@@ -45,7 +45,6 @@ The QS syntax is similar to that of YAML.
 
 Typically, a QS script consists of element declarations. Inside elements, its properties, event handlers, and child elements can be declared.
 &nbsp;
-
 QS does not require curly braces to delimit the content of elements: indentation defines the nesting level of statements and operators, like in YAML and Python. Nonetheless, curly braces are used in the syntax:
   - Around procedural blocks in event handlers (optionally)
   - Around JSON-like data declarations (mandatory)
@@ -266,41 +265,4 @@ Every modification of this component’s properties will invoke the subscribed c
 &nbsp;
 
 ## QuokkaScript components
-&nbsp;
-
-### Core
-[AbstractComponent](Core.AbstractComponent)
-[RunAtServerComponent](Core.RunAtServerComponent)
-[Timer](Core.Timer)
-[UIComponent](Core.UIComponent)
-&nbsp;
-
-### Devices
-[BillValidator](Devices.BillValidator)
-[GPSTracker](Devices.GPSTracker)
-[Printer](Devices.Printer)
-[Proximity](Devices.Proximity)
-&nbsp;
-
-### Network
-[WebClient](Network.WebClient)
-&nbsp;
-
-### User interface
-[Border](UI.Border)
-[Button](UI.Button)
-[CheckBox](UI.CheckBox)
-[ContainerComponent](UI.ContainerComponent)
-[FlexSizeComponent](UI.FlexSizeComponent)
-[GeoMap](UI.GeoMap)
-[HBox](UI.HBox)
-[Image](UI.Image)
-[ItemTemplate](UI.ItemTemplate)
-[Label](UI.Label)
-[ListBox](UI.ListBox)
-[Slider](UI.Slider)
-[TextArea](UI.TextArea)
-[TextBox](UI.TextBox)
-[VBox](UI.VBox)
-[WrapPanel](UI.WrapPanel)
 &nbsp;

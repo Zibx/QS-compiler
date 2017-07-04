@@ -32,7 +32,7 @@ module.exports = (function(){
             token = tokens[i];
             if(token.type in possible){
                 if(token.data in braces) {
-                    last = {info: token.data, wait: braces[token.data], start: i};
+                    last = {info: token.data, wait: braces[token.data], start: i, pointer: token.pointer};
                     stack.push(last);
                 }else{
                     if(token.data === last.wait){
@@ -53,7 +53,8 @@ module.exports = (function(){
                         //if(_i!== tokens.length)debugger;
                         last = stack[stack.length - 1];
                     }else{
-                        throw new Error('NET')
+
+                        throw new Error('Brace dismatch: opened - `'+ last.info +'` at '+ last.pointer +' income - `'+ token.data +'` at '+token.pointer)
                     }
                 }
             }

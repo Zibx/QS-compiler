@@ -39,6 +39,25 @@ def FlexSizeComponent VBox
         UIComponent
           height: 200px
           background: darkred
+
+@example: Demo for flexDefinition
+    HBox
+        flexDefinition: 200px 200px 200px
+
+        Image
+            width: 100px
+            height: 100px
+            source: ../../img/aeroflot.png
+
+        Image
+            width: 100px
+            height: 100px
+            source: ../../img/aeroflot.png
+
+        Image
+            width: 100px
+            height: 100px
+            source: ../../img/aeroflot.png
 @info: Layout element capable of aligning child elements. The nested elements are left-aligned in a single horizontal row. Child components can be dynamically added to an HBox.
 @ns: UI.Controls
 def FlexSizeComponent HBox

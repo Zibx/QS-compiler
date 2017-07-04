@@ -1,6 +1,6 @@
 @info: Input control allowing the user to select values from a numeric range by dragging a horizontal slider
 
-@example:
+@example: Setting page background with three sliders (RGB)
   '''qs
     def Page main
 

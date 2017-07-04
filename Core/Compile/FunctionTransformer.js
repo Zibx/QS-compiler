@@ -69,7 +69,7 @@ module.exports = (function () {
                 var list = stack.slice().reverse(),
                     varParts;
 
-                var info = tools.getVarInfo.call(_self, list, cls, child);
+                var info = tools.getVarInfo.call(_self, list, cls, child, scope);
                 if(!info) {
                     throw new Error('Can not resolve '+
                         list.map(function(token){return token.name}).join('.') +
@@ -149,7 +149,7 @@ module.exports = (function () {
                     var list = stack.slice().reverse(),
                         varParts,
 
-                        info = tools.getVarInfo.call(_self, list, cls, child);
+                        info = tools.getVarInfo.call(_self, list, cls, child, scope);
                     var firstToken = info.varParts[0],
                         who;
 
@@ -212,7 +212,8 @@ module.exports = (function () {
                 },
                 options = {
                     variableTransformerSet: transformFnSet,
-                    variableTransformerGet: transformFnGet
+                    variableTransformerGet: transformFnGet,
+                    basePointer: fnObj.fn.pointer
                 },
                 transformer = new ASTtransformer(),
                 fn = fnObj.fn;

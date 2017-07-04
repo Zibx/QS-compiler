@@ -77,6 +77,28 @@ module.exports = (function () {
             });
 
         });
+
+        it('comments', function (done) {
+            compile('test/qs/functions.qs', function (result) {
+                assert.equal(
+                    compact(result.ast.main.events.s1.change[4]._js),
+                    'if(true){var a}'
+                );
+                done();
+            });
+
+        });
+
+        it('complicated quotes', function (done) {
+            compile('test/qs/complicatedBraces.qs', function (result) {
+                assert.equal(
+                    compact(result.ast.Property.events.b1.click[0]._js),
+                    'console.log(_self.get(["key"])+"=\\""+_self.get(["value"])+"\\"")'
+                );
+                done();
+            });
+
+        });
     });
 
 })();

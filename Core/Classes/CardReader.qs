@@ -1,5 +1,4 @@
-@info:
-  # The Card reader and Card dispenser device
+@info: The Card reader and Card dispenser device
   The device consists of four parts:
   - The external interface, which the user interacts with
   - The **tract** - the magnetic stripe tracks reader, as well as the dispensing tract
@@ -49,3 +48,12 @@ def QObject CardReader
 
   @info: Status code of the device
   public String statusCode
+
+  @info: card holder name
+  public String cardHolder
+
+  @info: card expiration date
+  public String expiration
+
+  @info: stripped card number
+  public String number

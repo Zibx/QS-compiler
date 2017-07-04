@@ -11,9 +11,17 @@
 @ns: UI.Controls
 def UIComponent Image
 
+    @example: Set the source of image
+        Image
+            width: 200px
+            height: 200px
+            source: ../../img/aeroflot.png
     @info: Image source. Must be a valid URL
     public String source
 
+    @example: Using value instead of source
+        Image
+            value: img/aeroflot.png
     @info: Synonym for //source//
     public String value
 
