@@ -38,8 +38,10 @@ module.exports = (function () {
                 if (!env || env.type !== 'Variant' || this.getTag(this.world[env.type], 'anything')) {
 
                     if (node.type === 'ThisExpression') {
-                        env = child;
+                        var childAST = obj.itemsInfo[child];
+                        env = {type: childAST.class, defined: 'inline',tags: this.world[childAST.class].tags, name: child};
                         thisFlag = true;
+                        //envFlag = true;
                     } else {
                         if(metadata === void 0){
                             var basePointer = scope && scope.options && scope.options.basePointer;
@@ -130,7 +132,7 @@ module.exports = (function () {
                     //if(i < _i - 1)
                     //    throw new Error('Can not get `'+ stack[i+1].name +'` of primitive value `'+node.name+'` <'+env.type+'>')
                 } else {//TODO: go deepeer
-                    metadata = this.world[(env.class && env.class.data) || env.type]
+                    metadata = this.world[(typeof env.class === 'string' ? env.class : env.class && env.class.data) || env.type]
                     //var x;
                     /*
                      metadata = shadow[env._type];

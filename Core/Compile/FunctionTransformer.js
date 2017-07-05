@@ -71,6 +71,7 @@ module.exports = (function () {
 
                 var info = tools.getVarInfo.call(_self, list, cls, child, scope);
                 if(!info) {
+                    var info = tools.getVarInfo.call(_self, list, cls, child, scope); // TODO: just remove
                     throw new Error('Can not resolve '+
                         list.map(function(token){return token.name}).join('.') +
                         ' at (' + fnObj.fn.pointer+')')
@@ -80,6 +81,8 @@ module.exports = (function () {
 
                 if(info.thisFlag){
                     info.varParts[0].name = info.varParts[0].e;
+                    if(info.varParts[0].name.name)
+                        info.varParts[0].name = info.varParts[0].name.name;
                 }
                 var what = cls.itemsInfo[info.varParts[0].name];
 
@@ -159,9 +162,16 @@ module.exports = (function () {
                     //    first = list[0];
                     // var env = tools.isNameOfEnv(first.name, meta),
                     //     who;
+
                     if(info.thisFlag){
                         info.varParts[0].name = info.varParts[0].e;
+                        if(info.varParts[0].name.name)
+                            info.varParts[0].name = info.varParts[0].name.name;
                     }
+                    /*if(info.thisFlag){
+                        info.varParts[0].name = info.varParts[0].e;
+                        info.varParts[0].node.computed = true;
+                    }*/
                     var what = cls.itemsInfo[info.varParts[0].name];
 
                     if (what.isPublic) {
