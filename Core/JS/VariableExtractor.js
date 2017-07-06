@@ -368,8 +368,12 @@ module.exports = (function () {
     var extractor = {
         parse: function (sourceCode) {
             esprima = esprima || require('esprima');
-            var parsed = esprima.parse('(function(){\n' + sourceCode + '\n})', { loc: true });
-            parsed.body = parsed.body[0].expression.body.body;
+            try {
+                var parsed = esprima.parse('(function(){\n' + sourceCode + '\n})', {loc: true});
+                parsed.body = parsed.body[0].expression.body.body;
+            }catch(e){
+                console.log(sourceCode+'\n\n' , e)
+            }
             return {
                 getVars: function () {
                     return getVars(parsed);

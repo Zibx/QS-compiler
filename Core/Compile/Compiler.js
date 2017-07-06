@@ -55,7 +55,7 @@ module.exports = (function () {
     };
     
     var getVarInfo = tools.getVarInfo;
-    var getVarAccessor = function (tree, cls, scope) {
+    var getVarAccessor = function (tree, cls, scope, whos) {
         var pointer = tree, stack = [],
             info;
         if (pointer.object) {
@@ -70,7 +70,7 @@ module.exports = (function () {
             stack.push(pointer);
         }
 
-        info = getVarInfo.call(this, stack, cls, scope);
+        info = getVarInfo.call(this, stack, cls, whos);
         if(!info)
             return false;
         if (info.valueFlag)
@@ -169,7 +169,7 @@ module.exports = (function () {
                 for (var i = 0, _i = pipeVars.length; i < _i; i++) {
                     var pipeVar = pipeVars[i];
                     //var source;// = '\'' + fullName + '\'';
-                    var source = getVarAccessor.call(this, pipeVar, obj, pipe);
+                    var source = getVarAccessor.call(this, pipeVar, obj, pipe, whos);
                     if(source === false)
                         return false;
                     if (!cache[source]) {

@@ -37,9 +37,27 @@ module.exports = (function () {
     describe('this', function() {
         compile('test/qs/this.qs', function (result) {
             var main = result.ast.main;
-            it('should compile fn call', function(){
+            it('should compile this++', function(){
                 assert.equal(compact(main.events.Button_I1.click[0]._js), '__private.set(["Button_I1","value"],__private.get(["Button_I1","value"])+1)')
             });
+            it('should compile this.value++', function(){
+                assert.equal(compact(main.events.Button_I1.click[1]._js), '__private.set(["Button_I1","value"],__private.get(["Button_I1","value"])+1)')
+            });
+
+            it('should compile this++ in variants', function(){
+                assert.equal(compact(main.events.Variant_I3.click[0]._js), '__private.set(["Variant_I3"],__private.get(["Variant_I3"])+1)')
+            });
+
+            it('should compile this.value++ in variants', function(){
+                assert.equal(compact(main.events.Variant_I3.click[1]._js), '__private.set(["Variant_I3","value"],__private.get(["Variant_I3","value"])+1)')
+            });
+            it('should compile this.someVal++ in variants', function(){
+                assert.equal(compact(main.events.Variant_I3.click[2]._js), '__private.set(["Variant_I3","someVal"],__private.get(["Variant_I3","someVal"])+1)')
+            });
+            it('should compile this.enabled = false in timer', function(){
+                assert.equal(compact(main.events.Timer_I5.tick[0]._js), '__private.set(["Timer_I5","enabled"],false)')
+            });
+
         });
     });
 })();

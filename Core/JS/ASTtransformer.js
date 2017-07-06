@@ -66,7 +66,7 @@ module.exports = (function(){
             right: {
                 type: 'BinaryExpression',
                 operator: operation,
-                left: node,
+                left: Object.create(node),
                 right: value
             }
         };
@@ -93,13 +93,18 @@ module.exports = (function(){
 
             node = Object.create(node);
 
-
-            /** if variable is declared - do nothing */
-            if(!('_id' in node.left) || !(node.left._id in this) || node.left._id === null) {
-                node.right = doTransform.call(this,node.right, options, node);
-                return node;
+            /* if we are not working with this */
+            if(!(node.left.type === 'ThisExpression')) {
+                /* if variable is declared - do nothing */
+                if (
+                    !('_id' in node.left) ||
+                    !(node.left._id in this) ||
+                    node.left._id === null
+                ) {
+                    node.left = doTransform.call(this, node.left, options, node);
+                    return node;
+                }
             }
-
             var _self = this;
 
             var pointer = node.left, stack = [];
@@ -109,7 +114,10 @@ module.exports = (function(){
                 pointer = pointer.object;
             }
             //stack.push(pointer.property);
-            var tmp = escodegen.generate(node)
+            var tmp = escodegen.generate(node);
+
+            node.right = doTransform.call(this, node.right, options, node);
+
             if(node.operator !== '='){
                 return doTransform.call(
                     this,
@@ -120,7 +128,7 @@ module.exports = (function(){
                     options, node
                 );
             }
-            node.right = doTransform.call(this, node.right, options, node);
+
 
             if(options.variableTransformerSet){
                 stack.push(pointer);
@@ -281,7 +289,7 @@ module.exports = (function(){
             }
 
         },
-        'FunctionDeclaration': function(node){
+        'FunctionDeclaration': function(node, options, parent){
             return node; // TODO unshit
         },
         'Identifier': function(node, options){
@@ -319,8 +327,16 @@ module.exports = (function(){
             }else
                 return node;
         },
-        'ThisExpression': function(node, list){
-            return node;
+        'ThisExpression': function(node, options, parent){
+            if(options.variableTransformerGet){
+                return options.variableTransformerGet(node, [node], {
+                    me: this,
+                    options: options,
+                    doTransform: doTransform
+                }, parent);
+            }else {
+                return node;
+            }
         },
         'Literal': function(node, list){
             return node;
@@ -369,6 +385,8 @@ module.exports = (function(){
                     });
                 }
             }
+
+
             options = options || {};
 
             var before = doTransform.call(list,esprimaTree, options);

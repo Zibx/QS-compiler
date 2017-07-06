@@ -10,7 +10,10 @@ module.exports = (function () {
     'use strict';
     var Class = {
         _description: 'Quokka class',
-        namespace: 'Core'
+        namespace: 'Core',
+        public: {
+            value: {type: 'Variant'}
+        }
     };
     return Class;
 })();

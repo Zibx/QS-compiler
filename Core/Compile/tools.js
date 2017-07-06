@@ -8,6 +8,7 @@
 
 module.exports = (function () {
     'use strict';
+    var ASTtransformer = require('../JS/ASTtransformer');
     var tools = {
         primitives: {
             'Number': true, 'String': true, 'Array': true, 'Boolean': true, 'Function': true
@@ -153,7 +154,11 @@ module.exports = (function () {
             }
             if (out[0].prop)
                 selfFlag = true;
-
+            if(thisFlag){
+                out[0] = {name: child, env: envFlag, prop: propFlag, node: node, e: env};
+                //,  ASTtransformer.craft.Literal(env.name);
+                thisFlag = false;
+            }
             return {
                 varParts: out,
                 self: selfFlag,
