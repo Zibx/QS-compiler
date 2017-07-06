@@ -205,6 +205,11 @@ module.exports = (function () {
 
                     var own = prop.own = i === itemProp.defined;
 
+                    if(itemProp.defined === void 0){
+                        console.log('Documentation property `defined` is not set for '+i+'.'+p);
+                        continue;
+                    }
+
                     var ast = own ? item.mixed.ast.public[p] : world[ itemProp.defined ].mixed.ast.public[p];
 
                     info = item.mixed.ast.public[p];
