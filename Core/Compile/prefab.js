@@ -249,6 +249,20 @@ module.exports = (function () {
                 });
 
             }
+            if(valuesCollector['this']){
+                var vals = valuesCollector['this'],
+                    data = [],
+                    stringData;
+                for( i in vals){
+                    data.push( '\t'+JSON.stringify(i) + ':'+ vals[i] );
+                }
+                if(data.length) {
+                    stringData = '{\n' + data.join(',\n') + '}';
+                }else{
+                    stringData = '';
+                }
+                ctor.push('this.setAll('+ stringData +');');
+            }
 
             ctor = ctor.concat(piped);
 

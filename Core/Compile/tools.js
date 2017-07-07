@@ -39,7 +39,13 @@ module.exports = (function () {
                 if (!env || env.type !== 'Variant' || this.getTag(this.world[env.type], 'anything')) {
 
                     if (node.type === 'ThisExpression') {
-                        var childAST = obj.itemsInfo[child];
+                        var childAST = child === 'this' ? {
+                            type: 'child',
+                            'class': obj.extend[0],
+                            ast: obj.ast,
+                            name: obj.name,
+                            values: {}
+                        } : obj.itemsInfo[child];
                         env = {type: childAST.class, defined: 'inline',tags: this.world[childAST.class].tags, name: child};
                         thisFlag = true;
                         //envFlag = true;
