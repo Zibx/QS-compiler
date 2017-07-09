@@ -21,7 +21,8 @@ module.exports = (function () {
             escapeless: true,
             compact: true,
             parentheses: false,
-            semicolons: false
+            semicolons: false,
+            tolerant: true
         }});
         var start = f.indexOf('{')+1;
         return f.substr(start, f.length - 2-start);

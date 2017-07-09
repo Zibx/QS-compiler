@@ -367,7 +367,8 @@ module.exports = (function () {
             if(compileCfg.beautify) {
                 console.log(sourceMap.toString());
                 try {
-                    var ast = esprima.parse(ccode, {range: true, tokens: true, comment: true});
+                    var ast = esprima.parse(ccode, {range: true, tokens: true, comment: true,
+                        tolerant: true});
                 } catch (e) {
                     //debugger;
                     console.log('ESPRIMA', ccode, e)

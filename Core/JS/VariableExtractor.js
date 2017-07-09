@@ -369,7 +369,8 @@ module.exports = (function () {
         parse: function (sourceCode) {
             esprima = esprima || require('esprima');
             try {
-                var parsed = esprima.parse('(function(){\n' + sourceCode + '\n})', {loc: true});
+                var parsed = esprima.parse('(function(){\n' + sourceCode + '\n})', {loc: true,
+                    tolerant: true});
                 parsed.body = parsed.body[0].expression.body.body;
             }catch(e){
                 console.log(sourceCode+'\n\n' , e)
