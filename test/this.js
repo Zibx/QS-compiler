@@ -58,6 +58,18 @@ module.exports = (function () {
                 assert.equal(compact(main.events.Timer_I5.tick[0]._js), '__private.set(["Timer_I5","enabled"],false)')
             });
 
+            it('should compile this.title in main object event', function(){
+                assert.equal(compact(main.events.___this___.onload[0]._js), '_self.set(["title"],"t3")')
+            });
+
+            it('should compile title in main object event', function(){
+                assert.equal(compact(main.events.___this___.onload[1]._js), '_self.set(["title"],"t2")')
+            });
+
+            it('should compile title in main object event', function(){
+                assert.equal(compact(main.events.___this___.onload[2]._js), '__private.set(["s1","value"],8)')
+            });
+
         });
     });
 })();

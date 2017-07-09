@@ -175,8 +175,10 @@ module.exports = (function () {
                         info.varParts[0].node.computed = true;
                     }*/
                     var what = cls.itemsInfo[info.varParts[0].name];
-
-                    if (what.isPublic) {
+                    if(what === void 0){
+                        what = {isPublic: true};
+                    }
+                    if ( what.isPublic) {
                         who = ASTtransformer.craft.Identifier('_self');
                     } else {
                         who = ASTtransformer.craft.Identifier('__private');
@@ -209,7 +211,7 @@ module.exports = (function () {
                             {
                                 'type': 'ArrayExpression',
                                 'elements':
-                                    info.varParts.map(function (item) {
+                                    (info.varParts[0].name === 'this' ? info.varParts.slice(1) : info.varParts).map(function (item) {
                                         if (item.node && item.node.computed) {
                                             return scope.doTransform.call(scope.me, item.node, scope.options);
                                         } else {

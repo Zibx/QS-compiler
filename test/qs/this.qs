@@ -1,7 +1,4 @@
 def Page main
-  title: t1
-  .onload: ()->
-    this.title = 't2'
   Button: Knopa
     .click: ()->
       this++;
@@ -23,3 +20,12 @@ def Page main
   Slider s1: 15
     from: {{this}}
     to: 200
+
+  title: t1
+  .onload: ()->
+    this.title = 't3'
+  .onload: ()->
+    title = 't2'
+
+  .onload: ()->
+    s1 = 8

@@ -24,7 +24,9 @@ module.exports = (function () {
                 ns,
                 _self = this,
                 sourceMap, sourcePath = obj.ast.name.pointer.source,
-                itemsInfo = obj.itemsInfo = {};
+                itemsInfo = obj.itemsInfo = {
+                    this: {ast: obj.ast, class:obj.extend[0], type:'def', isPublic: true}
+                };
 
             if(compileCfg.sourceMap) {
                 sourceMap = new SourceMap.SourceMapGenerator();
