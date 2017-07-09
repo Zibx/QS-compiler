@@ -1,4 +1,7 @@
 def Page main
+  title: t1
+  .onload: ()->
+    this.title = 't2'
   Button: Knopa
     .click: ()->
       this++;
