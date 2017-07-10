@@ -9,7 +9,7 @@ var bodyParser = function(body) {
     var vars = {},
         parsed;
     try {
-        parsed = VariableExtractor.parse(body.data);
+        parsed = VariableExtractor.parse(body.lines.join('\n'));
         body.ast = parsed.getAST();
         vars = parsed.getFullUnDefined();
     } catch (e) {
@@ -49,7 +49,8 @@ module.exports = wrapper(function (fn, data) {
         arguments: fn.arguments.tokens.length < 3 ? [] : tTools.split(
                 fn.arguments.tokens.slice(1,fn.arguments.tokens.length-1), {type: 'COMMA'}
             ).map(tTools.trim),
-        body: tTools.toString(bodyTokens.length === 1 && bodyTokens[0].type==='Brace' && bodyTokens[0].info==='{' ?  bodyTokens[0].tokens.slice(1,bodyTokens[0].tokens.length-2) : bodyTokens)
+        body: tTools.toString(
+            bodyTokens.length === 1 && bodyTokens[0].type==='Brace' && bodyTokens[0].info==='{' ?  bodyTokens[0].tokens.slice(1,bodyTokens[0].tokens.length-2) : bodyTokens)
     };
 
     /** TODO check for return in js ast. DIRTY HACK*/
