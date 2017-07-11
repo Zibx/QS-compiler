@@ -10,7 +10,8 @@
       this.value = 'You pressed me!'
 
 
-@info: Push button with a caption, capable of firing `click` events. The default button size (unless set explicitly) is 100px by 30px.
+@info: Push button with a caption, capable of firing `click` events.
+The default button size (unless set explicitly) is 100px by 30px.
 @ns: UI.Controls
 def UIComponent Button
     @example: Set the direction of arrow button
