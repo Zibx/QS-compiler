@@ -26,3 +26,12 @@ def UIComponent TextBox
 
     @info: is interactive?
     public Boolean enabled: true
+
+    @info: maximum length of value
+    public Number maxLength: -1
+
+    @info: comment of text box
+    public String comment:
+
+    @info: length of data in text box
+    public Number length: 0
