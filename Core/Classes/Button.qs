@@ -57,12 +57,11 @@ def UIComponent Button
     @info: Direction of the button arrow
     public String direction
 
-    @info: Flag making the button filled
-
     @example: Set filled property
-        Button: "here's btn"
+        Button: "here's the button"
             filled: true
-    @info: flag that make the button filled
+    @info: Flag making the button filled
     public Boolean filled
 
+    @info: The `click` event handler
     public Function click
