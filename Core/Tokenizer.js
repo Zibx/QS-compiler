@@ -82,7 +82,15 @@ module.exports = (function () {
                 cursor = cursor.nextLine();
             }else if(symbol === '\t') {
                 // stable magic spell
-                cursor = cursor.add(((((cursor.col-1)/4)|0)+1)*4+2-cursor.col);
+                cursor = cursor.add(
+                    (((
+                        (cursor.col-1) // col starts from 1
+                        /4)|0) // get full count of tabs
+                        +1) // add one tab
+                    *4 // count spaces
+                    +1 // col starts from one again
+                    -(cursor.col-1) // decrement current position
+                );
             }else{
                 cursor = cursor.add(1);
             }

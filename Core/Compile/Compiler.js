@@ -620,6 +620,9 @@ module.exports = (function () {
                 result;
 
             //global.console.log(item.name+' <'+property.type+'>')
+            if(info.type === 'DEEP'){
+                debugger
+            }
             if(info.type === 'FUNCTION'){
                 return buildFunction.call(this, item, obj, whos, sm);
             }
@@ -647,8 +650,6 @@ module.exports = (function () {
             arr = arr.map(function (val, i, list) {
                 if(searchForPipes(val, i, list))
                     ohNoItSPipe = true;
-
-                //global.console.log(val.data, JSON.stringify(val))
 
                 if(val.type==='Quote')
                     return val._data;

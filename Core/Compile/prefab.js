@@ -14,7 +14,27 @@ module.exports = (function () {
         path = require('path');
 
     var console = new (require('../../console'))('Compile');
+    var setRecursive = function(obj, vals){
+        for(var key in vals){
+            var val = vals[key],
+                tokens = key.split('.'),
+                pointer = obj,
+                partName,
+                last;
+            if(!('value' in val.item))
+                continue;
 
+            for(var i = 0, _i = tokens.length-1; i < _i; i++){
+                partName = tokens[i];
+                if(!(partName in pointer))
+                    pointer[partName] = {};
+                pointer = pointer[partName];
+            }
+            partName = tokens[i];
+
+            pointer[partName] = val.item.value;
+        }
+    };
     return {
         __compile: function(obj, compileCfg){
             var baseClassName = obj.extend[0];
@@ -511,8 +531,8 @@ module.exports = (function () {
 
                         cls.values[objectName][itemName] = value;
 
+                        var childObjectName = objectName;
                         if(item.cls && item.cls.length){
-                            var childObjectName = objectName;
 
                             if(!(childObjectName in cls.values))
                                 cls.values[childObjectName] = {};
@@ -546,7 +566,16 @@ module.exports = (function () {
                         fake.values = {};
                         this.callMethod('__dig', childItem, fake);
                         var fakes = fake.values[itemName];
-                        if(fakes) {
+                        if(prop.type === 'Variant' && fakes){
+                            var currentVal = cls.values[childObjectName][itemName];
+                            setRecursive(childItem.values, fakes);
+                            var inText = JSON.stringify(childItem.values);
+                            value.item.value = {
+                                data: inText,
+                                type: 'DEEP'
+                            };
+
+                        }else if(fakes) {
 
                             for (var x in fakes) {
                                 fakes[x].name = itemName+'.'+fakes[x].name;
