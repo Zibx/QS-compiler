@@ -149,8 +149,9 @@ module.exports = (function () {
                     var propValue = this.getPropertyValue(prop, obj, whos, sm),
                         isPipe;
 
-                    isPipe = propValue.indexOf('new Pipe') === 0;
-
+                    if(propValue !== void 0) {
+                        isPipe = propValue.indexOf('new Pipe') === 0;
+                    }
                     if(!(propValue instanceof Error)) {
                         prop._val = propValue;
                         var scope = prop.item.scope && prop.item.scope.data;
