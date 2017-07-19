@@ -24,7 +24,9 @@ module.exports = (function () {
                 ns,
                 _self = this,
                 sourceMap, sourcePath = obj.ast.name.pointer.source,
-                itemsInfo = obj.itemsInfo = {};
+                itemsInfo = obj.itemsInfo = {
+                    this: {ast: obj.ast, class:obj.extend[0], type:'def', isPublic: true}
+                };
 
             if(compileCfg.sourceMap) {
                 sourceMap = new SourceMap.SourceMapGenerator();
@@ -249,6 +251,20 @@ module.exports = (function () {
                 });
 
             }
+            if(valuesCollector['this']){
+                var vals = valuesCollector['this'],
+                    data = [],
+                    stringData;
+                for( i in vals){
+                    data.push( '\t'+JSON.stringify(i) + ':'+ vals[i] );
+                }
+                if(data.length) {
+                    stringData = '{\n' + data.join(',\n') + '}';
+                }else{
+                    stringData = '';
+                }
+                ctor.push('this.setAll('+ stringData +');');
+            }
 
             ctor = ctor.concat(piped);
 
@@ -367,7 +383,8 @@ module.exports = (function () {
             if(compileCfg.beautify) {
                 console.log(sourceMap.toString());
                 try {
-                    var ast = esprima.parse(ccode, {range: true, tokens: true, comment: true});
+                    var ast = esprima.parse(ccode, {range: true, tokens: true, comment: true,
+                        tolerant: true});
                 } catch (e) {
                     //debugger;
                     console.log('ESPRIMA', ccode, e)

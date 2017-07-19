@@ -10,7 +10,7 @@
       this.value = 'You pressed me!'
 
 
-@info: Pushable button with a caption
+@info: Push button with a caption, capable of firing `click` events. The default button size (unless set explicitly) is 100px by 30px.
 @ns: UI.Controls
 def UIComponent Button
     @example: Set the direction of arrow button
@@ -23,13 +23,14 @@ def UIComponent Button
     @info: direction of button arrow
     public String direction
 
-    @example: "Button's label"
+    @example: Button's label
         Button
             value: "here's btn"
     @info: Caption of the button
     public String value
 
-/*
+    @info: The click event of this object
+
     @example: Set the list of commands that would be executed when the button is clicked
         Number count: 0
         Button btn: Меня нажали {{count}} раз
@@ -51,8 +52,11 @@ def UIComponent Button
         Button btn: Click me
           .click: ()-> btn.color = '#f00';
     public Event click
-*/
 
+    @info: Direction of the button arrow
+    public String direction
+
+    @info: Flag making the button filled
 
     @example: Set filled property
         Button: "here's btn"

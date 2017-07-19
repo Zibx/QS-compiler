@@ -20,7 +20,7 @@ def UIComponent TextBox
     @example: Show string of text while value is empty
       TextBox name
         placeholder: type your name here
-    @info: Grey text shown in the input field when no value is entered, **String**
+    @info: Grey text shown in the input field when no value is entered
     public String placeholder
 
     @example: Text color
@@ -51,3 +51,12 @@ def UIComponent TextBox
 
     @info: is interactive?
     public Boolean enabled: true
+
+    @info: maximum length of value
+    public Number maxLength: -1
+
+    @info: comment of text box
+    public String comment:
+
+    @info: length of data in text box
+    public Number length: 0

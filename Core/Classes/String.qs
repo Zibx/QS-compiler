@@ -1,7 +1,6 @@
 @description: String class (primitive)
 define QObject String
 
-  @description: return length of string
+  @info: Returns the string length
   @outType: Number
   public Function length: () -> return that.length
-

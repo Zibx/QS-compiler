@@ -4,6 +4,13 @@
  * *
  */
 ;// QUOKKA 2017
+// By zibx on 7/10/17.
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * *
+ */
+;// QUOKKA 2017
 // By zibx on 5/5/17.
 
 module.exports = (function () {
@@ -13,20 +20,7 @@ module.exports = (function () {
         esprima = require('esprima'),
         escodegen = require('escodegen'),
         fs = require('fs');
-    var compact = function(code){
-        var f = escodegen.generate(esprima.parse('('+code+')'), {format: {
-            renumber: true,
-            hexadecimal: true,
-            quotes: 'double',
-            escapeless: true,
-            compact: true,
-            parentheses: false,
-            semicolons: false,
-            tolerant: true
-        }});
-        var start = f.indexOf('{')+1;
-        return f.substr(start, f.length - 2-start);
-    };
+
     var compile = function(fileName, cb){
         var crafted = build({
             lib: 'test/lib/QComponent4/src',
@@ -35,12 +29,11 @@ module.exports = (function () {
         }, cb);
     };
 
-    describe('call functions', function() {
-        compile('test/qs/cls.qs', function (result) {
+    describe('tabs', function() {
+        compile('test/qs/tabs.qs', function (result) {
             var main = result.ast.main;
-            it('should compile fn call', function(){
-                assert.equal(main.values.b1.cls._val, '".aaa.bbb"');
-            });
+
+
         });
     });
 })();

@@ -6,12 +6,12 @@ def UIComponent GeoMap
     @example: Set the coordinates of center of map
         GeoMap
             center: [56.3153305, 43.7909254]
-    @info: Center position of the map viewport . An **Array** of two **Number** coordinates
+    @info: Center position of the map viewport . An array of two coordinates: [latitude, longitude]
     @example: [55.64, 37.59]
     public Array center
 
-    @info: The current user location. An **Array** of two **Number** coordinates: [latitude, longitude]
-    @example: [55.64, 37.59]
+    @info: The current user location. An array of two coordinates: [latitude, longitude]
+    @example: [55.75, 37.65]
     public Array home
 
     @example: Set array of pins on the map
@@ -37,7 +37,7 @@ def UIComponent GeoMap
         GeoMap
             center: [56.3153305, 43.7909254]
             zoom: 15
-    @info: Current zoom level **Number**. The actual zoom defined by this number depends on the //type// of the map.
+    @info: Current zoom level according to the Yandex scale.
     public Number zoom
 
     @example: Same as center

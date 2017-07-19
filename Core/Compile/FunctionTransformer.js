@@ -65,20 +65,26 @@ module.exports = (function () {
             var meta = cls.metadata;
             var _self = this;
             var transformFnGet = function (node, stack, scope, parent) {
-                var c0 = cls;
-                var list = stack.slice().reverse(),
-                    varParts;
+                    var c0 = cls;
+                    var list = stack.slice().reverse(),
+                        varParts;
 
-                var info = tools.getVarInfo.call(_self, list, cls, child, scope);
-                if(!info) {
-                    throw new Error('Can not resolve '+
-                        list.map(function(token){return token.name}).join('.') +
-                        ' at (' + fnObj.fn.pointer+')')
-                }
-                var firstToken = info.varParts[0],
-                    who;
+                    var info = tools.getVarInfo.call(_self, list, cls, child, scope);
+                    if(!info) {
+                        throw new Error('Can not resolve '+
+                            list.map(function(token){return token.name}).join('.') +
+                            ' at (' + fnObj.fn.pointer+')')
+                    }
+                    var firstToken = info.varParts[0],
+                        who;
 
-                var what = cls.itemsInfo[info.varParts[0].name];
+                    if(info.thisFlag){
+                        info.varParts[0].name = info.varParts[0].e;
+                        if(info.varParts[0].name.name)
+                            info.varParts[0].name = info.varParts[0].name.name;
+                        info.varParts[0].node.computed = true;
+                    }
+                    var what = cls.itemsInfo[info.varParts[0].name];
 
                     if (what.isPublic) {
                         who = ASTtransformer.craft.Identifier('_self');
@@ -156,8 +162,23 @@ module.exports = (function () {
                     //    first = list[0];
                     // var env = tools.isNameOfEnv(first.name, meta),
                     //     who;
+
+                    if(info.thisFlag){
+                        info.varParts[0].name = info.varParts[0].e;
+                        if(info.varParts[0].name.name)
+                            info.varParts[0].name = info.varParts[0].name.name;
+                        info.varParts[0].node.computed = true;
+
+                    }
+                    /*if(info.thisFlag){
+                        info.varParts[0].name = info.varParts[0].e;
+                        info.varParts[0].node.computed = true;
+                    }*/
                     var what = cls.itemsInfo[info.varParts[0].name];
-                    if (what.isPublic) {
+                    if(what === void 0){
+                        what = {isPublic: true};
+                    }
+                    if ( what.isPublic) {
                         who = ASTtransformer.craft.Identifier('_self');
                     } else {
                         who = ASTtransformer.craft.Identifier('__private');
@@ -171,7 +192,9 @@ module.exports = (function () {
                         who = info.thisFlag ? ASTtransformer.craft.This() : ASTtransformer.craft.Identifier(firstToken.name);
                     }*/
                     if (info.valueFlag)
-                        info.varParts.push({name: 'value'})
+                        info.varParts.push({name: 'value'});
+
+                    var val = scope.doTransform.call(scope.me, node.right, scope.options);
 
                     return {
                         'type': 'CallExpression',
@@ -188,7 +211,7 @@ module.exports = (function () {
                             {
                                 'type': 'ArrayExpression',
                                 'elements':
-                                    info.varParts.map(function (item) {
+                                    (info.varParts[0].name === 'this' ? info.varParts.slice(1) : info.varParts).map(function (item) {
                                         if (item.node && item.node.computed) {
                                             return scope.doTransform.call(scope.me, item.node, scope.options);
                                         } else {
@@ -204,7 +227,7 @@ module.exports = (function () {
                                         }
                                     })
                             },
-                            node.right
+                            val
                         ]
 
                     };

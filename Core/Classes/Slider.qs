@@ -3,7 +3,7 @@
 @example: Usage example
     def Page main
 
-        // The pag\e color is controlled by three sliders below
+        // The page color is controlled by three sliders below
         background: rgb({{s1}}, {{s2}}, {{s3}})
 
         VBox

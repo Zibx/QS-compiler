@@ -24,7 +24,8 @@
         top: 1
 
 @ns: UI.Controls
-@info: Grid object with addressable rows and columns. A Grid is not displayed and only serves to markup the area that it occupies on the screen with the specified quantity of //rows// and //columns//. This Grid’s child elements should specify their //left// and //top// property values, which will indicate (respectively) the column and the row of this Grid in which the corresponding child element is positioned.\\
+@info: Grid object with addressable rows and columns. A Grid is not visible and only serves to markup a screen area with the specified quantity of //rows// and //columns//.
+    This Grid’s child elements should specify their //left// and //top// property values, which will indicate (respectively) the column and the row of this Grid in which the corresponding child element is positioned.
 def UIComponent Grid
 
     @example: Demo of rows
@@ -55,7 +56,7 @@ def UIComponent Grid
                 height: 100px
                 background: grey
                 top: 4
-    @info: **Number** of rows in the grid. Default: //1//
+    @info: Number of rows in the grid. Default: //1//
     public Number rows
 
     @example: Demo of columns
@@ -87,10 +88,10 @@ def UIComponent Grid
                 width: 70px
                 background: grey
                 left: 4
-    @info: **Number** of columns in the grid. Default: //1//
+    @info: Number of columns in the grid. Default: //1//
     public Number columns
 
-    @attr: child
-//      info: The child component to be added
-    @info: Add a child UI component to this component
+    @arg: child
+      The child component to be added
+    @info: Add a child UI element to this element
     public Function addChild

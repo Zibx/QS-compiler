@@ -55,7 +55,6 @@ module.exports = (function () {
                 done();
             });
         });
-
         it('respect function args', function (done) {
             compile('test/qs/functions.qs', function (result) {
                 assert.equal(

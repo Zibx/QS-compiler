@@ -8,6 +8,7 @@
 
 module.exports = (function () {
     'use strict';
+    var ASTtransformer = require('../JS/ASTtransformer');
     var tools = {
         primitives: {
             'Number': true, 'String': true, 'Array': true, 'Boolean': true, 'Function': true
@@ -38,8 +39,16 @@ module.exports = (function () {
                 if (!env || env.type !== 'Variant' || this.getTag(this.world[env.type], 'anything')) {
 
                     if (node.type === 'ThisExpression') {
-                        env = child;
+                        var childAST = child === 'this' ? {
+                            type: 'child',
+                            'class': obj.extend[0],
+                            ast: obj.ast,
+                            name: obj.name,
+                            values: {}
+                        } : obj.itemsInfo[child];
+                        env = {type: childAST.class, defined: 'inline',tags: this.world[childAST.class].tags, name: child};
                         thisFlag = true;
+                        //envFlag = true;
                     } else {
                         if(metadata === void 0){
                             var basePointer = scope && scope.options && scope.options.basePointer;
@@ -130,7 +139,7 @@ module.exports = (function () {
                     //if(i < _i - 1)
                     //    throw new Error('Can not get `'+ stack[i+1].name +'` of primitive value `'+node.name+'` <'+env.type+'>')
                 } else {//TODO: go deepeer
-                    metadata = this.world[(env.class && env.class.data) || env.type]
+                    metadata = this.world[(typeof env.class === 'string' ? env.class : env.class && env.class.data) || env.type]
                     //var x;
                     /*
                      metadata = shadow[env._type];
@@ -151,7 +160,11 @@ module.exports = (function () {
             }
             if (out[0].prop)
                 selfFlag = true;
-
+            if(thisFlag){
+                out[0] = {name: child, env: envFlag, prop: propFlag, node: node, e: env};
+                //,  ASTtransformer.craft.Literal(env.name);
+                thisFlag = false;
+            }
             return {
                 varParts: out,
                 self: selfFlag,
