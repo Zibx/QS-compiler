@@ -89,7 +89,7 @@ module.exports = (function () {
                         +1) // add one tab
                     *4 // count spaces
                     +1 // col starts from one again
-                    -(cursor.col-1) // decrement current position
+                    -cursor.col // decrement current position
                 );
             }else{
                 cursor = cursor.add(1);

@@ -151,6 +151,8 @@ module.exports = (function () {
 
                     if(propValue !== void 0) {
                         isPipe = propValue.indexOf('new Pipe') === 0;
+                    }else{
+                        this.getPropertyValue(prop, obj, whos, sm)
                     }
                     if(!(propValue instanceof Error)) {
                         prop._val = propValue;
