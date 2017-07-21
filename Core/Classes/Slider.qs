@@ -1,7 +1,6 @@
 @info: Input control allowing the user to select values from a numeric range by dragging a horizontal slider
 
-@example: Setting page background with three sliders (RGB)
-  '''qs
+@example: Usage example
     def Page main
 
         // The page color is controlled by three sliders below
@@ -31,22 +30,58 @@
                 step: 1
                 fillColor: rgb(0, 0, {{s3}})
             Label: 'Blue:' {{s3}}
-  '''
 
 @ns: UI.Controls
 def UIComponent Slider
 
+    @example: Lower bound of range
+        VBox
+            height: 100px
+            Slider s1
+                width: 500px
+                from: -20
+
+            Label: {{s1}}
     @info: Lower bound of range
     public Number from
 
+    @example: Set the upper bound of range
+        VBox
+            height: 100px
+            Slider s1
+                width: 500px
+                to: 100
+
+            Label: {{s1}}
     @info: Upper bound of range
     public Number to
 
-    @info: Step of the values while moving the slider
+    @example: Set the step of slider
+        VBox
+            height: 100px
+            Slider s1
+                width: 500px
+                step: 10
+
+            Label: {{s1}}
+    @info: Step of the values while moving the slider.
     public Number step
 
-    @info: Color of the filled part of the slider, in the HTML color notation
+    @example: Color of the Filled part of the slider
+        Slider
+            width: 500px
+            fillColor: #0f0
+    @info: Color of the Filled part of the slider
     public String fillColor
 
-    @info: Current value of the slider. You can also set this property, using a value from the current range //from-to//. The slider position will be automatically updated.
+    @example: Current value
+        VBox
+            height: 100px
+            Slider s1
+                width: 500px
+                to: 200
+                value: 75
+
+            Label: {{s1}}
+    @info: Current value of slider. You can also set this property, using a value from the current range //from-to//. The slider position will be automatically updated.
     public Number value

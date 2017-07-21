@@ -27,7 +27,7 @@ def UIComponent Image
 
     @info: The resizing method
         Supported values:
-        //none//
+        none, fill, uniform, uniformToFill.
         Do not apply image resizing. Some clipping may occur with this method. The image will be centered in the area.
         __Example:__
         ```qs
