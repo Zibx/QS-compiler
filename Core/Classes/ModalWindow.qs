@@ -1,28 +1,28 @@
-@info: Well, it's a Modal Window, you know
+@info: "Well, it's a Modal Window, you know"
 @ns: UI.Controls
-define UIComponent FlexSizeComponent
-    @example: String with message or question of modal window
+define UIComponent ModalWindow
+    @example: Set the message or question of the modal window
         public ModalWindow mw1
             message: 'fire walk with me'
 
-    @info: String with message or question of modal window
+    @info: String with message or question of the modal window
     public String message
 
-    @example: Title of modal window
+    @example: Set the title of the modal window
         public ModalWindow mw1
             title: DRUM
 
-    @info: Title of modal window
+    @info: Title of the modal window
     public String title
 
-    @example: Same as message
+    @example: Set the message or question of the modal window
         public ModalWindow mw1
-            value: azaza
+            value: Maybe not
 
     @info: Same as message
     public String value
 
-    @example: Show modal window if it's hide and hide if it's visible
+    @example: "Show modal window if it's hide and hide if it's visible"
         public ModalWindow mw1
             title: DRUM
             message: 'fire walk with me'
@@ -32,5 +32,5 @@ define UIComponent FlexSizeComponent
             .click: () ->
                 mw1.toggle();
 
-    @info: Toggle event
-    public Event toggle
+    @info: Toggle function
+    public Function toggle

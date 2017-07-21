@@ -217,6 +217,19 @@ module.exports = (function () {
 
                     if (infoTag) {
                         prop.info = renderer(infoTag);
+                    }else{
+                        prop.info = '<i style="color:#ccc">No description yet</i>';
+                    }
+
+                    if(info) {
+                        prop.examples = extractTags(info, 'example');
+                        if (prop.examples) {
+
+                            prop.info += prop.examples.map(function (example) {
+                                return '<div class="doc-prop-example"><h4>' + example.info + '</h4><p>' + renderer('```qs\n' + example.text + '\n```') + '</p></div>'
+                            }).join('\n');
+
+                        }
                     }
 
                     if(prop.type === 'Event'){

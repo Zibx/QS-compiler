@@ -43,20 +43,36 @@ def UIComponent TextBox
             TextBox
                 width: 300px
                 layout: ru
-            TextBox
-                width: 300px
-                layout: en
+        Keyboard
     @info: Layout of corresponding keyboard
     public String layout: full
 
+    @example: Does not allow to enter characters
+        TextBox
+            width: 300px
+            color: #0f0
+            text: "kjsdkjfnsdkjfnk"
+            enabled: false
     @info: is interactive?
     public Boolean enabled: true
 
+    @example: Does not allow to enter more characters then you need
+        TextBox
+            width: 300px
+            maxLength: 3
     @info: maximum length of value
     public Number maxLength: -1
 
+    @example: Set the comment
+        TextBox
+            width: 300px
+            color: #0f0
     @info: comment of text box
     public String comment:
 
+    @example: Set the length of text
+        TextBox
+            width: 300px
+            length: 3
     @info: length of data in text box
     public Number length: 0

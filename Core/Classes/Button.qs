@@ -23,7 +23,7 @@ def UIComponent Button
     @info: direction of button arrow
     public String direction
 
-    @example: Button's label
+    @example: "Button's label"
         Button
             value: "here's btn"
     @info: Caption of the button
@@ -46,15 +46,12 @@ def UIComponent Button
             }
     @info: Click event
     @arg: PointEvent e
-    @arg: [String, Number]
-      Array with Name and Age
+
     @example: Change color on click
         Button btn: Click me
           .click: ()-> btn.color = '#f00';
     public Event click
 
-    @info: Direction of the button arrow
-    public String direction
 
     @info: Flag making the button filled
 
@@ -64,4 +61,4 @@ def UIComponent Button
     @info: flag that make the button filled
     public Boolean filled
 
-    public Function click
+    //public Function click

@@ -1,9 +1,9 @@
 @info: CheckBox in a new box, more fancy
 @ns: UI.Controls
-define UIComponent FlexSizeComponent
-    @example: String with message or question of modal window
-        public ModalWindow mw1
-            message: 'fire walk with me'
+define UIComponent Switch
+    @example: Set the label
+        Switch sw1: false
+            label: Режим поиска
 
-    @info: String with message or question of modal window
+    @info: Label of checkbox
     public String label

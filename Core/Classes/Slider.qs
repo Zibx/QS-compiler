@@ -45,7 +45,7 @@ def UIComponent Slider
     @info: Lower bound of range
     public Number from
 
-    @example:
+    @example: Set the upper bound of range
         VBox
             height: 100px
             Slider s1

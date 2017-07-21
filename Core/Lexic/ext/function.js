@@ -44,13 +44,26 @@ module.exports = wrapper(function (fn, data) {
         bodyTokens = bodyTokens.concat(item.children);
 
     //console.log(fn.returnType);
+
+    var functionBody;
+    if(bodyTokens.length === 0){
+        functionBody = {data: '', lines: [], pointer: matched.name.pointer};
+        console.log('Empty function body '+ matched.name.pointer);
+    }else {
+        if (bodyTokens.length === 1 && bodyTokens[0].type === 'Brace' && bodyTokens[0].info === '{') {
+            functionBody = bodyTokens[0].tokens.slice(1, bodyTokens[0].tokens.length - 2);
+        }else{
+            functionBody = bodyTokens;
+        }
+        functionBody = tTools.toString(functionBody);
+    }
+
     matched.value = {
         type: 'FUNCTION',
         arguments: fn.arguments.tokens.length < 3 ? [] : tTools.split(
                 fn.arguments.tokens.slice(1,fn.arguments.tokens.length-1), {type: 'COMMA'}
             ).map(tTools.trim),
-        body: tTools.toString(
-            bodyTokens.length === 1 && bodyTokens[0].type==='Brace' && bodyTokens[0].info==='{' ?  bodyTokens[0].tokens.slice(1,bodyTokens[0].tokens.length-2) : bodyTokens)
+        body: functionBody
     };
 
     /** TODO check for return in js ast. DIRTY HACK*/
