@@ -29,3 +29,7 @@ def Page main
 
   .onload: ()->
     s1 = 8
+  .onload: ()->
+    this.showNext()
+  .onload: ()->
+    showNext()

@@ -86,7 +86,7 @@ module.exports = (function () {
                     }
                     var what = cls.itemsInfo[info.varParts[0].name];
 
-                    if (what.isPublic) {
+                    if ((what === void 0 && info.self) || what.isPublic) {
                         who = ASTtransformer.craft.Identifier('_self');
                     } else {
                         who = ASTtransformer.craft.Identifier('__private');
@@ -107,8 +107,11 @@ module.exports = (function () {
                         info.context = info.varParts.length - 1;
 
                     for (i = 0, _i = varParts.length; i < _i; i++) {
-                        item = varParts[i];
 
+                        item = varParts[i];
+                        if(i===0 && item.name === 'this')
+                            if(item.node.computed === false)
+                                continue;
                         if (item.node.computed) {
                             varItem = scope.doTransform.call(scope.me, item.node, scope.options);
                         } else {

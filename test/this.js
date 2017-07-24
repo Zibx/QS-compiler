@@ -6,7 +6,7 @@
 ;// QUOKKA 2017
 // By zibx on 5/5/17.
 
-module.exports = (function () {
+
     'use strict';
     var assert = require('chai').assert;
     var build = require('../build'),
@@ -70,6 +70,13 @@ module.exports = (function () {
                 assert.equal(compact(main.events.___this___.onload[2]._js), '__private.set(["s1","value"],8)')
             });
 
+            it('should compile main methods call in main object event', function(){
+                assert.equal(compact(main.events.___this___.onload[3]._js), '_self.showNext()');
+            });
+
+            it('should compile main methods call in main object event', function(){
+                assert.equal(compact(main.events.___this___.onload[4]._js), '_self.showNext()');
+            });
+
         });
     });
-})();

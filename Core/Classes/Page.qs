@@ -13,3 +13,6 @@ define UIComponent Page
 
   @info: Show the page in full screen
   public Boolean fullScreen: true
+
+  @info: Function that shows button `next`
+  public Function showNext
