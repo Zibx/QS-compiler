@@ -6,7 +6,7 @@
 ;// QUOKKA 2017
 // By zibx on 5/4/17.
 
-module.exports = (function () {
+
     'use strict';
     var assert = require('chai').assert;
     var build = require('../build'),
@@ -44,7 +44,7 @@ module.exports = (function () {
             });
 
             it('string setters', function () {
-                assert.equal(main.values.combo1.value._val, '\'#000\'');
+                assert.equal(main.values.combo1.value._val, '"#000"');
                 assert.equal(main.values.combo1.label._val, '"Укажите цвет текста надписи \\"Изображение\\""');
             });
 
@@ -52,4 +52,3 @@ module.exports = (function () {
         });
     });
 
-})();

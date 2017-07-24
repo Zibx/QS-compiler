@@ -129,7 +129,7 @@ module.exports = (function () {
             getVars.call(subScope, {
                 type: 'VariableDeclaration',
                 declarations: node.params.map(function (param, i) {
-                    return { type: 'VariableDeclarator', id: param, init: node.defaults[i] };
+                    return { type: 'VariableDeclarator', id: param, init: node.defaults && node.defaults[i] };
                 })
             });
             getVars.call(subScope, node.body);
@@ -140,7 +140,7 @@ module.exports = (function () {
             getVars.call(subScope, {
                 type: 'VariableDeclaration',
                 declarations: node.params.map(function (param, i) {
-                    return { type: 'VariableDeclarator', id: param, init: node.defaults[i] };
+                    return { type: 'VariableDeclarator', id: param, init: node.defaults && node.defaults[i] };
                 })
             });
             getVars.call(subScope, node.body);

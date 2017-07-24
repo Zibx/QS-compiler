@@ -64,7 +64,10 @@ module.exports = (function () {
                 var result;
 
                 try{
-                    return JSON.stringify(evaluteSafe(arr.join('')),null,2)
+                    var safe = evaluteSafe(arr.join(''));
+                    if(typeof safe === 'function')
+                        throw new Error('Constructors are not allowed');
+                    return JSON.stringify(safe,null,2)
                 }catch(e){
                     if(value && value.length === 1 && value[0].type==='Quote')
                         return JSON.stringify(value[0].data);

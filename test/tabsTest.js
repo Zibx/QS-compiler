@@ -30,10 +30,10 @@ module.exports = (function () {
     };
 
     describe('tabs', function() {
-        compile('test/qs/tabs.qs', function (result) {
+        /*compile('test/qs/tabs.qs', function (result) {
             var main = result.ast.main;
 
 
-        });
+        });*/
     });
 })();
