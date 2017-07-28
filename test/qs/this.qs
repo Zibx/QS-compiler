@@ -33,3 +33,7 @@ def Page main
     this.showNext()
   .onload: ()->
     showNext()
+
+  Slider s2: 15
+    from: {{this.value}}
+    to: 200

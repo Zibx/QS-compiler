@@ -83,7 +83,8 @@ module.exports = (function () {
         },
         Array: {
             public: {
-                value: p('Array')
+                value: p('Array'),
+                slice: p('Function')
             },
             _anything: true
         },
