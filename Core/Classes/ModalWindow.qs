@@ -1,36 +1,33 @@
-@info: "Well, it's a Modal Window, you know"
+@info: Modal window displaying a caption (a title) and a message (typically, a question). Users must finish interaction with the modal window before they can return to the parent application (window).
 @ns: UI.Controls
 define UIComponent ModalWindow
-    @example: Set the message or question of the modal window
+    @example: A simple modal window with a message and title
         public ModalWindow mw1
-            message: 'fire walk with me'
+            title: 'Attention'
+            message: 'Please prepare your ID. It will be requested on the next step'
 
-    @info: String with message or question of the modal window
+    @info: The message or question that the modal window displays
     public String message
 
-    @example: Set the title of the modal window
+    @example: A simple modal window with a message and title
         public ModalWindow mw1
-            title: DRUM
+            title: 'Attention'
+            message: 'Please prepare your ID. It will be requested on the next step'
 
-    @info: Title of the modal window
+    @info: Title (caption) of the modal window
     public String title
 
-    @example: Set the message or question of the modal window
-        public ModalWindow mw1
-            value: Maybe not
-
-    @info: Same as message
+    @info: Synonym for `message`
     public String value
 
-    @example: "Show modal window if it's hide and hide if it's visible"
+    @example: Showing the modal window if it is hidden and hiding if it is visible
         public ModalWindow mw1
-            title: DRUM
-            message: 'fire walk with me'
+            title: 'Attention'
+            message: 'Please prepare your ID. It will be requested on the next step'
             Button: Toggle
-
         Button: Toggle2
             .click: () ->
                 mw1.toggle();
 
-    @info: Toggle function
+    @info: Toggle visibility of a modal window
     public Function toggle
