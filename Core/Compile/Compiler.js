@@ -29,7 +29,7 @@ module.exports = (function () {
     //global.console.log(x.tral('((function(){while(1){}})(),{a:2})'))
 */
     var console = new (require('../../console'))('Compiler');
-
+    var craft = require('../JS/ASTtransformer').craft;
     var buildFunction = require('./FunctionTransformer');
 
     var VariableExtractor = require('../JS/VariableExtractor');
@@ -55,9 +55,8 @@ module.exports = (function () {
     };
     
     var getVarInfo = tools.getVarInfo;
-    var getVarAccessor = function (tree, cls, scope, whos) {
-        var pointer = tree, stack = [],
-            info;
+    var varStackFromTree = function(tree){
+        var pointer = tree, stack = [];
         if (pointer.object) {
 
             while (pointer.object) {
@@ -69,17 +68,75 @@ module.exports = (function () {
         } else {
             stack.push(pointer);
         }
+        return stack;
+    };
+
+    var varDeepCap = function(pipeVar, accessible, collector){
+        var collector = collector || [];
+        if(!accessible.length)
+            return pipeVar;
+        //if(accessible.length < 2) // corner case
+            //return pipeVar;
+
+
+        if(!('object' in pipeVar)){
+            //if(pipeVar.name === accessible[0].name){
+                collector.push(accessible.shift());
+            //}
+            if(accessible.length === 0){
+                return craft.Identifier(collector.map(function(el){return el.name}).join('_'));
+            }
+        }else{
+            var clone = Object.create(pipeVar);
+            clone.object = varDeepCap(pipeVar.object, accessible, collector);
+            if(accessible.length > 0) {
+                clone.property = varDeepCap(pipeVar.property, accessible, collector);
+                if(accessible.length === 0)
+                    return clone.property;
+            }
+
+            //clone.object = craft.Identifier(accessible.join('_'));
+
+
+            return clone;
+        }
+        return pipeVar;
+    };
+    var getVarInfoFromTree = function(tree, cls, whos){
+        var info,
+            stack = varStackFromTree(tree);
 
         info = getVarInfo.call(this, stack, cls, whos);
-        if(!info)
+        if(!info) {
+            console.warn('Weird', stack)
             return false;
+        }
         if (info.valueFlag)
             info.varParts.push({name: 'value'});
 
-
-        return (info.varParts[0].name in cls.public ? 'this.ref(':'__private.ref(')+ '\'' + info.varParts.map(function (el) {
+        return info;
+    };
+    var getVarAccessor = function (tree, cls, scope, whos) {
+        var info = getVarInfoFromTree.call(this, tree, cls, whos);
+        if(info === false)
+            return false;
+        var accessible;
+        if(info.context !== false) {
+            accessible = info.varParts.slice(0, info.context + 1);
+        }else{
+            accessible = info.varParts;
+        }
+        var ref = (info.varParts[0].name in cls.public ? 'this.ref(':'__private.ref(')+ '\'' + accessible.map(function (el) {
                 return el.name;
             }).join('.') + '\')';
+
+        var tail = info.varParts.slice(accessible.length);
+
+        var name = accessible.map(function(el){
+            return el.name;
+        }).join('_');
+
+        return {ref: ref, tail: tail, name: name, accessible: accessible};
 
 
     };
@@ -169,19 +226,32 @@ module.exports = (function () {
                 for (var i = 0, _i = pipeVars.length; i < _i; i++) {
                     var pipeVar = pipeVars[i];
                     //var source;// = '\'' + fullName + '\'';
-                    var source = getVarAccessor.call(this, pipeVar, obj, pipe, whos);
-                    if(source === false)
+
+
+
+                    var accessor = getVarAccessor.call(this, pipeVar, obj, pipe, whos);
+                    if(accessor === false) {
+                        console.log('NO ACCESSOR FOR', fullName);
                         return false;
-                    if (!cache[source]) {
-                        cache[source] = true;
-                        pipeSources.push(source);
-
-                        var mArg = fullName.replace(/\./g, ''),
-                            varName = escodegen.generate(pipeVar);
-                        mutatorArgs.push(mArg);
-
-                        fn = fn.replace(new RegExp(varName.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"), 'g'), mArg);
                     }
+
+
+                    var mArg = accessor.name,
+                        newVarAST = varDeepCap(pipeVar, accessor.accessible);
+                    var newVarName = escodegen.generate(newVarAST),
+                        oldVarName = escodegen.generate(pipeVar);
+
+                    if (!cache[accessor.name]) {
+                        cache[accessor.name] = true;
+                        pipeSources.push(accessor.ref);
+                        mutatorArgs.push(mArg);
+                    }
+
+                    var goodRegexName = oldVarName.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+                    fn = fn.replace(
+                        new RegExp(goodRegexName, 'g'),
+                        newVarName);
+
                 }
             }
         }
