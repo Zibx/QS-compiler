@@ -39,5 +39,7 @@ def Page main
     from: {{this.value}}
     to: 200
 
-  Slider s3: 30
   Label l3: {{s3}}
+
+  Slider s3: 30
+  Label l4: {{JSON(JSON(s3).l).h}}

@@ -244,18 +244,18 @@ module.exports = (function () {
                         newVarAST = varDeepCap(pipeVar, accessor.accessible);
                     var newVarName = escodegen.generate(newVarAST),
                         oldVarName = escodegen.generate(pipeVar);
-
+                    var needReplace = !cache[accessor.name] || cache[accessor.name][0] !== pipeVar._id;
                     if (!cache[accessor.name]) {
-                        cache[accessor.name] = true;
+                        cache[accessor.name] = [pipeVar._id];
                         pipeSources.push(accessor.ref);
                         mutatorArgs.push(mArg);
                     }
-
-                    var goodRegexName = oldVarName.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-                    fn = fn.replace(
-                        new RegExp(goodRegexName, 'g'),
-                        newVarName);
-
+                    if(needReplace ) {
+                        var goodRegexName = oldVarName.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+                        fn = fn.replace(
+                            new RegExp(goodRegexName, 'g'),
+                            newVarName);
+                    }
                 }
             }
         }
