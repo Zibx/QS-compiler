@@ -1,4 +1,5 @@
 def Page main
+
   Button: Knopa
     .click: ()->
       this++;
@@ -37,3 +38,6 @@ def Page main
   Slider s2: 15
     from: {{this.value}}
     to: 200
+
+  Slider s3: 30
+  Label l3: {{s3}}

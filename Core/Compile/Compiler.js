@@ -71,8 +71,9 @@ module.exports = (function () {
         return stack;
     };
 
-    var varDeepCap = function(pipeVar, accessible, collector){
-        var collector = collector || [];
+    var varDeepCap = function(pipeVar, accessible, collector, notFirstTime){
+        collector = collector || [];
+        notFirstTime = notFirstTime || false;
         if(!accessible.length)
             return pipeVar;
         //if(accessible.length < 2) // corner case
@@ -81,16 +82,19 @@ module.exports = (function () {
 
         if(!('object' in pipeVar)){
             //if(pipeVar.name === accessible[0].name){
-                collector.push(accessible.shift());
+            collector.push(accessible.shift());
             //}
-            if(accessible.length === 0){
+            if(accessible.length === 0 || !notFirstTime){
+                while(accessible.length){
+                    collector.push(accessible.shift());
+                }
                 return craft.Identifier(collector.map(function(el){return el.name}).join('_'));
             }
         }else{
             var clone = Object.create(pipeVar);
-            clone.object = varDeepCap(pipeVar.object, accessible, collector);
+            clone.object = varDeepCap(pipeVar.object, accessible, collector, true);
             if(accessible.length > 0) {
-                clone.property = varDeepCap(pipeVar.property, accessible, collector);
+                clone.property = varDeepCap(pipeVar.property, accessible, collector, true);
                 if(accessible.length === 0)
                     return clone.property;
             }

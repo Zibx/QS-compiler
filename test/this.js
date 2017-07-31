@@ -38,6 +38,7 @@ var compile = function(fileName, cb){
 describe('this', function() {
     compile('test/qs/this.qs', function (result) {
         var main = result.ast.main;
+
         it('should compile this++', function(){
             assert.equal(compact(main.events.Button_I1.click[0]._js), '__private.set(["Button_I1","value"],__private.get(["Button_I1","value"])+1)')
         });
@@ -84,5 +85,9 @@ describe('this', function() {
                 'new Pipe(__private.ref("s2.value"),function(s2_value){return s2_value})');
         });
 
+        it('should compile this.value in pipe', function(){
+            assert.equal(compact(main.values.l3.value._val, true),
+                'new Pipe(__private.ref("s3.value"),function(s3_value){return s3_value})');
+        });
     });
 });
