@@ -43,3 +43,4 @@ def Page main
 
   Slider s3: 30
   Label l4: {{JSON(JSON(s3).l).h}}
+  Label l5: {{s3+s3}}
