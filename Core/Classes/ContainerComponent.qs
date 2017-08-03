@@ -1,3 +1,4 @@
+@system: true
 @ns: UI.Controls
 def UIComponent ContainerComponent
 	public Array itemSource

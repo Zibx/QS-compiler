@@ -222,7 +222,18 @@ module.exports = (function () {
         /*fn = this._functionTransform(fn);
          fn = {"var1":"cf.cardData.name"," fn ":"JSON.stringify(var1);"};*/
         //console.log(this.functionWaterfall(fn))
-        var env, cache = {};
+        var env, cache = {},
+            magicPrefix = '@~#',
+            magicLength = magicPrefix.length,
+            postProduction = {},
+            replaceFn = function(what, position, str){
+                var shouldReplace = str.substr(position-magicLength, magicLength) !== magicPrefix;
+                if(shouldReplace) {
+                    postProduction[newVarName] = true;
+                    return magicPrefix + newVarName;
+                }else
+                    return what;
+            };
         for (var cName in pipe.vars) {
             for (var fullName in pipe.vars[cName]) {
 
@@ -254,12 +265,16 @@ module.exports = (function () {
                         var goodRegexName = oldVarName.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
                         fn = fn.replace(
                             new RegExp(goodRegexName, 'g'),
-                            newVarName);
+                            replaceFn
+                        );
                     }
                 }
             }
         }
 
+        for( i in postProduction ){
+            fn = fn.replace(new RegExp((magicPrefix+i).replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"), 'g'), i)
+        }
         pipe.fn = fn;
         var parts = [];
         pipeSources.forEach(function (item) {

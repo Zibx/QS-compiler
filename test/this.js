@@ -90,9 +90,13 @@ describe('this', function() {
                 'new Pipe(__private.ref("s3.value"),function(s3_value){return s3_value})');
         });
 
-        it('should compile this.value in pipe', function(){
+        it('should compile value in function pipe', function(){
             assert.equal(compact(main.values.l4.value._val, true),
                 'new Pipe(__private.ref("s3.value"),function(s3_value){return JSON(JSON(s3_value).l).h})');
+        });
+        it('value + value', function(){
+            assert.equal(compact(main.values.l5.value._val, true),
+                'new Pipe(__private.ref("s3.value"),function(s3_value){return s3_value+s3_value})');
         });
     });
 });
