@@ -271,7 +271,7 @@ module.exports = (function () {
                 }
             }
         }
-        global.console.log(fn)
+
         for( i in postProduction ){
             fn = fn.replace(new RegExp((magicPrefix+i).replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"), 'g'), i)
         }
