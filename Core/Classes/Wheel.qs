@@ -16,3 +16,6 @@ define UIComponent Wheel
 
     @info: Array of values for the wheel
     public Array data
+
+    @info: visible
+    public Boolean visible
