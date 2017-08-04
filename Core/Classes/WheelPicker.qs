@@ -1,4 +1,4 @@
-@info: Droplist list in the form of a wheel that can be scrolled. For a good work needs at least one component Wheel and also needs to be called on the screen by it's method show().
+@info: "Droplist list in the form of a wheel that can be scrolled. For a good work needs at least one component Wheel and also needs to be called on the screen by it's method show()."
 @ns: UI.Controls
 define UIComponent WheelPicker
     @example: Set the label
