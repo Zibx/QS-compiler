@@ -1,6 +1,6 @@
 {
   "name": "quokka-script",
-  "version": "1.2.9",
+  "version": "1.3.0",
   "description": "QuokkaScript compiler.",
   "main": "index.js",
   "scripts": {

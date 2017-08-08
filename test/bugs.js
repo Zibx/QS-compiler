@@ -8,33 +8,8 @@
 
 
 var assert = require('chai').assert;
-var build = require('../build'),
-    esprima = require('esprima'),
-    escodegen = require('escodegen'),
-    fs = require('fs');
-var compact = function(code){
-    var f = escodegen.generate(esprima.parse('('+code+')'), {format: {
-        renumber: true,
-        hexadecimal: true,
-        quotes: 'double',
-        escapeless: true,
-        compact: true,
-        parentheses: false,
-        semicolons: false
-    }});
-    var start = f.indexOf('{')+1;
-    return f.substr(start, f.length - 2-start);
-};
-var compile = function(data, cb){
-    var crafted = build({
-        lib: 'test/lib/QComponent4/src',
-        typeTable: 'Core/TypeTable.js',
-        source: data + ''
-    }, function(res){
-        console.log(res.js)
-        cb(res)
-    });
-};
+var common = require('./toolchain/common'),
+    compile = common.compile, compact = common.compact;
 
 describe('CORE-118', function() {
     compile(`
