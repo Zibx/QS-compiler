@@ -147,6 +147,9 @@ module.exports = (function () {
                 /** LOAD LIB MODULES */
                 var classes = {};
                 files.forEach(function (filePath) {
+                    if(path.parse(filePath).ext !== '.js')
+                        return;
+
                     try {
                         currentFile = filePath;
                         classes[filePath] = require(filePath);
