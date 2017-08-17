@@ -108,7 +108,12 @@ module.exports = (function () {
 
                     line = lines[insertInLine];
 
-                    lines[insertInLine] = insertIntoString(line,'_data' in token ? token._data : token.data, tokenCol);
+                    var dataToInsert = '_data' in token ? token._data : token.data;
+                    if(token.type==='PIPE'){
+                        dataToInsert = '{{'+ dataToInsert +'}}';
+                    }
+
+                    lines[insertInLine] = insertIntoString(line,dataToInsert, tokenCol);
 
                 }else{
 
