@@ -6,3 +6,4 @@ def QObject Applications
 	public Boolean appsOnly
 	public Function install
 	public Function uninstall
+	public Function configure
