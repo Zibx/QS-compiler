@@ -16,3 +16,4 @@ define UIComponent Page
 
   @info: Function that shows button `next`
   public Function showNext
+  public Variant settings
