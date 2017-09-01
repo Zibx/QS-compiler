@@ -150,7 +150,10 @@ module.exports = (function () {
                         isPipe;
 
                     if(propValue !== void 0) {
-                        isPipe = propValue.indexOf('new Pipe') === 0;
+                        if(typeof propValue.indexOf !== 'function'){
+                            console.log(propValue)
+                        }else
+                            isPipe = propValue.indexOf('new Pipe') === 0;
                     }else{
                         this.getPropertyValue(prop, obj, whos, sm)
                     }
