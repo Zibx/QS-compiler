@@ -589,7 +589,7 @@ module.exports = (function () {
         /**
          * takes ast
          */
-        add: function(ast){
+        add: function(ast, cfg){
             var info = {
                     require: {},
                     exports: {},
@@ -597,7 +597,7 @@ module.exports = (function () {
                     ready: false
                 },
                 name = ast.name.data;
-
+            cfg && Object.assign(info, cfg);
             this._world[name] = info;
 
             this.wait[name] = [];

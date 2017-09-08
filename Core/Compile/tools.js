@@ -86,6 +86,15 @@ module.exports = (function () {
                             propFlag = true;
                     }
 
+                    if(node.name in this.world){
+                        env = {
+                            type: node.name,
+                            class: node.name,
+                            defined: 'inline',
+                            name: node.name
+                        };
+                    }
+
                     if (!env) {
                         if(firstTry){
                             // on first search we can try to find prop in root parent info

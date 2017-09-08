@@ -66,8 +66,19 @@ module.exports = (function () {
             var fileInfo = path.parse(obj.ast.name.pointer.source);
 
             var nsName = this.getTag(obj, 'ns');
+            if(compileCfg.ns){
+                ns = compileCfg.ns;
+            }else{
+                var nsTokens = [];
+                if(compileCfg.ns !== false)
+                    nsTokens.push(fileInfo.name);
 
-            ns = compileCfg.ns || fileInfo.name+ (nsName?'.'+ nsName : '');
+                if(nsName)
+                    nsTokens.push(nsName);
+
+                ns = nsTokens.join('.');
+            }
+
             
             /** REQUIRES */
             if(compileCfg.newWay){
@@ -85,7 +96,7 @@ module.exports = (function () {
                     }
                 }
                 source.push('var _AppNamespace = '+JSON.stringify(ns || fileInfo.name)+';');
-                source.push('QRequire('+names.map(function(name){return JSON.stringify(name)}).join(', ') +', function(');
+                source.push((compileCfg.ns === false?'module.exports = ':'')+'QRequire('+names.map(function(name){return JSON.stringify(name)}).join(', ') +', function(');
 
                 source.push('\t'+varNames.join(',\t\n')+'\n){');
                 source.push('"use strict";');

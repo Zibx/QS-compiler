@@ -127,7 +127,8 @@ module.exports = (function () {
                 }
             }
             var currentFile;
-
+            var qsList = [];
+            var qsCache = {};
             for(i = 0, _i = config.lib.length; i < _i; i++) {
 
                 var lib = config.lib[i];
@@ -147,8 +148,14 @@ module.exports = (function () {
                 /** LOAD LIB MODULES */
                 var classes = {};
                 files.forEach(function (filePath) {
-                    if(path.parse(filePath).ext !== '.js')
+                    var parsed = path.parse(filePath);
+                    if(parsed.ext !== '.js') {
+                        if(parsed.ext === '.qs') {
+                            qsList.push({fileName: filePath, data: fs.readFileSync(filePath).toString('utf-8')});1
+
+                        }
                         return;
+                    }
 
                     try {
                         currentFile = filePath;
@@ -251,7 +258,14 @@ module.exports = (function () {
             }
         });
 
-
+        qsList.forEach(function(item){
+            var tokens = tokenizer(item.data, item.fileName),
+                lex = lexer(tokens);
+            item.lex = lex;
+            lex.forEach(function(item){
+                compiler.add(item, {staticNS: true});
+            });
+        });
 
         lexes.forEach(function(lex){
             lex.forEach(function(item){
