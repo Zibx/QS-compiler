@@ -1,6 +1,5 @@
 def Page main
-
-  Button: Knopa
+  Button Button_I1: Knopa
     .click: ()->
       this++;
     .click: ()->

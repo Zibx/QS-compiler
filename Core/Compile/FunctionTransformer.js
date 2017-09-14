@@ -64,11 +64,13 @@ module.exports = (function () {
         functionTransform: function (fnObj, cls, child) {
             var meta = cls.metadata;
             var _self = this;
-            var transformFnGet = function (node, stack, scope, parent) {
+            var transformFnGet =
+                function (node, stack, scope, parent) {
                     var c0 = cls;
                     var list = stack.slice().reverse(),
                         varParts;
-
+                    var skipFirst = false,
+                        skipValue = false;
                     var info = tools.getVarInfo.call(_self, list, cls, child, scope);
                     if(!info) {
                         throw new Error('Can not resolve '+
@@ -86,10 +88,16 @@ module.exports = (function () {
                     }
                     var what = cls.itemsInfo[info.varParts[0].name];
 
-                    if ((what === void 0 && info.self) || what.isPublic) {
+                    if ((what === void 0 && info.self) || (what !== void 0 && what.isPublic)) {
                         who = ASTtransformer.craft.Identifier('_self');
                     } else {
-                        who = ASTtransformer.craft.Identifier('__private');
+                        if(what === void 0) {
+                            who = ASTtransformer.craft.Identifier(firstToken.name);
+                            skipFirst = true;
+                            skipValue = true;
+                        }else{
+                            who = ASTtransformer.craft.Identifier('__private');
+                        }
                     }
                     /*
                         info.context--;
@@ -106,7 +114,7 @@ module.exports = (function () {
                     if (info.context === false)
                         info.context = info.varParts.length - 1;
 
-                    for (i = 0, _i = varParts.length; i < _i; i++) {
+                    for (i = skipFirst ? 1 : 0, _i = varParts.length; i < _i; i++) {
 
                         item = varParts[i];
                         if(i===0 && item.name === 'this')
@@ -132,7 +140,7 @@ module.exports = (function () {
 
                     var c = ASTtransformer.craft, // craft short link
                         out;//
-                    if (info.valueFlag)
+                    if (info.valueFlag && !skipValue)
                         if (!afterContext.length) {
                             beforeContext.push(c.Literal('value'));
                         } else {

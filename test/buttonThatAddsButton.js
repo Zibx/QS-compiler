@@ -12,10 +12,17 @@ var common = require('./toolchain/common'),
     compile = common.compile, compact = common.compactFn;
 
 describe('call functions', function() {
-    compile('test/qs/buttonThatAddsButton.qs', function (result) {
-        var main = result.ast.main;
-        it('should compile fn call', function(){
-            assert.equal(main.values.b1.cls._val, '".aaa.bbb"');
+
+
+    it('should compile fn call', function(cb){
+        compile('test/qs/buttonThatAddsButton.qs', function (result) {
+            var main = result.ast.main;
+
+            assert.equal(
+                result.js.match(/new Button\(\s*{\s*value:\s['\w]+\s*}\)/).length,
+                1
+            );
+            cb()
         });
     });
 });

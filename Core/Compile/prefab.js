@@ -79,7 +79,6 @@ module.exports = (function () {
                 ns = nsTokens.join('.');
             }
 
-            
             /** REQUIRES */
             if(compileCfg.newWay){
                 
