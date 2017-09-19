@@ -39,7 +39,19 @@ module.exports = (function () {
             __compileValue: function(arr, value){
                 return JSON.stringify(arr.join(''));
             },
-            __instantiate: primitiveInstantiate('""')
+            __instantiate: function(vals){
+                if(vals && vals.value) {
+                    if(vals.value.match(/^(["']).*(\1)$/) !== null){
+                        // Quotes wrapped
+                        return JSON.stringify(vals.value.substr(1, vals.value.length - 2));
+                    }else{
+                        // Shit encrusted
+                        return JSON.stringify(vals.value);
+                    }
+
+                }else
+                    return '""';
+            }
         },
         Boolean: {
             public: {

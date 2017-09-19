@@ -247,7 +247,7 @@ module.exports = (function () {
                         }else{
                             stringData = '';
                         }
-
+                        debugger;
                         _self.tryCall(what.class, '__instantiate', [vals, data, stringData], function(err, result){
                             if(!err)
                                 stringData = result;
@@ -365,7 +365,12 @@ module.exports = (function () {
             
             ctor.push('}');
             for(i in obj.public){
-                if(obj.name === obj.public[i].defined) {
+                var _i = i;
+                if(i === 'value') {
+                    props.push('value: "__value__"');
+                    i = '__value__';
+                }
+                if(obj.name === obj.public[_i].defined) {
                     props.push(i + ': {}');
                 }
             }
