@@ -15,6 +15,9 @@ def QObject Printer
   @info: Update current value of paperLength.
   public Function getPaper
 
+  @info: Reinit current printer.
+  public Function reset
+
   @info: String template that will be used during the next printing operation (see `print`). Templates may specify parameter placeholders in the form of //{param_name}// expressions.
     Parameter values passed to the next print operation are substituted in place of these placeholders.
     A template may have no line break in the end: the `print` operation automatically appends one during the printing.
