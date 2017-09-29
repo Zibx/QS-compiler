@@ -247,7 +247,7 @@ module.exports = (function () {
                         }else{
                             stringData = '';
                         }
-                        debugger;
+                        //debugger;
                         _self.tryCall(what.class, '__instantiate', [vals, data, stringData], function(err, result){
                             if(!err)
                                 stringData = result;
@@ -282,7 +282,7 @@ module.exports = (function () {
                                 return item.name;
                             })
                                 .join(', ')+
-                            '){'+what.value.body.data+'}');
+                            '){'+ what.value.body.data +'}');
                     }
                 });
 
