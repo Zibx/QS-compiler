@@ -10,9 +10,6 @@ def QObject CardReader
   @info: Full hardware test sequence
   public Function selfTest
 
-  @info: Current CardReader operation
-  public String status
-
   @info: Grip a card and move it into the tract
   public Function entry
 
