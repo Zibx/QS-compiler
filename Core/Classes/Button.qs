@@ -61,4 +61,7 @@ def UIComponent Button
     @info: flag that make the button filled
     public Boolean filled
 
+    @info: flag that make the button shown but not accessible(clickable)
+    public Boolean disabled
+
     //public Function click
