@@ -394,6 +394,7 @@ module.exports = (function () {
         rules: rules,
         knownVars: {
             Math: true,
+            Lang: true,
             console: 1,
             Date: 1,
             parseInt: 1,
