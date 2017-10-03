@@ -22,3 +22,6 @@ def QObject SIP
 
   @info: SIP server
   public String url
+
+  @info: hangup
+  public Function end
