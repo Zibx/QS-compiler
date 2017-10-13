@@ -64,4 +64,7 @@ def UIComponent Button
     @info: flag that make the button shown but not accessible(clickable)
     public Boolean disabled
 
+    @info: Navigate app to some page
+    public String navigate: ''
+
     //public Function click

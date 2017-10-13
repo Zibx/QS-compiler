@@ -36,6 +36,7 @@ module.exports = (function(){
         cfg && Z.apply(this, cfg);
     };
     AST_Define.prototype = {
+        _matchers: matchers,
         type: 'DEFINE',
         addTags: function (tags) {
             var _self = this;

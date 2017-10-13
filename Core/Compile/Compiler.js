@@ -715,6 +715,10 @@ module.exports = (function () {
             if(info.type === 'FUNCTION'){
                 return buildFunction.call(this, item, obj, whos, sm);
             }
+            if( info.type === 'Function'){
+                //item.item._matchers.func({tokens: item.item.value,matched: item.item, item: item})
+                return buildFunction.call(this, item.item.value, obj, whos, sm);
+            }
             if(info.type === 'PIPE'){
                 return 'function(){'+info.body.data+'}';
             }
