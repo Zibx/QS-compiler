@@ -23,7 +23,7 @@ def Page main
         });
     });
 
-    compile(`
+  /*  compile(`
 def Page main
   ComboBox c1: nk1
     items: 
@@ -48,5 +48,5 @@ def Page main
         it('should work with nested without quotes', function(){
             assert.equal(main.values.c1.items._val, '{\n  "nk1": "ololo",\n  "nk2": 5467\n}')
         });
-    });
+    });*/
 });
