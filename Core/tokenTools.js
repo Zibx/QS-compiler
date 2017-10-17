@@ -115,7 +115,7 @@ module.exports = (function () {
 
                     lines[insertInLine] = insertIntoString(line,dataToInsert, tokenCol);
 
-                }else{
+                }else if(cfg.comments || token.type !== 'Comment'){
 
                     tools.toString(token.tokens, lines, firstLine, cfg);
                     if(token.children)

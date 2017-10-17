@@ -1,4 +1,4 @@
 def Page main
-  div: 123
-    div: 345
-    div: 678
+  div d0: 123
+    div d1: 345
+    div d2: 678

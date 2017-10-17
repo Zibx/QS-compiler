@@ -16,9 +16,9 @@ describe('html primitives', function() {
     compile('test/qs/primitives.qs', function (result) {
         var main = result.ast.main;
         it('should compile fn call', function(){
-            assert.equal(main.values.div_I1.value._val,'123');
-            assert.equal(main.values.div_I3.value._val,'345');
-            assert.equal(main.values.div_I5.value._val,'678');
+            assert.equal(main.values.d0.value._val,'123');
+            assert.equal(main.values.d1.value._val,'345');
+            assert.equal(main.values.d2.value._val,'678');
         });
     });
 });

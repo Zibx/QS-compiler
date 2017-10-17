@@ -20,9 +20,27 @@ describe('Setters', function() {
             assert.equal(main.values.num.value._val, '10');
         });
 
-        it('string setters', function () {
+        it('string setters. quoted', function () {
             assert.equal(main.values.combo1.value._val, '"#000"');
+        });
+        it('string setters. string without quotes with quotes inside', function () {
             assert.equal(main.values.combo1.label._val, '"Укажите цвет текста надписи \\"Изображение\\""');
+        });
+        it('string setters. single quote', function () {
+            assert.equal(main.values.data.a._val, '"1"');
+        });
+        it('string setters. double quote', function () {
+            assert.equal(main.values.data.b._val, '"2"');
+        });
+        it('string setters. tripple double', function () {
+            assert.equal(main.values.data.c._val, '"3"');
+        });
+        it('string setters. tripple double in value', function () {
+            assert.equal(main.values.data.value._val, '"a"');
+        });
+
+        it('string setters. single quotes in value', function () {
+            assert.equal(main.values.d0.value._val, '"x"');
         });
 
         console.log(result.js)

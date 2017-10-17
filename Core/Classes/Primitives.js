@@ -29,6 +29,23 @@ module.exports = (function () {
                 return defaultValue;
         }
     };
+    /*var plainify = function(value){
+        var vals = value.map(function(item){
+            if()
+        });
+        if(vals.value.match(/^(["']).*(\1)$/) !== null){
+            // Quotes wrapped
+            return JSON.stringify(vals.value.substr(1, vals.value.length - 2));
+        }else{
+            // Shit encrusted
+            return JSON.stringify(vals.value);
+        }
+
+        if(value && value.length === 1 && value[0].type==='Quote')
+            return JSON.stringify(value[0].data);
+    };*/
+    var tools = require('../tokenTools');
+
     return {
         String: {
             _description: 'String class (primitive)',
@@ -37,7 +54,15 @@ module.exports = (function () {
                 value: p('String')
             },
             __compileValue: function(arr, value){
-                return JSON.stringify(arr.join(''));
+                if(Array.isArray(value) && value.length) {
+                    var result = tools.toString(value, [], void 0, {comments: false}).data.trim();
+                    if(result.match(/^(["']).*(\1)$/) !== null){
+                        return JSON.stringify(result.substr(1, result.length - 2));
+                    }else{
+                        return JSON.stringify(result);
+                    }
+                }else
+                    return '""';
             },
             __instantiate: function(vals){
                 if(vals && vals.value) {

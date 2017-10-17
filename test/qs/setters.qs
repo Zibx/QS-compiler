@@ -3,8 +3,8 @@ def Page main
       from: 5
       to: 20
 
-    ComboBox combo1: '#000'
-      label: Укажите цвет текста надписи "Изображение"
+    ComboBox combo1: "#000"
+      label: Укажите цвет текста надписи "Изображение" //2
       items: {
           '#000': 'black',
           '#fff': 'white',
@@ -16,3 +16,9 @@ def Page main
 
     Label: {{mySlider}}
     public Number num: 10
+
+    DATA d0: 'x'
+    DATA data: """a"""
+      a: '1'
+      b: "2"
+      c: """3"""
