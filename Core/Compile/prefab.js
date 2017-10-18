@@ -141,13 +141,73 @@ module.exports = (function () {
                     privateDefined = true;
                 }
             };
+
+            var create = {};
+            var created = {};
             for(var where in obj.instances) {
                 obj.instances[where].forEach(function (what) {
                     if (what.type === 'child') {
+
+
                         itemsInfo[what.name] = what;
+                        if(what.items && what.items.length){
+                            what.items.forEach(function(item){
+
+                                var info = item.info;
+                                var tags = info && info.tags;
+                                if(tags && tags.create){
+                                    if(!(what.name in create)) {
+                                        create[what.name] = [];
+                                    }
+
+                                    var createPropInfo = {
+                                        prop: item.name,
+                                        defined: obj.name,
+                                        where: where
+                                    };
+
+//                                        created[item.name] = createPropInfo;
+                                    create[what.name].push(createPropInfo);
+                                }
+                            });
+                        }
                     }
                 });
             }
+
+            for(var where in obj.values) {
+                if(where in create) {
+                    var properties = obj.values[where];
+                    var iInfo = itemsInfo[where];
+                    var createProps = create[where];
+                    createProps.forEach(function(propName){
+                        var prop = properties[propName.prop];
+                        var whos = (where === '___this___' ? 'this' : where );
+                        var propValue = _self.getPropertyValue(prop, obj, whos, sm),
+                            isPipe;
+                        var type = prop.info.type,
+                            createName = propValue.substr(1,propValue.length-2);
+
+
+                        if(!(createName in created)) {
+
+
+                            var item = {
+                                name: createName,
+                                class: type,
+                                type: 'child',
+                                ast: {}
+                            };
+                            obj.private[createName] = {type: type, defined: propName.defined};
+                            obj.instances[propName.where].push(item);
+                            itemsInfo[createName] = item;
+                            created[createName] = item;
+                        }
+                    });
+
+                }
+            }
+
             var piped = [];
             var valuesCollector = {};
             for(var where in obj.values){

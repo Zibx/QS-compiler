@@ -249,7 +249,7 @@ module.exports = function (matchers) {
                 var out = {},
                     store = item.store, i;
                 for( i in store ){
-                    out[i] = store[i];
+                    out[i] = new Match(i, store[i]);
                 }
                 out._matchType = type;
                 return out;
@@ -261,5 +261,20 @@ module.exports = function (matchers) {
             return false;
 
     };
+    var MatchCollection = function(name, data){
+        return data;
+        this._name = name;
+        this.splice.apply(this, [0,0].concat(data));
+    };
+    MatchCollection.prototype = new Array();
+
+    var Match = function(name, data){
+        if(Array.isArray(data))
+            return new MatchCollection(name, data);
+        this._name = name;
+        Object.assign(this, data);
+
+    };
+    Match.prototype = {};
     return match;
 };

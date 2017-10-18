@@ -243,7 +243,7 @@ module.exports = (function () {
                     if(matched.length){
                         if(matched.length === 1){
                             //console.log(matched[0]);
-                            compiler.addNative(matched[0]);
+                            this.addNative(matched[0]);
                             var parent = matched[0].parent;
                             if(parent)
                                 this.searchDeps([parent.name]);

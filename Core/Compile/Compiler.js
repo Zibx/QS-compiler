@@ -532,7 +532,7 @@ module.exports = (function () {
         this.wait = {};
         this.waitingFor = {};
         var _self = this;
-        system.forEach(function(clses){
+        system.forEach(function(clses, i){
             clses.forEach(function(cls){
                 _self.add(cls);
             });
@@ -602,12 +602,12 @@ module.exports = (function () {
 
             this.wait[name] = [];
 
-            if(ast.js)
+            if(ast.js) {
                 info.ready = true;
-            else
+            } else {
                 ast.extend
                     .forEach(this.addDependency.bind(this, name));
-
+            }
             this.tryInspect(name);
 
         },
@@ -804,7 +804,8 @@ module.exports = (function () {
                 },
                 clsInfo,
                 items, item, itemName,
-                moreDependencies = false;
+                moreDependencies = false,
+                _self = this;
 
             if(!ast.js){
                 extend = ast.extend;
@@ -838,8 +839,15 @@ module.exports = (function () {
 
                     
                     if(this.callMethod('__dig', mixed, mixed)===false) {
-                        if(this.wait[name].length)
-                            this.searchDeps && this.searchDeps(this.wait[name]);
+                        if(this._world[name])
+
+                        if(this.wait[name].length) {
+                            // deps that are not in world yet
+                            var notInWorld = this.wait[name].filter(function (name) {
+                                return !(name in _self._world);
+                            });
+                            notInWorld.length && this.searchDeps && this.searchDeps(notInWorld);
+                        }
 
                         
 
