@@ -275,7 +275,24 @@ module.exports = (function () {
 
         lex.forEach(function(lex){
             var name = lex.name.data;
-            compiler.world[name].namespace = config.ns;
+
+            var fileInfo = path.parse(lex.name.pointer.source);
+            var nsName = compiler.getTag(lex, 'ns');
+            var ns;
+            if(config.ns){
+                ns = config.ns;
+            }else{
+                var nsTokens = [];
+                if(config.ns !== false)
+                    nsTokens.push(fileInfo.name);
+
+                if(nsName)
+                    nsTokens.push(nsName);
+
+                ns = nsTokens.join('.');
+            }
+
+            compiler.world[name].namespace = ns;
         });
 
         if(!config.main){
@@ -297,7 +314,7 @@ module.exports = (function () {
 
         var asts = {};
         asts[mainObj] = compiler.world[mainObj];
-        var result = compiler.compile(mainObj, {sourceMap: true, newWay: config.newWay, ns: config.ns}),
+        var result = compiler.compile(mainObj, {sourceMap: false, newWay: config.newWay, ns: config.ns}),
             finalSource = lexes.map(function(lex, i){
                 return '//'+ sourcePaths[i] +'\n' +lex.map(function(item) {
                     asts[item.name.data] = compiler.world[item.name.data];

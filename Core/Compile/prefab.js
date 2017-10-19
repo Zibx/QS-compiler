@@ -62,6 +62,8 @@ module.exports = (function () {
                         return '';
                     return '/*%$@'+ pos +'@$%*/';
                 }
+            }else{
+                sm = function(){return '';};
             }
             var fileInfo = path.parse(obj.ast.name.pointer.source);
 
@@ -80,58 +82,63 @@ module.exports = (function () {
             }
 
             /** REQUIRES */
+            var formRequires = function() {
 
-            var fullRequire = {}, j, requireInfo;
-            for (i in obj.require) {
-                if (!(i in this.world)) {
-                    throw new Error('Unknown class `' + i + '` ' + obj.require[i][0].pointer)
-                }
-                requireInfo = this.world[i];
-
-                if(this.world[i].namespace !== void 0) {
-                    fullRequire[i] = this.world[i];
-                }
-
-                for (j in requireInfo.require) {
-                    if (!(j in this.world)) {
-                        throw new Error('Unknown class `' + j + '`, used in class `'+ i +'`' + obj.require[i][0].pointer)
+                var source = [];
+                var fullRequire = {}, j, requireInfo;
+                for (i in obj.require) {
+                    if (!(i in this.world)) {
+                        throw new Error('Unknown class `' + i + '` ' + obj.require[i][0].pointer)
                     }
-                    if(this.world[j].namespace !== void 0) {
-                        fullRequire[j] = this.world[j];
-                    }
-                }
-            }
+                    requireInfo = this.world[i];
 
-            if(compileCfg.newWay){
-                
-                var names = ['Core.Pipe'],
-                    varNames = ['Pipe'];
-                
-                for (i in fullRequire) {
-                    if (fullRequire[i]) {
-                        names.push(fullRequire[i].namespace +'.'+ i)
-                        varNames.push(i);
+                    if (this.world[i].namespace !== void 0) {
+                        fullRequire[i] = this.world[i];
                     }
-                }
-                source.push('var _AppNamespace = '+JSON.stringify(ns || fileInfo.name)+';');
-                source.push((compileCfg.ns === false?'module.exports = ':'')+'QRequire('+names.map(function(name){return JSON.stringify(name)}).join(', ') +', function(');
 
-                source.push('\t'+varNames.join(',\t\n')+'\n){');
-                source.push('"use strict";');
-                
-            }else {
-                for (i in fullRequire) {
-                    if (fullRequire[i]) {
-                        var nsString = ['Q'].concat(fullRequire[i].namespace);
-                        nsString.push(i);
-                        source.push('var ' + i + ' = ' + nsString.join('.') + ';');
+                    for (j in requireInfo.require) {
+                        if (!(j in this.world)) {
+                            throw new Error('Unknown class `' + j + '`, used in class `' + i + '`' + obj.require[i][0].pointer)
+                        }
+                        if (this.world[j].namespace !== void 0) {
+                            fullRequire[j] = this.world[j];
+                        }
                     }
                 }
 
-                source.push('var Pipe = Q.Core.Pipe;');
-                source.push('var _AppNamespace = '+JSON.stringify(ns || fileInfo.name)+';');
-            }
+                if (compileCfg.newWay) {
 
+                    var names = ['Core.Pipe'],
+                        varNames = ['Pipe'];
+
+                    for (i in fullRequire) {
+                        if (fullRequire[i]) {
+                            names.push(fullRequire[i].namespace + '.' + i)
+                            varNames.push(i);
+                        }
+                    }
+                    source.push('var _AppNamespace = ' + JSON.stringify(ns || fileInfo.name) + ';');
+                    source.push((compileCfg.ns === false ? 'module.exports = ' : '') + 'QRequire(' + names.map(function (name) {
+                            return JSON.stringify(name)
+                        }).join(', ') + ', function(');
+
+                    source.push('\t' + varNames.join(',\t\n') + '\n){');
+                    source.push('"use strict";');
+
+                } else {
+                    for (i in fullRequire) {
+                        if (fullRequire[i]) {
+                            var nsString = ['Q'].concat(fullRequire[i].namespace);
+                            nsString.push(i);
+                            source.push('var ' + i + ' = ' + nsString.join('.') + ';');
+                        }
+                    }
+
+                    source.push('var Pipe = Q.Core.Pipe;');
+                    source.push('var _AppNamespace = ' + JSON.stringify(ns || fileInfo.name) + ';');
+                }
+                return source;
+            };
             //sm(obj.ast.definition)+ + sm(obj.ast.name, obj.name)
             /*source.push('var ' + obj.name +' = ' + baseClassName +
                 //'.extend(\''+ sm(obj.ast.extend[0], ns) + ns +'\', '+sm(obj.ast.name, obj.name)+'\'' + obj.name+'\', {');
@@ -473,7 +480,7 @@ module.exports = (function () {
                 });
             });
 
-            var code = source.join('\n'),
+            var code = formRequires.call(this).join('\n')+'\n'+source.join('\n'),
                 rowDecrements = {};
             var ccode = code.replace(/\/\*%\$@([0-9]*,[0-9]*,[^@]*)@\$%\*\//g, function(a,b,c){
                 var poses = b.split(','),
@@ -512,7 +519,9 @@ module.exports = (function () {
             }else{
                 source = ccode;
             }
-            var map = sourceMap.toString();
+            if(cfg.sourceMap) {
+                var map = sourceMap.toString();
+            }
             var result = {source: source, map: map};
             console.log(result)
             return result;
