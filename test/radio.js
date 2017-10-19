@@ -12,7 +12,7 @@ var common = require('./toolchain/common'),
     compile = common.compile, compact = common.compactFn;
 
 describe('compile radio buttons', function() {
-    compile('test/qs/radio.qs', function (result) {
+    compile('test/qs/radio.qs', {newWay: true}, function (result) {
         var main = result.ast.main;
         console.log(result.js)
         /*it('should compile fn call', function(){

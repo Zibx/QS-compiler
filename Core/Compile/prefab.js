@@ -80,17 +80,36 @@ module.exports = (function () {
             }
 
             /** REQUIRES */
+
+            var fullRequire = {}, j, requireInfo;
+            for (i in obj.require) {
+                if (!(i in this.world)) {
+                    throw new Error('Unknown class `' + i + '` ' + obj.require[i][0].pointer)
+                }
+                requireInfo = this.world[i];
+
+                if(this.world[i].namespace !== void 0) {
+                    fullRequire[i] = this.world[i];
+                }
+
+                for (j in requireInfo.require) {
+                    if (!(j in this.world)) {
+                        throw new Error('Unknown class `' + j + '`, used in class `'+ i +'`' + obj.require[i][0].pointer)
+                    }
+                    if(this.world[j].namespace !== void 0) {
+                        fullRequire[j] = this.world[j];
+                    }
+                }
+            }
+
             if(compileCfg.newWay){
                 
                 var names = ['Core.Pipe'],
                     varNames = ['Pipe'];
                 
-                for (i in obj.require) {
-                    if (!(i in this.world)) {
-                        throw new Error('Unknown class `' + i + '` ' + obj.require[i][0].pointer)
-                    }
-                    if (this.world[i].namespace) {
-                        names.push(this.world[i].namespace +'.'+ i)
+                for (i in fullRequire) {
+                    if (fullRequire[i]) {
+                        names.push(fullRequire[i].namespace +'.'+ i)
                         varNames.push(i);
                     }
                 }
@@ -101,12 +120,9 @@ module.exports = (function () {
                 source.push('"use strict";');
                 
             }else {
-                for (i in obj.require) {
-                    if (!(i in this.world)) {
-                        throw new Error('Unknown class `' + i + '` ' + obj.require[i][0].pointer)
-                    }
-                    if (this.world[i].namespace) {
-                        var nsString = ['Q'].concat(this.world[i].namespace);
+                for (i in fullRequire) {
+                    if (fullRequire[i]) {
+                        var nsString = ['Q'].concat(fullRequire[i].namespace);
                         nsString.push(i);
                         source.push('var ' + i + ' = ' + nsString.join('.') + ';');
                     }
@@ -183,10 +199,10 @@ module.exports = (function () {
                     createProps.forEach(function(propName){
                         var prop = properties[propName.prop];
                         var whos = (where === '___this___' ? 'this' : where );
-                        var propValue = _self.getPropertyValue(prop, obj, whos, sm),
+                        var propValue = prop.item.value[0],
                             isPipe;
                         var type = prop.info.type,
-                            createName = propValue.substr(1,propValue.length-2);
+                            createName = propValue.data ? propValue.data : propValue;
 
 
                         if(!(createName in created)) {

@@ -1,8 +1,8 @@
 def Page main
-    RadioButton: сова
+    RadioButton: owl
       group: animal
-      key: owl
-    RadioButton: медведь
+      displayValue: сова
+    RadioButton: bear
       group: animal
-      key: bear
+      displayValue: медведь
     Label l1: {{animal}}

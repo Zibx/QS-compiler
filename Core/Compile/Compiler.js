@@ -776,6 +776,14 @@ module.exports = (function () {
 
             //ok, lets guess
             if(property.type !== 'Variant'){
+                if(arr.length === 1){
+                    var name = arr[0];
+                    if(name in obj.private){
+                        return '__private.ref('+JSON.stringify(name)+')';
+                    }else if(name in obj.public){
+                        return 'this.ref('+JSON.stringify(name)+')';
+                    }
+                }
                 var error = false;
                 this.tryCall('Variant', '__compileValue', [arr, item.item.value], function(err, res){
                     error = err;

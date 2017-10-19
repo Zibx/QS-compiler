@@ -27,17 +27,21 @@ module.exports = (function () {
         var start = f.indexOf('{')+1;
         return f.substr(start, f.length - 2-start);
     };
-    var compile = function(fileName, cb){
+    var compile = function(fileName, options, cb){
+        if(typeof options === 'function') {
+            cb = options;
+            options = {};
+        }
         try {
             var source = fs.readFileSync(fileName) + '';
         }catch(e){
             source = fileName;
         }
-        var crafted = build({
+        var crafted = build(Object.assign({
             lib: 'test/lib/QComponent4/src',
             typeTable: 'Core/TypeTable.js',
             source: source
-        }, cb);
+        }, options), cb);
     };
     return {compile: compile, compact: compact, compactFn: function(code){
         return compact(code, true);
