@@ -334,6 +334,7 @@ module.exports = (function () {
                 });
             }
         }
+
         if(!config.output){
             //console.log(finalSource);
             typeof callback === 'function' && callback({

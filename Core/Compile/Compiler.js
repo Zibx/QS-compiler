@@ -34,6 +34,7 @@ module.exports = (function () {
 
     var VariableExtractor = require('../JS/VariableExtractor');
     var tools = require('./tools');
+    var ClassMetadata = require('./ClassMetadata');
     var primitives = tools.primitives,
         escodegen = require('escodegen');
 
@@ -414,14 +415,11 @@ module.exports = (function () {
                 for( i in obj ){
                     cfg = obj[i];
 
-                    item = {
+                    item = new ClassMetadata({
                         ready: true,
                         js: true,
-                        name: {data: i},
-                        public: {},
-                        private: {},
-                        tags: {}
-                    };
+                        name: {data: i}
+                    });
 
                     if(cfg.public)
                         item.public = cfg.public;
@@ -590,13 +588,11 @@ module.exports = (function () {
          * takes ast
          */
         add: function(ast, cfg){
-            var info = {
-                    require: {},
-                    exports: {},
-                    ast: ast,
-                    ready: false
-                },
-                name = ast.name.data;
+            var info = new ClassMetadata({
+                    name: ast.name,
+                    ast: ast
+                }),
+                name = info.name.data;
             cfg && Object.assign(info, cfg);
             this._world[name] = info;
 
@@ -618,45 +614,36 @@ module.exports = (function () {
                 props = ctor.prototype._prop, i,
                 proto = ctor.prototype;
 
-            var obj = this.world[name] = this._world[name] = {
-                public: {},
-                private: {},
-                values: {},
-                require: {},//info.require,
-                extend: [],
+            var obj = this.world[name] = this._world[name] = new ClassMetadata({
                 name: name,
-                namespace: ns,
-                variables: {},
-                props: {},
-                tags: {ns: [{data: ns}]},
                 ready: true,
                 js: true,
                 ast: {native: true}
-//                ast: ast
-            };
+            }).setNameSpace(ns);
+
+
             if(info.ctor.parent)
                 obj.ast = {extend: [{data: info.ctor.parent.name}]};
 
             if(props)
                 for( i in props){
-                    obj.public[i] = {type: 'Variant', defined: name };//props[i];
+                    obj.addPublic(i, {type: 'Variant', defined: name })
                 }
             for( i in proto ){
-                    if(i==='_prop' || i==='_method')
-                        continue;
-                    var origI = i;
-                    var prop = proto[i];
+                if(i==='_prop' || i==='_method')
+                    continue;
+                var prop = proto[i];
 
-                    if(i.indexOf('#')===0)
+                if(i.indexOf('#')===0)
+                    i = i.substr(1);
+                if(i.indexOf('_')===0){
+                    if(i.indexOf('__')!==0) {
                         i = i.substr(1);
-                    if(i.indexOf('_')===0){
-                        if(i.indexOf('__')!=0)
-                            i = i.substr(1);
-
-                        (obj.tags[i] || (obj.tags[i] = [])).push({value: prop});
-                    }else if(typeof prop === 'function'){
-                        obj.public[i] = {type: 'Function', defined: ns };
                     }
+                    obj.addTag(i, prop);
+                }else if(typeof prop === 'function'){
+                    obj.addPublic(i, {type: 'Function', defined: ns });
+                }
             }
 
             this.wait[name] = [];
@@ -806,17 +793,11 @@ module.exports = (function () {
         define: function(name){
             var info = this._world[name],
                 ast = info.ast, i, _i, extend,
-                mixed = this.world[name] = info.mixed = info.mixed || {
-                    public: {},
-                    private: {},
-                    values: {},
+                mixed = this.world[name] = info.mixed = info.mixed || new ClassMetadata({
                     require: info.require,
-                    extend: [],
                     name: name,
-                    variables: {},
-                    props: {},
                     ast: ast
-                },
+                }),
                 clsInfo,
                 items, item, itemName,
                 moreDependencies = false,
@@ -881,7 +862,7 @@ module.exports = (function () {
                 if(ast.tags){
                     mixed.tags = ast.tags;
                 }
-                mixed.namespace = this.getTag(ast, 'ns');
+                mixed.setNameSpace(this.getTag(ast, 'ns'));
                 info.ready = true;
                 //debugger
             }else{
