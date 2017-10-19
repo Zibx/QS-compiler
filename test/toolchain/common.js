@@ -27,6 +27,9 @@ module.exports = (function () {
         var start = f.indexOf('{')+1;
         return f.substr(start, f.length - 2-start);
     };
+    var compactCode = function(code){
+        return code.replace(/\s+/g,' ');
+    };
     var compile = function(fileName, options, cb){
         if(typeof options === 'function') {
             cb = options;
@@ -45,6 +48,6 @@ module.exports = (function () {
     };
     return {compile: compile, compact: compact, compactFn: function(code){
         return compact(code, true);
-    }};
+    }, compactCode: compactCode};
 
 })();

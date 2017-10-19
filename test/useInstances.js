@@ -12,13 +12,13 @@ var common = require('./toolchain/common'),
     compile = common.compile, compact = common.compactFn,
     compactCode = common.compactCode;
 
-describe('compile radio buttons', function() {
-    compile('test/qs/radio.qs', {newWay: true, sourceMap: false}, function (result) {
+describe('compile passing of constructor', function() {
+    compile('test/qs/useInstances.qs', {newWay: true, sourceMap: false}, function (result) {
         var main = result.ast.main;
-//        console.log(result.js)
-        it('should create property', function(){
-            assert.equal(compactCode(main.values.l1.value._val),
-                'new Pipe(__private.ref(\'animal.value\'), function(animal_value){ return (animal_value ); })')
+        it('should create template and pass it\'s constructor to ContainerComponent', function(){
+            assert.equal(main.values.c1.itemTemplate._val, 'T');
+            assert.equal(result.js.indexOf('"inline.T"')>0, true);
+            assert.equal(result.js.indexOf('T,')>0, true);
         });
     });
 });
