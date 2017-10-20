@@ -13,6 +13,8 @@ module.exports = (function () {
         SourceMap = require('source-map'),
 
         path = require('path');
+    var InstanceMetadata = require('./InstanceMetadata');
+    var Property = require('./Property');
 
     var console = new (require('../../console'))('Compile');
     var setRecursive = function(obj, vals){
@@ -93,7 +95,7 @@ module.exports = (function () {
                     }
                     requireInfo = this.world[i];
 
-                    if (this.world[i].namespace !== void 0) {
+                    if (this.world[i].namespace !== null) {
                         fullRequire[i] = this.world[i];
                     }
 
@@ -101,7 +103,7 @@ module.exports = (function () {
                         if (!(j in this.world)) {
                             throw new Error('Unknown class `' + j + '`, used in class `' + i + '`' + obj.require[i][0].pointer)
                         }
-                        if (this.world[j].namespace !== void 0) {
+                        if (this.world[j].namespace !== null) {
                             fullRequire[j] = this.world[j];
                         }
                     }
@@ -548,39 +550,41 @@ module.exports = (function () {
         },
         __dig: function(obj, cls) {
             var item = obj.ast,
-                data, itemName, i, _i, items,
+                data, oldItemName, i, _i, items,
                 moreDependencies = false,
-
                 prop;
 
             if(item.type === 'DEFINE'){
-
-                data = {
-                    class: obj === cls ? item.name.data : item.class.data
-                };
-                if(!item.name){
-                    item.name = {data: this.getUID(item.class.name || item.class.data)};
-                }
-                data.name = item.name.data;
-                cls.variables[item.name.data] = data;
-
                 items = obj.ast.items;
+
                 for (i = 0, _i = items.length; i < _i; i++) {
                     item = items[i];
+                    if(item.class)
+                        var itemClassName = item.class.data;
 
+                    if(item.name)
+                        var itemName = item.name.data;
 
-                    itemName = (item.class && item.class.data) || (item.name && item.name.data);
-                    prop = this.callMethod('__isProperty', obj, itemName);
-                    if (prop) {
+                    var propInMeta;
+                    var searchingFor = itemClassName || itemName;
+                    /* we can define:
+                     Label: without name.
+                     Label with: name
+                     existed: prop
 
-                    } else if (itemName in this.world) {
-                        this.addDependency(cls.name, item);
-                    } else {
-                        moreDependencies = true;
-                        this.addDependency(cls.name, item.class);
+                     so we check that class dependency is satisfied.*/
+
+                    // maybe we have property with that name
+                    propInMeta = obj.findProperty(searchingFor);
+
+                    if(!propInMeta){
+                        this.addDependency(cls.getName(), searchingFor);
+                        if(!(searchingFor in this.world)){
+                            moreDependencies = true;
+                        }
                     }
-                    //obj.values[itemName] = item.value;
                 }
+
                 /*
                  1) create named with not piped properties or inline pipes to properties that are already defined
                  2) create unnamed with inline pipes
@@ -589,92 +593,70 @@ module.exports = (function () {
                  */
 
                 if (moreDependencies) {
-                    console.log('More deps for `' + obj.name + '` <'+obj.class+'> in `' + cls.name + '`: ' + this.wait[cls.name].join(', '))
+                    console.log('More deps for `' + obj.name + '` <'+obj.class+'> in `' + cls.name + '`: ' + this.wait[cls.name].join(', '));
                     return false;
                 }
+
+                // now deps are loaded
 
                 var internals = [];
                 var objectName = obj.name;
                 if(obj === cls) {
                     objectName = '___this___';
 
-
                     for (var eventName in obj.ast.events) {
                         obj.ast.events[eventName].forEach(function (event) {
-
-                            if (!('events' in cls)) {
-                                cls.events = {};
-                            }
-                            if (!(objectName in cls.events))
-                                cls.events[objectName] = {};
-
-                            var name = event.name.data;
-
-                            (cls.events[objectName][name] ||
-                            (cls.events[objectName][name] = []))
-                                .push(event.value);
-
+                            cls.addEvent(objectName, event.name.data, event); // was event.value
                         });
                     }
                 }
+
+                items = obj.ast.items;
                 for (i = 0, _i = items.length; i < _i; i++) {
                     item = items[i];
-                    itemName = (item.class && item.class.data) || (item.name && item.name.data);
+                    if(item.class)
+                        var itemClassName = item.class.data;
 
-                    prop = this.callMethod('__isProperty', obj, itemName);
+                    if(item.name)
+                        var itemName = item.name.data;
+
+                    var propInMeta;
+                    var searchingFor = itemClassName || itemName;
+                    propInMeta = obj.findProperty(searchingFor);
 
                     if (prop) {
-
-                        var value = {
-                            type: 'property',
-                            name: itemName,
-                            item: item,
+                        var val;
+                        cls.addValue(objectName, searchingFor, val = new Property({
+                            name: searchingFor,
+                            ast: item, //was item
                             info: prop
-                        };
-                        internals.push(value);
-
-                        if(!(objectName in cls.values))
-                            cls.values[objectName] = {};
-
-                        cls.values[objectName][itemName] = value;
+                        }));
+                        internals.push(val);
 
                         var childObjectName = objectName;
                         if(item.cls && item.cls.length){
-
-                            if(!(childObjectName in cls.values))
-                                cls.values[childObjectName] = {};
-
-                            prop = this.callMethod('__isProperty', prop, 'cls');
-
-                            var value = {
-                                type: 'property',
-                                name: itemName+'.cls',
-                                item: Object.assign(Object.create(item),{value: item.cls}),
-                                info: prop
-                            };
-
-
-                            cls.values[childObjectName][itemName+'.cls'] = value;
+                            cls.addValue(childObjectName, searchingFor+'.cls', val = new Property({
+                                name: searchingFor+'.cls',
+                                ast: Object.assign(Object.create(item),{value: item.cls}), //was item
+                                info: prop.findProperty('cls')
+                            }));
+                            internals.push(val);
                         }
 
-                        var childItem = {
-                            type: 'property',
+
+                        var childItem = new Property({
                             class: 'Variant',
                             ast: item,
-                            name: itemName,
+                            name: searchingFor,
                             values: {}
-                        };
-                        if(childItem.class === 'Function'){
-                            childItem.type = 'inline';
-                        }
-                        childItem.name = itemName;
+                        });
 
                         var fake = Object.create(cls);
                         fake.values = {};
                         this.callMethod('__dig', childItem, fake);
-                        var fakes = fake.values[itemName];
+                        var fakes = fake.values[searchingFor];
                         if(prop.type === 'Variant' && fakes){
-                            var currentVal = cls.values[childObjectName][itemName];
+                            var currentVal = cls.values[childObjectName][searchingFor];
                             setRecursive(childItem.values, fakes);
                             var inText = JSON.stringify(childItem.values);
                             value.item.value = {
@@ -685,29 +667,27 @@ module.exports = (function () {
                         }else if(fakes) {
 
                             for (var x in fakes) {
-                                fakes[x].name = itemName+'.'+fakes[x].name;
-                                cls.values[childObjectName][itemName + '.' + x] = fakes[x];
+                                fakes[x].name = searchingFor+'.'+fakes[x].name;
+                                cls.values[childObjectName][searchingFor + '.' + x] = fakes[x];
                                 var j = fake;
                             }
                         }
 
-                    }else if (itemName in this.world) {
+                    }else if (oldItemName in this.world) {
                         //console.log(itemName, item.name)
-                        var childItem = {
-                            type: 'child',
-                            class: item.class.data,
-                            ast: item,
-                            name: itemName,
-                            values: {}
-                        };
-                        if(childItem.class === 'Function'){
+                        var childItem = new InstanceMetadata({
+                            class: this.world[item.class.data],
+                            ast: item
+                        });
+
+                        if(childItem.class.getName() === 'Function'){
                             childItem.type = 'inline';
                         }
-                        if (item.name){
-                            childItem.name = item.name.data;
-                        }else{
-                            childItem.name = this.getUID(childItem.class);
+
+                        if (childItem.getName()){
+                            childItem.setName(this.getUID(childItem.class.getName()));
                         }
+
                         if(this.callMethod('__dig', childItem, cls) === false){
                             return false;
                         }
@@ -726,7 +706,7 @@ module.exports = (function () {
                             if(!(childObjectName in cls.values))
                                 cls.values[childObjectName] = {};
 
-                            prop = this.callMethod('__isProperty', item, 'value');
+                            prop = this.callMethod('__isProperty', childItem, 'value');
 
                             var value = {
                                 type: 'property',

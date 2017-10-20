@@ -206,7 +206,13 @@ module.exports = (function () {
                     var own = prop.own = i === itemProp.defined;
 
                     if(itemProp.defined === void 0){
-                        console.log('Documentation property `defined` is not set for '+i+'.'+p);
+                        if(console.combine){
+                            console.combine(i+'.'+p, function(list){
+                                return 'Documentation property `defined` is not set for ['+ list.join(', ') +']';
+                            });
+                        }else {
+                            console.log('Documentation property `defined` is not set for ' + i + '.' + p);
+                        }
                         continue;
                     }
 

@@ -570,11 +570,16 @@ module.exports = (function () {
                 waitingFor = this.waitingFor,
                 wait = this.wait[who],
                 info = _world[who],
+                what;
+            if(typeof item === 'string'){
+                what = item;
+            }else{
+                //crazy shit
                 what = item.data;
 
-            if(!what)
-                what = item.class && item.class.data;
-
+                if( !what )
+                    what = item.class && item.class.data;
+            }
 
             if(_world[what] === void 0 || !_world[what].ready) {
                 (waitingFor[what] || (waitingFor[what] = [])).push(who);
@@ -809,15 +814,7 @@ module.exports = (function () {
                 if(!info.isMixed) {
                     for (i = 0, _i = extend.length; i < _i; i++) {
                         clsInfo = this.world[extend[i].data];
-                        if (!clsInfo.public) {
-                            clsInfo.public = {};
-                        }
-                        if (!clsInfo.private) {
-                            clsInfo.private = {};
-                        }
-                        this.applyAST(mixed.public, clsInfo.public, {defined: extend[i].data});
-                        this.applyAST(mixed.private, clsInfo.private, {defined: extend[i].data});
-                        mixed.extend.push(extend[i].data);
+                        mixed.extend(clsInfo);
                     }
                     info.isMixed = true;
                 }
@@ -835,26 +832,26 @@ module.exports = (function () {
 
                     
                     if(this.callMethod('__dig', mixed, mixed)===false) {
-                        if(this._world[name])
+                        if(this._world[name]){
 
-                        if(this.wait[name].length) {
-                            // deps that are not in world yet
-                            var notInWorld = this.wait[name].filter(function (name) {
-                                return !(name in _self._world);
-                            });
-                            notInWorld.length && this.searchDeps && this.searchDeps(notInWorld);
+                            if( this.wait[name].length ){
+                                // deps that are not in world yet
+                                var notInWorld = this.wait[name].filter( function( name ){
+                                    return !(name in _self._world);
+                                } );
+                                notInWorld.length && this.searchDeps && this.searchDeps( notInWorld );
+                            }
                         }
-
                         
 
                         return false;
                     }
-
+                    /*
                     this.applyAST(mixed.public, mixed.public, {defined: name});
                     this.applyAST(mixed.private, mixed.private, {defined: name});
 
                     this.applyAST(mixed.public, info.ast.public, {defined: name});
-                    this.applyAST(mixed.private, info.ast.private, {defined: name});
+                    this.applyAST(mixed.private, info.ast.private, {defined: name});*/
                     info.isInternalsGenerated = true;
                 }
                 // TODO if(no other deps)
@@ -862,12 +859,12 @@ module.exports = (function () {
                 if(ast.tags){
                     mixed.tags = ast.tags;
                 }
-                mixed.setNameSpace(this.getTag(ast, 'ns'));
+                //mixed.setNameSpace(ast.getTag('ns'));
                 info.ready = true;
                 //debugger
             }else{
                 //debugger;
-                this.world[name] = info.ast;
+                this.world[name] = info;
             }
 
         },
@@ -894,31 +891,13 @@ module.exports = (function () {
         compile: function (name, cfg) {
             return this.callMethod('__compile', this.world[name], cfg || {});
         },
-        findMethod: function(method, obj){
-            var i, _i, fn;
-
-            obj.public
-            obj.private
-            //if(obj.tags)
-              //  debugger;
-
-            if(!obj.extend)
-                return false;
-
-            for(i = 0, _i = obj.extend.length; i < _i; i++){
-                fn = this.findMethod(method, this.world[obj.extend[i]]);
-                if(fn)
-                    return fn;
-            }
-            return false;
-        },
         callMethod: function(method, obj){
-            var fn = this.findMethod(method, obj);
+            var fn = obj.findMethod(method);
             if(fn === false){
                 fn = prefab[method];
             }
             if(fn === false){
-                throw new Error('NO WAY. UNKNOWN METHOD');
+                throw new Error('NO WAY. UNKNOWN METHOD', method);
             }
             return fn.apply(this, Array.prototype.slice.call(arguments,1));
         },

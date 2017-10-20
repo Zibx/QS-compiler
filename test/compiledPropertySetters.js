@@ -43,7 +43,7 @@ describe('Setters', function() {
             assert.equal(main.values.d0.value._val, '"x"');
         });
 
-        console.log(result.js)
+        //console.log(result.js)
     });
 });
 
