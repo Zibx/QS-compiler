@@ -8,6 +8,7 @@
 
 module.exports = (function () {
     'use strict';
+    var Property = require('./Property');
     var ClassMetadata = function(cfg){
         Object.assign(this, {
             public: {},
@@ -17,9 +18,11 @@ module.exports = (function () {
             _extend: {},
             _extendList: [],
             variables: {},
+            instances: {},
             props: {},
             tags: {},
-            ast: {}
+            ast: {},
+            items: []
         });
         Object.assign(this, cfg);
 
@@ -32,7 +35,9 @@ module.exports = (function () {
         require: null,//info.require,
         _extend: null,
         _extendList: [],
+        items: [],
         name: null,
+        instances: null,
         namespace: null,
         variables: null,
         props: null,
@@ -73,8 +78,12 @@ module.exports = (function () {
         },
         getTag: function(name, own){
             var val = this.tags[name];
-            if(val)
-                return val.value;
+            if(val) {
+                if(val.length === 1)
+                    return val[0].value;
+                else
+                    console.log('lots of tags')
+            }
 
             if(own)
                 return false;
@@ -94,9 +103,9 @@ module.exports = (function () {
             return false;
         },
         getPublic: function(name){
-            var val = this.tags[name];
+            var val = this.public[name];
             if(val)
-                return val.value;
+                return val;
 
             var i, _i,
                 list = this._extendList;
@@ -113,9 +122,9 @@ module.exports = (function () {
             return false;
         },
         getPrivate: function(name){
-            var val = this.tags[name];
+            var val = this.private[name];
             if(val)
-                return val.value;
+                return val;
 
             var i, _i,
                 list = this._extendList;
@@ -148,10 +157,10 @@ module.exports = (function () {
         findProperty: function(prop){
             var result;
             result = this.getPrivate(prop);
-            if(typeof result === 'function') return result;
+            if(result) return result;
 
             result = this.getPublic(prop);
-            if(typeof result === 'function') return result;
+            if(result) return result;
 
             return false;
         },
@@ -168,10 +177,30 @@ module.exports = (function () {
             if(!(whos in this.values))
                 this.values[whos] = {};
 
-            if(!(name in this.values[whos]))
+            this.values[whos][name] = value;
+            /*if(!(name in this.values[whos]))
                 this.values[whos][name] = [];
 
-            this.values[whos][name].push(value);
+            this.values[whos][name].push(value);*/
+        },
+        addItem: function (objectName, item) {
+            this.items.push(item);
+
+            if(item instanceof Property){
+                debugger;
+            } else {
+                if (!(objectName in this.instances)) {
+                    this.instances[objectName] = [];
+                }
+                this.instances[objectName].push(item);
+                if (!item.noName) {
+                    if (item.isPublic) {
+                        this.public[item.getName()] = item;
+                    } else {
+                        this.private[item.getName()] = item;
+                    }
+                }
+            }
         }
     };
     return ClassMetadata;

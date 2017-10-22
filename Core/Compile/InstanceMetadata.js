@@ -37,5 +37,8 @@ module.exports = (function(){
             prop = this.class.findProperty(name);
         return prop;
     };
+    InstanceMetadata.prototype.noName = false;
+    InstanceMetadata.prototype.isPublic = false;
+
     return InstanceMetadata;
 })();

@@ -12,7 +12,17 @@ module.exports = (function(){
         Object.assign(this, cfg)
     };
     Property.prototype = {
-
+        getName: function () {
+            var nameTokens = this.name;
+            if(nameTokens[nameTokens.length - 1] === 'value') {
+                return nameTokens.slice(0, nameTokens.length - 1).join('.');
+            }else {
+                return nameTokens.join('.')
+            }
+        },
+        getValue: function () {
+            return this.value[0];
+        }
     };
     return Property;
 })();

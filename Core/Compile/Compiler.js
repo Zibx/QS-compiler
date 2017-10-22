@@ -497,21 +497,7 @@ module.exports = (function () {
     var system = [
         systemJS('Class'),
         systemJS('QObject'),
-        systemJS('Primitives', true),
-
-        /*systemQS('Page'),
-        systemQS('UIComponent'),
-        systemQS('VBox'),
-        systemQS('Timer'),
-        systemQS('Slider'),
-        systemQS('Button'),
-        systemQS('CheckBox'),
-        systemQS('TextBox'),
-        systemQS('GeoMap'),
-        systemQS('Video'),
-        systemQS('Image'),
-        systemQS('Grid'),
-        systemQS('Label')*/
+        systemJS('Primitives', true)
 
     ];
     files.forEach(function(file){
@@ -709,14 +695,14 @@ module.exports = (function () {
             }
             if( info.type === 'Function'){
                 //item.item._matchers.func({tokens: item.item.value,matched: item.item, item: item})
-                return buildFunction.call(this, item.item.value, obj, whos, sm);
+                return buildFunction.call(this, item.ast.value, obj, whos, sm);
             }
             if(info.type === 'PIPE'){
                 return 'function(){'+info.body.data+'}';
             }
 
 
-            var propName = info.defined || item.item.class.data;
+            var propName = info.defined || item.ast.class.data;
 
             var world = this.world[propName];
             if(world) {
@@ -725,12 +711,12 @@ module.exports = (function () {
             property = property || {type: 'Variant'}
 
 
-            if(!('value' in item.item)) {
+            if(!('value' in item.ast)) {
                 global.console.log('No value in `'+ propName +'`')
                 return property.type==='Variant' ? '{}' : void 0;
             }
 
-            arr = item.item.value;
+            arr = item.ast.value;
             if(!Array.isArray(arr))arr = [arr];
             arr = arr.map(function (val, i, list) {
                 if(searchForPipes(val, i, list))
@@ -744,11 +730,11 @@ module.exports = (function () {
 
             });
             if(ohNoItSPipe){
-                var out = buildPipe.call(this, item.item.value, obj, whos, sm);
+                var out = buildPipe.call(this, item.ast.value, obj, whos, sm);
 
                 // HAIL TAUTOLOGY!
                 if(out === false)
-                    return new Error('Can not get value '+item.item.value[0].pointer);
+                    return new Error('Can not get value '+item.ast.value[0].pointer);
 
                 return out;
 
@@ -756,7 +742,7 @@ module.exports = (function () {
 
             // typed property getter
             var error = false;
-            this.tryCall(property.type, '__compileValue', [arr, item.item.value], function(err, res){
+            this.tryCall(property.type, '__compileValue', [arr, item.ast.value], function(err, res){
                 error = err;
                 if(!err)
                     result = res;
@@ -780,11 +766,11 @@ module.exports = (function () {
                     if(!(name in obj.require)){
                         obj.require[name] = [];
                     }
-                    obj.require[name].push(item.item);
+                    obj.require[name].push(item.ast);
                     return name;
                 }
                 var error = false;
-                this.tryCall('Variant', '__compileValue', [arr, item.item.value], function(err, res){
+                this.tryCall('Variant', '__compileValue', [arr, item.ast.value], function(err, res){
                     error = err;
                     if(!err)
                         result = res;
@@ -832,6 +818,11 @@ module.exports = (function () {
 
                     
                     if(this.callMethod('__dig', mixed, mixed)===false) {
+                        //DEBUG
+                        // if(name === 'main')
+                        //     this.callMethod('__dig', mixed, mixed)
+                        ///DEBUG
+
                         if(this._world[name]){
 
                             if( this.wait[name].length ){
@@ -846,8 +837,8 @@ module.exports = (function () {
 
                         return false;
                     }
-                    /*
-                    this.applyAST(mixed.public, mixed.public, {defined: name});
+
+                    /*this.applyAST(mixed.public, mixed.public, {defined: name});
                     this.applyAST(mixed.private, mixed.private, {defined: name});
 
                     this.applyAST(mixed.public, info.ast.public, {defined: name});
@@ -855,7 +846,7 @@ module.exports = (function () {
                     info.isInternalsGenerated = true;
                 }
                 // TODO if(no other deps)
-                //this.world[name] = mixed;
+                this.world[name] = mixed;
                 if(ast.tags){
                     mixed.tags = ast.tags;
                 }

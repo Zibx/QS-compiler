@@ -204,7 +204,7 @@ module.exports = (function () {
             });
             
         }else if(config.source){
-            sourcePaths = ['inline'];
+            sourcePaths = [config.ns || 'inline'];
             data = [config.source];
         }else{
             showHelp('Specify `build` option or give source' + typeTableDir)

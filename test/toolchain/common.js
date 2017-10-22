@@ -43,6 +43,7 @@ module.exports = (function () {
         var crafted = build(Object.assign({
             lib: 'test/lib/QComponent4/src',
             typeTable: 'Core/TypeTable.js',
+            ns: fileName,
             source: source
         }, options), cb);
     };

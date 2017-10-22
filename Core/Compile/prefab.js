@@ -40,7 +40,7 @@ module.exports = (function () {
     };
     return {
         __compile: function(obj, compileCfg){
-            var baseClassName = obj.extend[0];
+            var baseClassName = obj._extendList[0];
             var source = [],
                 i, ctor = [], props = [], cfg, inlines = [],
 
@@ -48,7 +48,7 @@ module.exports = (function () {
                 _self = this,
                 sourceMap, sourcePath = obj.ast.name.pointer.source,
                 itemsInfo = obj.itemsInfo = {
-                    this: {ast: obj.ast, class:obj.extend[0], type:'def', isPublic: true}
+                    this: {ast: obj.ast, class:obj._extendList[0], type:'def', isPublic: true}
                 };
 
             if(compileCfg.sourceMap) {
@@ -70,8 +70,8 @@ module.exports = (function () {
             }
             var fileInfo = path.parse(obj.ast.name.pointer.source);
 
-            var nsName = this.getTag(obj, 'ns');
-            if(compileCfg.ns){
+            var nsName = obj.namespace;// this.getTag(obj, 'ns');
+            /*if(compileCfg.ns){
                 ns = compileCfg.ns;
             }else{
                 var nsTokens = [];
@@ -82,7 +82,7 @@ module.exports = (function () {
                     nsTokens.push(nsName);
 
                 ns = nsTokens.join('.');
-            }
+            }*/
 
             /** REQUIRES */
             var formRequires = function() {
@@ -175,7 +175,7 @@ module.exports = (function () {
                     if (what.type === 'child') {
 
 
-                        itemsInfo[what.name] = what;
+                        itemsInfo[what.getName()] = what;
                         if(what.items && what.items.length){
                             what.items.forEach(function(item){
 
@@ -239,9 +239,90 @@ module.exports = (function () {
             for(var where in obj.values){
                 var properties = obj.values[where];
                 var iInfo = itemsInfo[where];
+                var whos = (where === '___this___' ? 'this' : where );
+
+                var isPublic = obj.getPublic(where);
+
                 for(var propName in properties){
+
+
+
+
                     var prop = properties[propName];
-                    var whos = (where === '___this___' ? 'this' : where );
+                    if(prop.length === 1 && prop[0].getName() === propName){ // normal not nested property
+                        var isPipe;
+                        prop = prop[0];
+                        var propValue = prop.getValue();
+                        var propValue =this.getPropertyValue(prop, obj, whos, sm);
+                        if(propValue !== void 0) {
+                            if(typeof propValue.indexOf !== 'function'){
+                                console.log(propValue)
+                            }else
+                                isPipe = propValue.indexOf('new Pipe') === 0;
+                        }else{
+                            this.getPropertyValue(prop, obj, whos, sm)
+                        }
+                        if(!(propValue instanceof Error)) {
+                            prop._val = propValue;
+                            var scope = prop.ast.scope && prop.ast.scope.data;
+                            var isPublic = obj.getPublic(where) || whos === 'this' || iInfo.isPublic;// && propName in obj.public);
+
+                            if(!valuesCollector[whos])
+                                valuesCollector[whos] = {};
+
+                            if( isPublic ){
+
+                                if(whos === 'this') {
+                                    if(isPipe) {
+                                        piped.push(
+                                            'this.set(\'' + sm(prop.item.semiToken) + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                                    }else{
+                                        valuesCollector['this'][prop.name] = propValue;
+                                    }
+                                }else{
+                                    if(prop.name === 'value' && ((prop.item.class && prop.item.class.data) in this._primitives)){
+                                        if(!isPipe) {
+                                            valuesCollector[whos].value = propValue;// + sm(prop.item.semiToken);
+                                        }else {
+                                            piped.push(
+                                                'this.set(\'' + sm(prop.item.class) + whos + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                                        }
+                                    }else {
+                                        if(!isPipe) {
+                                            valuesCollector[whos][prop.name] = propValue;
+                                        }else {
+                                            piped.push(
+                                                'this.set(\'' + sm(prop.item.class) + whos + '.' + sm(prop.item.semiToken) + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                                        }
+                                    }
+                                }
+
+                            } else {
+                                checkDefinePrivates();
+                                if(prop.name === 'value' && ((prop.item.class && prop.item.class.data) in this._primitives)){
+                                    if(!isPipe) {
+                                        valuesCollector[whos].value = propValue;
+                                    } else {
+                                        piped.push(
+                                            '__private.set(\'' + sm(prop.item.class) + whos + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                                    }
+                                }else {
+                                    if(!isPipe) {
+                                        valuesCollector[whos][prop.name] = propValue;
+                                    }else {
+                                        piped.push(
+                                            '__private.set(\'' + sm(prop.item.class) + whos + (prop.name !== 'value' || true ? '.' + sm(prop.item.semiToken) + prop.name : '') + '\', ' + propValue + sm(prop.item.semiToken) + ');');
+                                    }
+                                }
+                            }
+                        }else{
+                            throw propValue;
+                        }
+
+                    }
+
+
+                    /*
                     var propValue = this.getPropertyValue(prop, obj, whos, sm),
                         isPipe;
 
@@ -270,8 +351,6 @@ module.exports = (function () {
                                 }else{
                                     valuesCollector['this'][prop.name] = propValue;
                                 }
-                                /*ctor.push(
-                                    'this.set(\'' + sm(prop.item.semiToken) + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');*/
                             }else{
                                 if(prop.name === 'value' && ((prop.item.class && prop.item.class.data) in this._primitives)){
                                     if(!isPipe) {
@@ -310,7 +389,7 @@ module.exports = (function () {
                         }
                     }else{
                         throw propValue;
-                    }
+                    }*/
                 }
             }
 
@@ -318,8 +397,7 @@ module.exports = (function () {
             for(var where in obj.instances) {
                 obj.instances[where].forEach(function (what) {
                     if (what.type === 'child') {
-                        var scope = what.ast.scope && what.ast.scope.data;
-                        var isPublic = scope === 'public';
+                        var isPublic = obj.getPublic(what);
                         what.isPublic = isPublic;
                         var vals = valuesCollector[what.name],
                             data = [],
@@ -338,15 +416,15 @@ module.exports = (function () {
                             if(!err)
                                 stringData = result;
                             else
-                                stringData = 'new ' + what.class + '('+ stringData +')';
+                                stringData = 'new ' + what.class.getName() + '('+ stringData +')';
                         });
 
                         if(isPublic) {
-                            ctor.push('this.set(\'' + what.name + '\', '+ stringData +');')
+                            ctor.push('this.set(\'' + what.getName() + '\', '+ stringData +');')
                         } else {
                             checkDefinePrivates();
 
-                            ctor.push('__private.set(\'' + what.name + '\', '+ stringData +');')
+                            ctor.push('__private.set(\'' + what.getName() + '\', '+ stringData +');')
                         }
                         //console.log(isPublic, what);
 
@@ -476,7 +554,7 @@ module.exports = (function () {
                 source.push('});');
             }
 
-            obj.extend.forEach(function(name){
+            obj._extendList.forEach(function(name){
                 _self.tryCall(name, '__afterCompile', [source, obj.name], function(err, result){
                     if(!err)
                         source = result;
@@ -548,17 +626,28 @@ module.exports = (function () {
             return false;
             //debugger;
         },
-        __dig: function(obj, cls) {
-            var item = obj.ast,
+        /*
+        @arg obj: inspecting object
+        @arg cls: class of defining object
+        @arg path:Array path to inspecting object
+
+         */
+        __dig: function(obj, cls, path) {
+            var ast = obj.ast,
                 data, oldItemName, i, _i, items,
                 moreDependencies = false,
-                prop;
+                prop, anything;
 
-            if(item.type === 'DEFINE'){
+            path = path || [];
+
+            if(ast.type === 'DEFINE'){
                 items = obj.ast.items;
 
                 for (i = 0, _i = items.length; i < _i; i++) {
-                    item = items[i];
+
+                    anything = false;
+
+                    var item = items[i];
                     if(item.class)
                         var itemClassName = item.class.data;
 
@@ -576,8 +665,10 @@ module.exports = (function () {
 
                     // maybe we have property with that name
                     propInMeta = obj.findProperty(searchingFor);
-
-                    if(!propInMeta){
+                    if(obj instanceof InstanceMetadata){
+                        anything = obj.class.getTag('anything');
+                    }
+                    if(!propInMeta && !anything){
                         this.addDependency(cls.getName(), searchingFor);
                         if(!(searchingFor in this.world)){
                             moreDependencies = true;
@@ -592,14 +683,20 @@ module.exports = (function () {
                  4) add items as children
                  */
 
+                if (!obj.getName()){
+                    obj.setName(this.getUID(obj.class.getName()));
+                    obj.noName = true;
+                }
+
                 if (moreDependencies) {
-                    console.log('More deps for `' + obj.name + '` <'+obj.class+'> in `' + cls.name + '`: ' + this.wait[cls.name].join(', '));
+                    console.log('More deps for `' + obj.name + '` <'+obj._extendList[0]+'> in `' + cls.name + '`: ' + this.wait[cls.name].join(', '));
+                    obj.findProperty(searchingFor)
                     return false;
                 }
 
                 // now deps are loaded
 
-                var internals = [];
+
                 var objectName = obj.name;
                 if(obj === cls) {
                     objectName = '___this___';
@@ -624,37 +721,41 @@ module.exports = (function () {
                     var searchingFor = itemClassName || itemName;
                     propInMeta = obj.findProperty(searchingFor);
 
-                    if (prop) {
+                    //var itemPath = path.slice(1).concat(searchingFor);
+
+                    if (propInMeta) {
+                        // is property
                         var val;
-                        cls.addValue(objectName, searchingFor, val = new Property({
-                            name: searchingFor,
+                        cls.addValue(objectName, searchingFor+'.value', val = new Property({
+                            name: path.concat('value'),
                             ast: item, //was item
-                            info: prop
+                            //info: obj.findProperty('value'),
+                            value: item.value
                         }));
-                        internals.push(val);
+                        //cls.addItem(objectName, val); // join path?
 
                         var childObjectName = objectName;
                         if(item.cls && item.cls.length){
                             cls.addValue(childObjectName, searchingFor+'.cls', val = new Property({
-                                name: searchingFor+'.cls',
+                                class: this.world.String,
+                                name: path.concat('cls'),
                                 ast: Object.assign(Object.create(item),{value: item.cls}), //was item
-                                info: prop.findProperty('cls')
+                                //info: item.findProperty('cls'),
+                                value: item.cls.value
                             }));
-                            internals.push(val);
+                            //cls.addItem(objectName, val); // join path?
                         }
 
 
                         var childItem = new Property({
-                            class: 'Variant',
+                            class: this.world.Variant,
                             ast: item,
-                            name: searchingFor,
+                            name: path,
                             values: {}
                         });
 
-                        var fake = Object.create(cls);
-                        fake.values = {};
-                        this.callMethod('__dig', childItem, fake);
-                        var fakes = fake.values[searchingFor];
+                        this.callMethod('__dig', childItem.class, cls, path.concat(searchingFor));
+                        /*var fakes = fake.values[searchingFor];
                         if(prop.type === 'Variant' && fakes){
                             var currentVal = cls.values[childObjectName][searchingFor];
                             setRecursive(childItem.values, fakes);
@@ -671,33 +772,30 @@ module.exports = (function () {
                                 cls.values[childObjectName][searchingFor + '.' + x] = fakes[x];
                                 var j = fake;
                             }
-                        }
+                        }*/
 
-                    }else if (oldItemName in this.world) {
-                        //console.log(itemName, item.name)
+                    }else if (searchingFor in this.world) { // is not known property. class name?
+
                         var childItem = new InstanceMetadata({
-                            class: this.world[item.class.data],
-                            ast: item
+                            class: this.world[searchingFor],
+                            ast: item,
+                            isPublic: item.isPublic
                         });
 
                         if(childItem.class.getName() === 'Function'){
                             childItem.type = 'inline';
                         }
 
-                        if (childItem.getName()){
+                        if (!childItem.getName()){
                             childItem.setName(this.getUID(childItem.class.getName()));
+                            childItem.noName = true;
                         }
 
                         if(this.callMethod('__dig', childItem, cls) === false){
                             return false;
                         }
 
-                        internals.push(childItem);
-
-                        if(!('instances' in cls))
-                            cls.instances = {};
-
-                        (cls.instances[objectName] = cls.instances[objectName] || []).push(childItem);
+                        cls.addItem(objectName, childItem); // join path?
 
                         if(item.value && item.value.length){
 
@@ -707,13 +805,21 @@ module.exports = (function () {
                                 cls.values[childObjectName] = {};
 
                             prop = this.callMethod('__isProperty', childItem, 'value');
+                            //TODO Property!
+                            var value = new Property({
+                                class: this.world.Variant,
+                                ast: item,
+                                name: path.concat('value'),
+                                values: {}
+                            });
+                            cls.addValue(childObjectName, searchingFor+'.value', value);
 
-                            var value = {
+                            /*{
                                 type: 'property',
                                 name: 'value',
                                 item: item,
                                 info: prop
-                            };
+                            };*/
 
 
                             cls.values[childObjectName].value = value;
@@ -727,62 +833,51 @@ module.exports = (function () {
                             if(!(childObjectName in cls.values))
                                 cls.values[childObjectName] = {};
 
-                            prop = this.callMethod('__isProperty', item, 'cls');
-
-                            var value = {
-                                type: 'property',
-                                name: 'cls',
-                                item: Object.assign(Object.create(item),{value: item.cls}),
-                                info: prop
-                            };
-
-
-                            cls.values[childObjectName].cls = value;
+                            cls.addValue(childObjectName, searchingFor+'.cls', val = new Property({
+                                class: this.world.String,
+                                name: path.concat('cls'),
+                                ast: Object.assign(Object.create(item),{value: item.cls}), //was item
+                                value: item.cls.value
+                            }));
                         }
 
-
-                        if(item.private){
-                            for(var propName in item.private){
-                                cls.private[propName] = item.private[propName];
-                            }
+                        //if(item.isPublic)
+/*
+                        for(var propName in item.private){
+                            cls.private[propName] = item.private[propName];
                         }
-                        if(item.public){
-                            for(var propName in item.public){
-                                cls.public[propName] = item.public[propName];
-                            }
+                        for(var propName in item.public){
+                            cls.public[propName] = item.public[propName];
                         }
 
-                        if(item.events){
+                        for(var eventName in item.events){
 
-                            for(var eventName in item.events){
+                            item.events[eventName].forEach(function (event) {
 
-                                item.events[eventName].forEach(function (event) {
+                                if(!('events' in cls)){
+                                    cls.events = {};
+                                }
+                                if(!(childItem.name in cls.events))
+                                    cls.events[childItem.name] = {};
 
-                                    if(!('events' in cls)){
-                                        cls.events = {};
-                                    }
-                                    if(!(childItem.name in cls.events))
-                                        cls.events[childItem.name] = {};
+                                var name = event.name.data;
 
-                                    var name = event.name.data;
+                                (cls.events[childItem.name][name] ||
+                                (cls.events[childItem.name][name] = []))
+                                    .push(event.value);
 
-                                    (cls.events[childItem.name][name] ||
-                                    (cls.events[childItem.name][name] = []))
-                                        .push(event.value);
-
-                                });
+                            });
 
 
-                            }
+                        }*/
 
-                        }
 
 
                     }
 
 
                 }
-                obj.items = internals;
+                //obj.items = internals;
 
             }
         }
