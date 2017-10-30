@@ -14,14 +14,14 @@ module.exports = (function(){
     Property.prototype = {
         getName: function () {
             var nameTokens = this.name;
-            if(nameTokens[nameTokens.length - 1] === 'value') {
+/*            if(nameTokens[nameTokens.length - 1] === 'value') {
                 return nameTokens.slice(0, nameTokens.length - 1).join('.');
-            }else {
+            }else {*/
                 return nameTokens.join('.')
-            }
+//            }
         },
         getValue: function () {
-            return this.value[0];
+            return this.value;
         }
     };
     return Property;

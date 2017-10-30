@@ -9,12 +9,89 @@
 module.exports = (function () {
     'use strict';
     var ASTtransformer = require('../JS/ASTtransformer');
+    var VarInfo = function(cfg){
+        Object.assign(this, cfg);
+    };
+    VarInfo.prototype = {
+        context: false,
+        varParts: []
+    };
     var tools = {
         primitives: {
             'Number': true, 'String': true, 'Array': true, 'Boolean': true, 'Function': true
         },
-        getVarInfo: function (stack, obj, child, scope) {
+        getVarInfo: function (stack, obj, child, scope){
+            var i, _i, out = [],
+                node, name,
+                env, lastEnv, context = false;
 
+            var metadata = obj;
+            var i, _i, out = [], node, env, selfFlag = false, context = false,
+                envFlag, propFlag, valueFlag = false, thisFlag = false, lastEnv, lastName,
+
+                firstTry = true,
+
+                somePointer = obj.ast.name.pointer,
+
+                name;
+
+
+            for (i = 0, _i = stack.length; i < _i; i++){
+                node = stack[i];
+                if( node.type === 'Literal' )
+                    name = node.value;
+                else
+                    name = node.name;
+                if( !env ){
+                    if( node.type === 'ThisExpression' ){
+                        name = child.getName();
+                    }
+
+                    env = child.findProperty( name );
+
+                    if(!env)
+                        env = obj.findProperty( name );
+
+                }else{
+                    env = env.findProperty(name);
+                }
+
+                if( env ){
+                    env = env.class;
+                }else{
+                    if(lastEnv.getTag('anything')){
+                        env = this.world.Variant;
+                    }
+                }
+
+
+                if(env.getName() in tools.primitives){
+                    if (context === false) {
+                        context = i;
+                        // we need to keep context
+                        if (env.type === 'Function')
+                            context--;
+                    }
+                }
+
+                out.push({name: name, class: env});
+
+                lastEnv = env;
+
+            }
+
+            if (!(env.getName() in tools.primitives) && env.getName() !== 'Variant') {
+                // if it is not primitive and if it is not variant
+                env = env.findProperty('value');
+                if(env){
+                    // and if Class has value property
+                    env = env.class;
+                    out.push( { name: 'value', class: env, defined: obj } );
+                }
+            }
+            return new VarInfo({varParts: out, context: context, used: obj});
+        },
+        old: function(){
             var metadata = obj;
 
             var i, _i, out = [], node, env, selfFlag = false, context = false,

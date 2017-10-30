@@ -292,7 +292,7 @@ module.exports = (function () {
                 ns = nsTokens.join('.');
             }
 
-            compiler.world[name].namespace = ns;
+            compiler.world[name].addTag('ns', ns);
         });
 
         if(!config.main){

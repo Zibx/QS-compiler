@@ -1,7 +1,7 @@
 def Page main
     Slider mySlider: {{num}}
       from: 5
-/*      to: 20
+      to: 20
 
     ComboBox combo1: "#000"
       label: Укажите цвет текста надписи "Изображение" //2
@@ -21,4 +21,4 @@ def Page main
     DATA data: """a"""
       a: '1'
       b: "2"
-      c: """3"""*/
+      c: """3"""

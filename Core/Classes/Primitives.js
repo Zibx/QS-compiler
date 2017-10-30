@@ -46,7 +46,7 @@ module.exports = (function () {
     };*/
     var tools = require('../tokenTools');
 
-    return {
+    var out = {
         String: {
             _description: 'String class (primitive)',
             public: {
@@ -138,4 +138,7 @@ module.exports = (function () {
         }*/
 
     };
+    for(var i in out)
+        out[i].ready = true;
+    return out;
 })();

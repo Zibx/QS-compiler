@@ -275,6 +275,10 @@ module.exports = function (matchers) {
         Object.assign(this, data);
 
     };
-    Match.prototype = {};
+    Match.prototype = {
+        getValue: function(){
+            return this.data;
+        }
+    };
     return match;
 };

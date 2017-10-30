@@ -13,7 +13,9 @@ compile = common.compile, compact = common.compact;
 
 describe('Setters', function() {
     compile('test/qs/setters.qs', function (result) {
+        console.log(result.js)
         var main = result.ast.main;
+
         it('number setters', function () {
             assert.equal(main.values.mySlider.from._val, '5');
             assert.equal(main.values.mySlider.to._val, '20');

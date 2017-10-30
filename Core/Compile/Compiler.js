@@ -35,6 +35,7 @@ module.exports = (function () {
     var VariableExtractor = require('../JS/VariableExtractor');
     var tools = require('./tools');
     var ClassMetadata = require('./ClassMetadata');
+    var InstanceMetadata = require('./InstanceMetadata');
     var primitives = tools.primitives,
         escodegen = require('escodegen');
 
@@ -409,42 +410,44 @@ module.exports = (function () {
         systemJS = function(name, multiple){
             var obj = require('../Classes/'+name),
                 i, j, out, item, cfg, prop;
-            if(multiple){
-
-                out = [];
-                for( i in obj ){
-                    cfg = obj[i];
-
-                    item = new ClassMetadata({
-                        ready: true,
-                        js: true,
-                        name: {data: i}
-                    });
-
-                    if(cfg.public)
-                        item.public = cfg.public;
-
-                    for( j in cfg ){
-                        prop = cfg[j];
-                        if(j.indexOf('_')===0){
-                            if(j.indexOf('__')!=0)
-                                j = j.substr(1);
-
-                            (item.tags[j] || (item.tags[j] = []))
-                                .push({
-                                    value: prop
-                                });
-                        }
-                    }
-                    item.ast = item;
-                    out.push(item);
-                }
-            }else{
-                obj.ready = true;
-                obj.js = true;
-                obj.name = {data: name};//'Classes/'+name+'.js'};
-                out = [obj];
+            if(!multiple){
+                var newOne = {};
+                newOne[name] = obj;
+                obj = newOne;
             }
+
+            out = [];
+            for( i in obj ){
+                cfg = Object.create(obj[i]);
+
+                item = new ClassMetadata({
+                    //ready: true,
+                    js: true,
+                    name: {data: i}
+                });
+
+                if(cfg.public)
+                    item.public = Object.create(cfg.public);
+
+                for( j in cfg ){
+                    prop = cfg[j];
+                    if(j.indexOf('_')===0){
+                        if(j.indexOf('__')!==0)
+                            j = j.substr(1);
+
+                        (item.tags[j] || (item.tags[j] = []))
+                            .push({
+                                value: prop
+                            });
+                    }
+                }
+                item.ast = item;
+                if(cfg.ready){
+                    item.ready = true;
+                }
+                out.push(item);
+            }
+
 
             return out;
         };
@@ -495,7 +498,7 @@ module.exports = (function () {
     var files = readDirRecursive(path.join(__dirname,'../Classes'));
 
     var system = [
-        systemJS('Class'),
+        //systemJS('Class'),
         systemJS('QObject'),
         systemJS('Primitives', true)
 
@@ -579,21 +582,31 @@ module.exports = (function () {
          * takes ast
          */
         add: function(ast, cfg){
-            var info = new ClassMetadata({
+            var info = ast instanceof ClassMetadata ? ast : new ClassMetadata({
                     name: ast.name,
                     ast: ast
-                }),
-                name = info.name.data;
+                });
+            var name = info.getName();
             cfg && Object.assign(info, cfg);
             this._world[name] = info;
 
             this.wait[name] = [];
+            if(!ast.ready){
+                if( ast.js ){
+                    var i;
+                    for( i in ast.public )
+                        this.addDependency( name, ast.public[i].type );
 
-            if(ast.js) {
-                info.ready = true;
-            } else {
-                ast.extend
-                    .forEach(this.addDependency.bind(this, name));
+                    for( i in ast.private )
+                        this.addDependency( name, ast.private[i].type );
+                    /*ast.extend
+                        .forEach(this.addDependency.bind(this, name));*/
+
+                    //info.ready = true;
+                }else{
+                    ast.extend
+                        .forEach( this.addDependency.bind( this, name ) );
+                }
             }
             this.tryInspect(name);
 
@@ -607,7 +620,7 @@ module.exports = (function () {
 
             var obj = this.world[name] = this._world[name] = new ClassMetadata({
                 name: name,
-                ready: true,
+                //ready: true,
                 js: true,
                 ast: {native: true}
             }).setNameSpace(ns);
@@ -656,7 +669,12 @@ module.exports = (function () {
             return to;
         },
         tryCall: function(name, fnName, args, cb){
-            var info = this.world[name];
+            var info;
+            if(name instanceof ClassMetadata){
+               info = name;
+            }else{
+                info = this.world[name];
+            }
             if(!info)
                 return cb('no such class `'+ name +'`');
 
@@ -680,7 +698,7 @@ module.exports = (function () {
         },
         getPropertyValue: function (item, obj, whos, sm) {
             //console.log(item);
-            var info = item.info || item,
+            var info = item.getValue(),
 
                 arr,
                 ohNoItSPipe = false,
@@ -698,23 +716,13 @@ module.exports = (function () {
                 return buildFunction.call(this, item.ast.value, obj, whos, sm);
             }
             if(info.type === 'PIPE'){
-                return 'function(){'+info.body.data+'}';
+                return 'function(){'+info.data+'}';
             }
 
 
-            var propName = info.defined || item.ast.class.data;
+            var propName = item.getName();
 
-            var world = this.world[propName];
-            if(world) {
-                var property = world.public[item.name];
-            }
-            property = property || {type: 'Variant'}
-
-
-            if(!('value' in item.ast)) {
-                global.console.log('No value in `'+ propName +'`')
-                return property.type==='Variant' ? '{}' : void 0;
-            }
+            var property = item.class;
 
             arr = item.ast.value;
             if(!Array.isArray(arr))arr = [arr];
@@ -726,8 +734,6 @@ module.exports = (function () {
                     return val._data;
                 else
                     return val.data;
-
-
             });
             if(ohNoItSPipe){
                 var out = buildPipe.call(this, item.ast.value, obj, whos, sm);
@@ -742,7 +748,7 @@ module.exports = (function () {
 
             // typed property getter
             var error = false;
-            this.tryCall(property.type, '__compileValue', [arr, item.ast.value], function(err, res){
+            this.tryCall(property, '__compileValue', [arr, item.ast.value], function(err, res){
                 error = err;
                 if(!err)
                     result = res;
@@ -784,16 +790,21 @@ module.exports = (function () {
         define: function(name){
             var info = this._world[name],
                 ast = info.ast, i, _i, extend,
-                mixed = this.world[name] = info.mixed = info.mixed || new ClassMetadata({
-                    require: info.require,
-                    name: name,
-                    ast: ast
-                }),
+                mixed,
                 clsInfo,
                 items, item, itemName,
                 moreDependencies = false,
                 _self = this;
 
+            mixed = this.world[name] = info.mixed = info.mixed || (
+                info instanceof ClassMetadata ?
+                    info :
+                    new ClassMetadata({
+                        require: info.require,
+                        name: name,
+                        ast: ast
+                    })
+                );
             if(!ast.js){
                 extend = ast.extend;
 
@@ -855,7 +866,22 @@ module.exports = (function () {
                 //debugger
             }else{
                 //debugger;
+                for( i in info.private){
+                    info.private[i] = new InstanceMetadata({
+                        class: this.world[info.private[i].type],
+                        name: i,
+                        isPublic: true
+                    });
+                }
+                for( i in info.public){
+                    info.public[i] = new InstanceMetadata({
+                        class: this.world[info.public[i].type],
+                        name: i,
+                        isPublic: true
+                    });
+                }
                 this.world[name] = info;
+                info.ready = true;
             }
 
         },
