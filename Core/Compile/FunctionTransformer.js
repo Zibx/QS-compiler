@@ -257,7 +257,7 @@ module.exports = (function () {
         }
     };
     var functionTransformer = function(item, obj, whos, sm){
-        var body = transformer.functionTransform.call(this, {fn: item.body, args: item.arguments}, obj, whos)
+        var body = transformer.functionTransform.call(this, {fn: item.value.body, args: item.value.arguments}, obj, whos)
         return body;
         
     };

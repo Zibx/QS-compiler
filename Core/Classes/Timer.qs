@@ -1,6 +1,6 @@
 @info: Timer capable of measuring time intervals, which are marked by firing the Timer's //.tick// event.
 @ns: Core
-def Class Timer
+def QObject Timer
     @info: Total ticks counter
     public Number counter: 0
 

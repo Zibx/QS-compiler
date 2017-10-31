@@ -655,8 +655,8 @@ module.exports = (function () {
             /*if(obj.ast.extend)
                 obj.ast.extend
                     .forEach(this.addDependency.bind(this, name));*/
-
-            this.loaded(name);
+            this.tryInspect(name);
+            //this.loaded(name);
 
 
             //debugger;
@@ -805,7 +805,7 @@ module.exports = (function () {
                         ast: ast
                     })
                 );
-            if(!ast.js){
+            if(!mixed.js){
                 extend = ast.extend;
 
                 if(!info.isMixed) {

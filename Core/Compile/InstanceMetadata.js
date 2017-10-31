@@ -11,7 +11,12 @@ module.exports = (function(){
     var ClassMetadata = require('./ClassMetadata');
 
     var InstanceMetadata = function(cfg){
-        Object.assign(this, cfg);
+        ClassMetadata.call(this, cfg);
+        if(cfg.ast && cfg.ast.tags){
+            for(var i in cfg.ast.tags){
+                this.addTag( i, cfg.ast.getTag( i ) );
+            }
+        }
     };
 
     InstanceMetadata.prototype = new ClassMetadata;

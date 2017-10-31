@@ -91,7 +91,7 @@ module.exports = (function () {
                 var fullRequire = {}, j, requireInfo;
                 for (i in obj.require) {
                     if (!(i in this.world)) {
-                        throw new Error('Unknown class `' + i + '` ' + obj.require[i][0].pointer)
+                        throw new Error('Unknown class `' + i + '` ');// + obj.require[i][0].pointer)
                     }
                     requireInfo = this.world[i];
 
@@ -208,7 +208,13 @@ module.exports = (function () {
                                 type: 'child',
                                 ast: {}
                             };
-                            obj.private[createName] = {type: type, defined: propName.defined};
+                            var childItem = new InstanceMetadata({
+                                class: this.world[type],
+                                ast: item,
+                                isPublic: item.isPublic
+                            });
+                            childItem.setName(createName);
+                            obj.addPrivate(createName, childItem);//{type: type, defined: propName.defined});
                             obj.instances[propName.where].push(item);
                             itemsInfo[createName] = item;
                             created[createName] = item;
@@ -718,7 +724,7 @@ module.exports = (function () {
                         cls.addValue(objectName, searchingFor+'.value', val = new Property({
                             name: path.concat('value'),
                             ast: item, //was item
-                            class: propInMeta.class,
+                            class: propInMeta,
                             value: item.value
                         }));
                         //cls.addItem(objectName, val); // join path?
@@ -734,23 +740,6 @@ module.exports = (function () {
                             }));
                             //cls.addItem(objectName, val); // join path?
                         }
-
-/*
-//////// GADOST
-                        var valueDataType = this.world[item.class.getValue()].getPublic('value').class;
-                        if(!valueDataType){
-                            console.warn(item.class.getValue() + ' has no value property, but you try to set it to '+ item.value[0])
-                            valueDataType = this.world.Variant;
-                        }
-                        //.class;
-                        var value = new Property({
-                            class: valueDataType,
-                            ast: item,
-                            name: path.concat('value'),
-                            value: item.value
-                        });
-//////// GADOST
-*/
 
                         var childItem = new Property({
                             class: propInMeta.class,
@@ -800,7 +789,7 @@ module.exports = (function () {
                             return false;
                         }
 
-                        cls.addItem(objectName, childItem); // join path?
+                        cls.addItem(typeof objectName === 'string' ? objectName : objectName.data, childItem); // TODO check if condition is needed
 
                         if(item.value && item.value.length){
 
@@ -840,7 +829,7 @@ module.exports = (function () {
                                 class: this.world.String,
                                 name: path.concat('cls'),
                                 ast: Object.assign(Object.create(item),{value: item.cls}), //was item
-                                value: item.cls.value
+                                value: item.cls
                             }));
                         }
 

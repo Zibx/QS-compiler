@@ -9,7 +9,9 @@
 module.exports = (function(){
     'use strict';
     var Property = function(cfg){
-        Object.assign(this, cfg)
+        if(cfg.class === void 0)
+            debugger;
+        Object.assign(this, cfg);
     };
     Property.prototype = {
         getName: function () {
