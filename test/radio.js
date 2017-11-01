@@ -15,8 +15,9 @@ var common = require('./toolchain/common'),
 describe('compile radio buttons', function() {
     compile('test/qs/radio.qs', {newWay: true, sourceMap: false}, function (result) {
         var main = result.ast.main;
-//        console.log(result.js)
+
         it('should create property', function(){
+            console.log(result.js)
             assert.equal(compactCode(main.values.l1.value._val),
                 'new Pipe(__private.ref(\'animal.value\'), function(animal_value){ return (animal_value ); })')
         });

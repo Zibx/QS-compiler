@@ -17,6 +17,7 @@ module.exports = (function(){
                 this.addTag( i, cfg.ast.getTag( i ) );
             }
         }
+        this.isPublic = !!cfg.isPublic;
     };
 
     InstanceMetadata.prototype = new ClassMetadata;
@@ -41,6 +42,16 @@ module.exports = (function(){
         if(!prop)
             prop = this.class.findProperty(name);
         return prop;
+    };
+    InstanceMetadata.prototype.getTag = function(name){
+        var prop = ClassMetadata.prototype.getTag.call(this, name);
+        if(!prop)
+            prop = this.class.getTag(name);
+        return prop;
+    };
+
+    InstanceMetadata.prototype.findMethod = function(){
+        return false;
     };
     InstanceMetadata.prototype.noName = false;
     InstanceMetadata.prototype.isPublic = false;

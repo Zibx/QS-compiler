@@ -10,4 +10,5 @@ def UIComponent RadioButtonGroup
 
   public String value
   public String _value
+  public Boolean enabled
 

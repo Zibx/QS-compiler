@@ -83,6 +83,9 @@ module.exports = (function(){
             else
                 return tag[0].value;
 
+        },
+        getValue: function(){
+            return this.value;
         }
     };
 
@@ -174,7 +177,7 @@ module.exports = (function(){
                 throw 'no defs'
             }
             children = tree.children;
-            for( i = 0, _i = children.length; i < _i; i++ ){                
+            for( i = 0, _i = children.length; i < _i; i++ ){
                 child = children[i];
 
                 if(definition = matchers.define(child)){
@@ -198,8 +201,8 @@ module.exports = (function(){
             }
             tree = tree.children[0];
         }
-        
-        
+
+
 
         return ast;
     };

@@ -16,7 +16,7 @@ module.exports = (function () {
     var InstanceMetadata = require('./InstanceMetadata');
     var Property = require('./Property');
 
-    var console = new (require('../../console'))('Compile');
+    //var console = new (require('../../console'))('Compile');
     var setRecursive = function(obj, vals){
         for(var key in vals){
             var val = vals[key],
@@ -136,7 +136,7 @@ module.exports = (function () {
 */
 
             source.push('return ' + baseClassName +
-                '.extend(\'' + ns + '\', \'' + obj.name + '\', {');
+                '.extend(\'' + ns + '\', \'' + obj.getName() + '\', {');
 
 
 
@@ -152,7 +152,7 @@ module.exports = (function () {
                 }
             };
 
-            var create = {};
+            /*var create = {};
             var created = {};
             for(var where in obj.instances) {
                 obj.instances[where].forEach(function (what) {
@@ -164,8 +164,8 @@ module.exports = (function () {
                             what.items.forEach(function(item){
 
                                 var info = item.info;
-                                var tags = info && info.tags;
-                                if(tags && tags.create){
+
+                                if(info.getTag('create')){
                                     if(!(what.name in create)) {
                                         create[what.name] = [];
                                     }
@@ -222,20 +222,20 @@ module.exports = (function () {
                     });
 
                 }
-            }
+            }*/
 
             var piped = [];
             var valuesCollector = {};
-            for(var where in obj.values){
+            /*for(var where in obj.values){
                 var properties = obj.values[where];
-                var iInfo = itemsInfo[where];
+                var iInfo = obj.subItems[where];
                 var whos, whosMeta;
                 if(where === '___this___'){
                     whos = 'this';
                     whosMeta = obj;
                 }else{
                     whos = where;
-                    whosMeta = obj.itemsInfo[whos];
+                    whosMeta = obj.subItems[whos];
                 }
                 var isPublic = obj.getPublic(where);
 
@@ -247,8 +247,8 @@ module.exports = (function () {
                     var prop = properties[propName];
                     //if(prop.length === 1 && prop.getName() === propName){ // normal not nested property
                     var isPipe;
-                    var propValue = prop.getValue();
-                    var propValue =this.getPropertyValue(prop, obj, whosMeta, sm);
+                    //var propValue = prop.getValue();
+                    var propValue = this.getPropertyValue(prop, obj, whosMeta, sm);
                     if(propValue !== void 0) {
                         if(typeof propValue.indexOf !== 'function'){
                             console.log(propValue)
@@ -317,7 +317,7 @@ module.exports = (function () {
                     //}
 
 
-                    /*
+                    /!*
                     var propValue = this.getPropertyValue(prop, obj, whos, sm),
                         isPipe;
 
@@ -384,45 +384,19 @@ module.exports = (function () {
                         }
                     }else{
                         throw propValue;
-                    }*/
+                    }*!/
                 }
-            }
+            }*/
 
                         //ctor.push('var ' + what.name + ' = new ' + what.class + '(); '+sm(what.ast.name || what.ast.class)+'var '+sm(what.ast.name || what.ast.class, what.name||what.class)+'DATA_'+what.name+''+(what.ast.semiToken?sm(what.ast.semiToken):'')+'='+what.name+'._data;');
+
             for(var where in obj.instances) {
                 obj.instances[where].forEach(function (what) {
                     if (what.type === 'child') {
-                        var isPublic = obj.getPublic(what);
-                        what.isPublic = isPublic;
-                        var vals = valuesCollector[what.name],
-                            data = [],
-                            stringData;
-                        for( i in vals){
-                            data.push( '\t'+JSON.stringify(i) + ':'+ vals[i] );
-                        }
-                        data.push('\t"#": '+JSON.stringify(what.name));
-                        if(data.length) {
-                            stringData = '{\n' + data.join(',\n') + '}';
-                        }else{
-                            stringData = '';
-                        }
-                        //debugger;
-                        _self.tryCall(what.class, '__instantiate', [vals, data, stringData], function(err, result){
-                            if(!err)
-                                stringData = result;
-                            else
-                                stringData = 'new ' + what.class.getName() + '('+ stringData +')';
-                        });
-
-                        if(isPublic) {
-                            ctor.push('this.set(\'' + what.getName() + '\', '+ stringData +');')
-                        } else {
-                            checkDefinePrivates();
-
-                            ctor.push('__private.set(\'' + what.getName() + '\', '+ stringData +');')
-                        }
-                        //console.log(isPublic, what);
-
+                        var gathererCtx = {
+                            piped: piped, mainCls: obj, sm: sm, base: what
+                        };
+                        ctor.push(_self.callMethod('valueGatherer', what, gathererCtx))
                     }else if(what.type === 'inline'){
                         var trailingComment = [], tag;
                         if(what.ast.tags &&
@@ -470,12 +444,12 @@ module.exports = (function () {
                     if(what.type === 'child') {
 
                         var name = what.name,
-                            info = itemsInfo[name],
-                            fromQObject = _self.isInstanceOf(info.class, 'QObject'),
+                            info = obj.subItems[name],
+                            fromQObject = _self.isInstanceOf(info.class.getName(), 'QObject'),
                             childGetter,
                             parent,
                             parentGetter;
-                        console.log(info.class +' is '+(fromQObject?'':'not ')+'instance of QObject ');
+                        console.log(info.class.getName() +' is '+(fromQObject?'':'not ')+'instance of QObject ');
                         if(fromQObject) {
                             if(what.isPublic){
                                 childGetter = 'this.get(\''+ what.name +'\')';
@@ -483,7 +457,7 @@ module.exports = (function () {
                                 childGetter = '__private.get(\''+ what.name +'\')';
                             }
                             if(where !== '___this___'){
-                                parent = itemsInfo[where];
+                                parent = obj.subItems[where];
                                 parentGetter = (parent.isPublic ? 'this' : '__private') +'.get(\''+ where +'\')';
                             }else{
                                 parentGetter = 'this';
@@ -496,41 +470,40 @@ module.exports = (function () {
                 });
             }
 
-            for(var who in obj.events) {
-                for(var whatHappens in obj.events[who]) {
-                    obj.events[who][whatHappens].forEach(function(evt){
-                        var getter,
-                            what = itemsInfo[who];
-                        if(who === '___this___') {
-                            getter = 'this';
-                        }else if(what.isPublic){
+            for(var evtName in obj.events) {
+                //for(var whatHappens in obj.events[who]) {
+                    obj.events[evtName].forEach(function(evt){
+                        var getter = 'this';//,
+                            //what = obj.subItems[who];
+                        //if(who === '___this___') {
+                            //getter = 'this';
+                        /*}else if(what.isPublic){
                             getter = 'this.get(\''+ what.name +'\')';
                         }else{
                             getter = '__private.get(\''+ what.name +'\')';
-                        }
+                        }*/
 
-                        var whos = (who === '___this___' ? 'this' : who );
-                        var propValue = _self.getPropertyValue(evt, obj, whos, sm);
+                        //var whos = (who === '___this___' ? 'this' : who );
+                        var propValue = _self.getPropertyValue(evt, obj, obj, sm);
                         evt._js = propValue;
+
                         if(!(propValue instanceof Error)) {
-                            ctor.push(getter + '.on(\'' + whatHappens + '\', ' + propValue + ');');
+                            ctor.push(getter + '.on(\'' + evtName + '\', ' + propValue + ');');
                         }else{
                             console.log('Error getting event handler', evt);
                         }
                     });
-                }
+                //}
             }
             //obj.public
             
             ctor.push('}');
             for(i in obj.public){
-                var _i = i;
                 if(i === 'value') {
                     props.push('value: "__value__"');
-                    i = '__value__';
-                }
-                if(obj.name === obj.public[_i].defined) {
-                    props.push(i + ': {}');
+                }else{
+
+                    props.push( i + ': {}' );
                 }
             }
             ctor = ctor.join('\n');
@@ -602,6 +575,93 @@ module.exports = (function () {
             console.log(result)
             return result;
         },
+        valueGatherer: function(obj, ctx, path){
+            var piped = ctx.piped;
+            var propName, values = obj.values, prop;
+            var data = [],
+                vals = {}, i,
+                isPublic,
+                stringData, isPipe,
+                sm = ctx.sm;
+            if(!path)
+                path = [obj.getName()];
+
+            for(propName in values){
+                prop = values[propName];
+
+                if(prop instanceof Property){
+
+                    var resultString;
+
+                    var propValue = prop.getValue();
+                    var propValue = this.getPropertyValue(prop, ctx.mainCls, obj, sm);
+
+                    if(propValue !== void 0) {
+                        if(typeof propValue.indexOf !== 'function'){
+                            console.log(propValue)
+                        }else
+                            isPipe = propValue.indexOf('new Pipe') === 0;
+                    }else{
+                        this.getPropertyValue(prop, obj, whosMeta, sm)
+                    }
+
+                    if(!(propValue instanceof Error)) {
+                        prop._val = propValue;
+                        isPublic = ctx.base.isPublic;
+                        if(!isPipe) {
+                            vals[propName] = propValue;// + sm(prop.item.semiToken);
+                        }else {
+                            var pipePath = path.concat(propName);
+
+                            piped.push(
+                                (isPublic?'this': '__private')+'.set(' +
+                                sm(prop.ast.class) +
+                                    JSON.stringify(pipePath.join('.')) + ', ' +
+                                    propValue +
+                                sm(prop.ast.semiToken) + ');');
+
+                        }
+                    }else{
+                        throw propValue;
+                    }
+
+                }else if(prop instanceof InstanceMetadata){
+                    vals[propName] = this.callMethod('valueGatherer', prop, ctx, path.concat(propName))
+                }
+            }
+
+
+            for( i in vals){
+                data.push( '\t'+JSON.stringify(i) + ':'+ vals[i] );
+            }
+            data.push('\t"#": '+JSON.stringify(path.join('.')));
+
+
+
+            if(data.length) {
+                stringData = '{\n' + data.join(',\n') + '}';
+            }else{
+                stringData = '';
+            }
+
+            this.tryCall(obj.class, '__instantiate', [vals, data, stringData], function(err, result){
+                if(!err)
+                    stringData = result;
+                else
+                    stringData = 'new ' + obj.class.getName() + '('+ stringData +')';
+            });
+
+            isPublic = obj.isPublic;
+
+            if(isPublic) {
+                return ('this.set(\'' + obj.getName() + '\', '+ stringData +');')
+            } else {
+                //checkDefinePrivates();
+
+                return ('__private.set(\'' + obj.getName() + '\', '+ stringData +');')
+            }
+
+        },
         __isProperty: function (cls, prop) {
             var info = this.world[cls.class ? cls.class || cls.class.data : cls.name],
                 propInfo;
@@ -620,258 +680,6 @@ module.exports = (function () {
 
             return false;
             //debugger;
-        },
-        /*
-        @arg obj: inspecting object
-        @arg cls: class of defining object
-        @arg path:Array path to inspecting object
-
-         */
-        __dig: function(obj, cls, path) {
-            var ast = obj.ast,
-                data, oldItemName, i, _i, items,
-                moreDependencies = false,
-                prop, anything;
-
-            path = path || [];
-
-            if(ast.type === 'DEFINE'){
-                items = obj.ast.items;
-
-                for (i = 0, _i = items.length; i < _i; i++) {
-
-                    anything = false;
-
-                    var item = items[i];
-                    if(item.class)
-                        var itemClassName = item.class.data;
-
-                    if(item.name)
-                        var itemName = item.name.data;
-
-                    var propInMeta;
-                    var searchingFor = itemClassName || itemName;
-                    /* we can define:
-                     Label: without name.
-                     Label with: name
-                     existed: prop
-
-                     so we check that class dependency is satisfied.*/
-
-                    // maybe we have property with that name
-                    propInMeta = obj.findProperty(searchingFor);
-                    if(obj instanceof InstanceMetadata){
-                        anything = obj.class.getTag('anything');
-                    }
-                    if(!propInMeta && !anything){
-                        this.addDependency(cls.getName(), searchingFor);
-                        if(!(searchingFor in this.world)){
-                            moreDependencies = true;
-                        }
-                    }
-                }
-
-                /*
-                 1) create named with not piped properties or inline pipes to properties that are already defined
-                 2) create unnamed with inline pipes
-                 3) create other pipes
-                 4) add items as children
-                 */
-
-                if (!obj.getName()){
-                    obj.setName(this.getUID(obj.class.getName()));
-                    obj.noName = true;
-                }
-
-                if (moreDependencies) {
-                    console.log('More deps for `' + obj.name.getValue() + '` <'+obj._extendList[0]+'> in `' + cls.name.getValue() + '`: ' + this.wait[cls.name.getValue()].join(', '));
-                    obj.findProperty(searchingFor)
-                    return false;
-                }
-
-                // now deps are loaded
-
-
-                var objectName = obj.name;
-                if(obj === cls) {
-                    objectName = '___this___';
-
-                    for (var eventName in obj.ast.events) {
-                        obj.ast.events[eventName].forEach(function (event) {
-                            cls.addEvent(objectName, event.name.data, event); // was event.value
-                        });
-                    }
-                }
-
-                items = obj.ast.items;
-                for (i = 0, _i = items.length; i < _i; i++) {
-                    item = items[i];
-                    if(item.class)
-                        var itemClassName = item.class.data;
-
-                    if(item.name)
-                        var itemName = item.name.data;
-
-                    var propInMeta;
-                    var searchingFor = itemClassName || itemName;
-                    propInMeta = obj.findProperty(searchingFor);
-
-                    //var itemPath = path.slice(1).concat(searchingFor);
-
-                    if (propInMeta) {
-                        // is property
-                        var val;
-                        cls.addValue(objectName, searchingFor+'.value', val = new Property({
-                            name: path.concat('value'),
-                            ast: item, //was item
-                            class: propInMeta,
-                            value: item.value
-                        }));
-                        //cls.addItem(objectName, val); // join path?
-
-                        var childObjectName = objectName;
-                        if(item.cls && item.cls.length){
-                            cls.addValue(childObjectName, searchingFor+'.cls', val = new Property({
-                                class: this.world.String,
-                                name: path.concat('cls'),
-                                ast: Object.assign(Object.create(item),{value: item.cls}), //was item
-                                //info: item.findProperty('cls'),
-                                value: item.cls.value
-                            }));
-                            //cls.addItem(objectName, val); // join path?
-                        }
-
-                        var childItem = new Property({
-                            class: propInMeta.class,
-                            ast: item,
-                            name: path,
-                            value: item.value
-                        });
-
-                        this.callMethod('__dig', childItem.class, cls, path.concat(searchingFor));
-                        /*var fakes = fake.values[searchingFor];
-                        if(prop.type === 'Variant' && fakes){
-                            var currentVal = cls.values[childObjectName][searchingFor];
-                            setRecursive(childItem.values, fakes);
-                            var inText = JSON.stringify(childItem.values);
-                            value.item.value = {
-                                data: inText,
-                                type: 'DEEP'
-                            };
-
-                        }else if(fakes) {
-
-                            for (var x in fakes) {
-                                fakes[x].name = searchingFor+'.'+fakes[x].name;
-                                cls.values[childObjectName][searchingFor + '.' + x] = fakes[x];
-                                var j = fake;
-                            }
-                        }*/
-
-                    }else if (searchingFor in this.world) { // is not known property. class name?
-
-                        var childItem = new InstanceMetadata({
-                            class: this.world[searchingFor],
-                            ast: item,
-                            isPublic: item.isPublic
-                        });
-
-                        if(childItem.class.getName() === 'Function'){
-                            childItem.type = 'inline';
-                        }
-
-                        if (!childItem.getName()){
-                            childItem.setName(this.getUID(childItem.class.getName()));
-                            childItem.noName = true;
-                        }
-
-                        if(this.callMethod('__dig', childItem, cls) === false){
-                            return false;
-                        }
-
-                        cls.addItem(typeof objectName === 'string' ? objectName : objectName.data, childItem); // TODO check if condition is needed
-
-                        if(item.value && item.value.length){
-
-                            var childObjectName = childItem.name;
-
-                            if(!(childObjectName in cls.values))
-                                cls.values[childObjectName] = {};
-
-                            prop = this.callMethod('__isProperty', childItem, 'value');
-                            //TODO Property!
-
-                            var valueDataType = this.world[item.class.getValue()].getPublic('value').class;
-                            if(!valueDataType){
-                                console.warn(item.class.getValue() + ' has no value property, but you try to set it to '+ item.value[0])
-                                valueDataType = this.world.Variant;
-                            }
-                            //.class;
-                            var value = new Property({
-                                class: valueDataType,
-                                ast: item,
-                                name: path.concat('value'),
-                                value: item.value
-                            });
-                            cls.addValue(childObjectName, 'value', value);
-
-                        }else if(item.value){
-                            childItem.value = item.value;
-                        }
-
-                        if(item.cls && item.cls.length){
-                            var childObjectName = childItem.name;
-
-                            if(!(childObjectName in cls.values))
-                                cls.values[childObjectName] = {};
-
-                            cls.addValue(childObjectName, searchingFor+'.cls', val = new Property({
-                                class: this.world.String,
-                                name: path.concat('cls'),
-                                ast: Object.assign(Object.create(item),{value: item.cls}), //was item
-                                value: item.cls
-                            }));
-                        }
-
-                        //if(item.isPublic)
-/*
-                        for(var propName in item.private){
-                            cls.private[propName] = item.private[propName];
-                        }
-                        for(var propName in item.public){
-                            cls.public[propName] = item.public[propName];
-                        }
-
-                        for(var eventName in item.events){
-
-                            item.events[eventName].forEach(function (event) {
-
-                                if(!('events' in cls)){
-                                    cls.events = {};
-                                }
-                                if(!(childItem.name in cls.events))
-                                    cls.events[childItem.name] = {};
-
-                                var name = event.name.data;
-
-                                (cls.events[childItem.name][name] ||
-                                (cls.events[childItem.name][name] = []))
-                                    .push(event.value);
-
-                            });
-
-
-                        }*/
-
-
-
-                    }
-
-
-                }
-                //obj.items = internals;
-
-            }
         }
     };
 })();

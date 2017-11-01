@@ -9,6 +9,7 @@
 module.exports = (function () {
     'use strict';
     var Property = require('./Property');
+    var Property = require('./Property');
     var ClassMetadata = function(cfg){
         Object.assign(this, {
             public: {},
@@ -22,7 +23,8 @@ module.exports = (function () {
             props: {},
             tags: {},
             ast: {},
-            items: []
+            items: [],
+            subItems: {}
         });
         Object.assign(this, cfg);
 
@@ -36,6 +38,7 @@ module.exports = (function () {
         _extend: null,
         _extendList: [],
         items: [],
+        subItems: {},
         name: null,
         instances: null,
         namespace: null,
@@ -164,20 +167,15 @@ module.exports = (function () {
 
             return false;
         },
-        addEvent: function(whos, name, value){
-            if(!(whos in this.events))
-                this.events[whos] = {};
+        addEvent: function(name, value){
+            if(!(name in this.events))
+                this.events[name] = [];
 
-            if(!(name in this.events[whos]))
-                this.events[whos][name] = [];
-
-            this.events[whos][name].push(value);
+            this.events[name].push(value);
         },
-        addValue: function(whos, name, value){
-            if(!(whos in this.values))
-                this.values[whos] = {};
+        addValue: function(name, value){
 
-            this.values[whos][name] = value;
+            this.values[name] = value;
             /*if(!(name in this.values[whos]))
                 this.values[whos][name] = [];
 
@@ -192,6 +190,7 @@ module.exports = (function () {
                 if (!(objectName in this.instances)) {
                     this.instances[objectName] = [];
                 }
+                this.subItems[item.getName()] = item;
                 this.instances[objectName].push(item);
                 if (!item.noName) {
                     if (item.isPublic) {

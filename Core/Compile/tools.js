@@ -46,11 +46,13 @@ module.exports = (function () {
                     if( node.type === 'ThisExpression' ){
                         name = child.getName();
                     }
-
-                    env = child.findProperty( name );
+                    env = child === obj ? {class: child} : false;
+                    if(!env)
+                        env = child.findProperty( name );
 
                     if(!env)
                         env = obj.findProperty( name );
+
 
                 }else{
                     env = env.findProperty(name);
@@ -74,7 +76,7 @@ module.exports = (function () {
                     }
                 }
 
-                out.push({name: name, class: env});
+                out.push({name: name, class: env, node: node});
 
                 lastEnv = env;
 
@@ -86,7 +88,7 @@ module.exports = (function () {
                 if(env){
                     // and if Class has value property
                     env = env.class;
-                    out.push( { name: 'value', class: env, defined: obj } );
+                    out.push( { name: 'value', class: env, defined: obj, node: ASTtransformer.craft.Literal('value') } );
                 }
             }
             return new VarInfo({varParts: out, context: context, used: obj});
