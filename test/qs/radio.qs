@@ -1,4 +1,5 @@
 def Page main
+  title: adgfhv
   .onLoad: ()->
         2+2
   Border

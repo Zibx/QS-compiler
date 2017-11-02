@@ -9,6 +9,7 @@
 module.exports = (function () {
     'use strict';
     var ASTtransformer = require('../JS/ASTtransformer');
+    var ClassMetadata = require('./ClassMetadata');
     var VarInfo = function(cfg){
         Object.assign(this, cfg);
     };
@@ -53,14 +54,20 @@ module.exports = (function () {
                     if(!env)
                         env = obj.findProperty( name );
 
+                    if(!env)
+                        env = obj.subItems[ name ];
 
+                    if(!env)
+                        env = this.world[ name ];
                 }else{
                     env = env.findProperty(name);
                 }
 
-                if( env ){
+                if( !(env instanceof ClassMetadata) ){
                     env = env.class;
-                }else{
+                }
+
+                if(!env){
                     if(lastEnv.getTag('anything')){
                         env = this.world.Variant;
                     }

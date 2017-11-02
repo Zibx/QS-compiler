@@ -30,6 +30,23 @@ module.exports = (function () {
     var compactCode = function(code){
         return code.replace(/\s+/g,' ');
     };
+
+    var collect = function(item, path){
+        var out = {};
+        for(var i in item.values){
+            var prop = item.values[i];
+            if(!out[path])
+                out[path] = {}
+            if(prop instanceof build.Property){
+                (out[path][i] || (out[path][i] = {}))._val = prop._val
+            }else if(prop instanceof  build.InstanceMetadata){
+                var sub = collect(prop, i);
+                Object.assign(out[path], sub);
+            }
+        }
+        return out;
+    };
+
     var compile = function(fileName, options, cb){
         if(typeof options === 'function') {
             cb = options;
@@ -45,8 +62,27 @@ module.exports = (function () {
             typeTable: 'Core/TypeTable.js',
             ns: fileName,
             source: source
-        }, options), cb);
+        }, options), function(result){
+            var i;
+
+
+            for(var astName in result.ast){
+                var out = {};
+                var subAST = result.ast[astName];
+                for( i in subAST.subItems ){
+                    Object.assign( out, collect( subAST.subItems[i], i ) );
+
+                }
+                subAST.values = out;
+            }
+
+
+
+            cb(result)
+        });
     };
+
+
     return {compile: compile, compact: compact, compactFn: function(code){
         return compact(code, true);
     }, compactCode: compactCode};

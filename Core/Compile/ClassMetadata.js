@@ -24,7 +24,8 @@ module.exports = (function () {
             tags: {},
             ast: {},
             items: [],
-            subItems: {}
+            subItems: {},
+            events: {}
         });
         Object.assign(this, cfg);
 
@@ -35,6 +36,7 @@ module.exports = (function () {
         private: null,
         values: null,
         require: null,//info.require,
+        events: {},
         _extend: null,
         _extendList: [],
         items: [],

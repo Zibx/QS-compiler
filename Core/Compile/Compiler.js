@@ -1029,11 +1029,13 @@ module.exports = (function () {
                 if(obj === cls) {
                     objectName = '___this___';
 
-                    for (var eventName in obj.ast.events) {
-                        obj.ast.events[eventName].forEach(function (event) {
-                            obj.addEvent(event.name.getValue(), event); // was event.value
-                        });
-                    }
+
+                }
+
+                for (var eventName in obj.ast.events) {
+                    obj.ast.events[eventName].forEach(function (event) {
+                        obj.addEvent(event.name.getValue(), event); // was event.value
+                    });
                 }
                 if(obj.value && obj.value.length){
                     obj.addValue( 'value', new Property( {
@@ -1202,5 +1204,9 @@ module.exports = (function () {
         }
 
     };
+    Compiler.Property = Property;
+    Compiler.InstanceMetadata = InstanceMetadata;
+    Compiler.ClassMetadata = ClassMetadata;
+
     return Compiler;
 })();

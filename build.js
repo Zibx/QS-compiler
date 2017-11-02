@@ -75,6 +75,7 @@ module.exports = (function () {
         }
     };
 
+    var Compiler = require('./Core/Compile/Compiler');
     var build = function build(cfg, callback){
         var config, i, opt, _i;
 
@@ -186,8 +187,7 @@ module.exports = (function () {
         }
         /** TRY BUILDING */
         var tokenizer = require('./Core/Tokenizer'),
-            lexer = require('./Core/Preprocess'),
-            Compiler = require('./Core/Compile/Compiler');
+            lexer = require('./Core/Preprocess');
         if(config.build) {
             if(!Array.isArray(config.build))
                 config.build = [config.build];
@@ -411,6 +411,8 @@ module.exports = (function () {
         //console.log(config);
         //console.dir(cfg);
     };
+
+    Object.assign(build, Compiler);
 
     if(module.parent){
         showHelp = function(error, e){

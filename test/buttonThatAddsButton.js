@@ -16,6 +16,7 @@ describe('call functions', function() {
 
     it('should compile fn call', function(cb){
         compile('test/qs/buttonThatAddsButton.qs', function (result) {
+            console.log(result.js)
             var main = result.ast.main;
 
             assert.equal(

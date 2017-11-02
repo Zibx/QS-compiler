@@ -225,6 +225,7 @@ module.exports = (function () {
             }*/
 
             var piped = [];
+            var eventSubs = [];
             var valuesCollector = {};
             /*for(var where in obj.values){
                 var properties = obj.values[where];
@@ -394,7 +395,7 @@ module.exports = (function () {
                 obj.instances[where].forEach(function (what) {
                     if (what.type === 'child') {
                         var gathererCtx = {
-                            piped: piped, mainCls: obj, sm: sm, base: what
+                            piped: piped, mainCls: obj, sm: sm, base: what, eventSubs: eventSubs
                         };
                         ctor.push(_self.callMethod('valueGatherer', what, gathererCtx))
                     }else if(what.type === 'inline'){
@@ -438,7 +439,7 @@ module.exports = (function () {
             ctor = ctor.concat(piped);
 
 
-
+            var appendList = [];
             for(var where in obj.instances) {
                 obj.instances[where].forEach(function (what) {
                     if(what.type === 'child') {
@@ -463,13 +464,14 @@ module.exports = (function () {
                                 parentGetter = 'this';
                             }
 
-                            ctor.push(sm(what.ast.name || what.ast.class) + parentGetter + '.addChild(' + childGetter + ');');
+                            appendList.push(sm(what.ast.name || what.ast.class) + parentGetter + '.addChild(' + childGetter + ');');
 
                         }
                     }
                 });
             }
 
+            ctor = ctor.concat(eventSubs);
             for(var evtName in obj.events) {
                 //for(var whatHappens in obj.events[who]) {
                     obj.events[evtName].forEach(function(evt){
@@ -496,7 +498,9 @@ module.exports = (function () {
                 //}
             }
             //obj.public
-            
+
+            ctor = ctor.concat(appendList);
+
             ctor.push('}');
             for(i in obj.public){
                 if(i === 'value') {
@@ -576,10 +580,11 @@ module.exports = (function () {
             return result;
         },
         valueGatherer: function(obj, ctx, path){
-            var piped = ctx.piped;
+            var piped = ctx.piped,
+                eventSubs = ctx.eventSubs;
             var propName, values = obj.values, prop;
             var data = [],
-                vals = {}, i,
+                vals = {}, i, _i,
                 isPublic,
                 stringData, isPipe,
                 sm = ctx.sm;
@@ -618,7 +623,7 @@ module.exports = (function () {
                                 sm(prop.ast.class) +
                                     JSON.stringify(pipePath.join('.')) + ', ' +
                                     propValue +
-                                sm(prop.ast.semiToken) + ');');
+                                sm(prop.ast.semiToken) + ')');
 
                         }
                     }else{
@@ -630,16 +635,33 @@ module.exports = (function () {
                 }
             }
 
+            for(var evtName in obj.events){
+                var events = obj.events[evtName];
+                for(i = 0, _i = events.length; i < _i; i++){
+                    var evt = events[i];
+                    var propValue = this.getPropertyValue(evt, ctx.mainCls, obj, sm);
+                    evt._js = propValue;
+
+                    eventSubs.push((isPublic?'this': '__private')+'.get(' +
+                        JSON.stringify(path) + ').on('+ JSON.stringify(evtName) +','+
+                            propValue +
+                        + ')');
+                }
+            }
+
+            var _padLeft = new Array(path.length+2).join('\t'),
+                _smallPadLeft = new Array(path.length+1).join('\t'),
+                _tinyPadLeft = path.length > 1 ? '' : '\t';
 
             for( i in vals){
-                data.push( '\t'+JSON.stringify(i) + ':'+ vals[i] );
+                data.push( _padLeft+ JSON.stringify(i) + ': '+ vals[i] );
             }
-            data.push('\t"#": '+JSON.stringify(path.join('.')));
+            data.push( _padLeft+ '"#": '+JSON.stringify(path.join('.')));
 
 
 
             if(data.length) {
-                stringData = '{\n' + data.join(',\n') + '}';
+                stringData = '{\n' + data.join(',\n') + '\n'+_smallPadLeft+'}';
             }else{
                 stringData = '';
             }
@@ -654,11 +676,11 @@ module.exports = (function () {
             isPublic = obj.isPublic;
 
             if(isPublic) {
-                return ('this.set(\'' + obj.getName() + '\', '+ stringData +');')
+                return (_tinyPadLeft+ 'this.set(\'' + obj.getName() + '\', '+ stringData +')')
             } else {
                 //checkDefinePrivates();
 
-                return ('__private.set(\'' + obj.getName() + '\', '+ stringData +');')
+                return (_tinyPadLeft+ '__private.set(\'' + obj.getName() + '\', '+ stringData +')')
             }
 
         },
