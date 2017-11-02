@@ -24,17 +24,10 @@ module.exports = (function () {
         getVarInfo: function (stack, obj, child, scope){
             var i, _i, out = [],
                 node, name,
-                env, lastEnv, context = false;
-
-            var metadata = obj;
-            var i, _i, out = [], node, env, selfFlag = false, context = false,
-                envFlag, propFlag, valueFlag = false, thisFlag = false, lastEnv, lastName,
-
-                firstTry = true,
-
+                env, lastEnv, context = false,
                 somePointer = obj.ast.name.pointer,
-
-                name;
+                fromWorld = false,
+                deeperEnv;
 
 
             for (i = 0, _i = stack.length; i < _i; i++){
@@ -48,19 +41,39 @@ module.exports = (function () {
                         name = child.getName();
                     }
                     env = child === obj ? {class: child} : false;
-                    if(!env)
+
+                    if(!env){
                         env = child.findProperty( name );
+                        console.log('in child', !!env);
+                    }
 
-                    if(!env)
+                    if(!env){
                         env = obj.findProperty( name );
+                        console.log('in parent', !!env);
+                    }
 
-                    if(!env)
-                        env = obj.subItems[ name ];
+                    if(!env){
+                        if(name in obj.subItems){
+                            env = {class: obj.subItems[name]};
+                        }
+                        console.log('in items', !!env);
+                    }
 
-                    if(!env)
-                        env = this.world[ name ];
+                    if(!env){
+                        if(this.world[name]){
+                            env = this.world[name];
+                            fromWorld = true;
+                        }
+                        console.log('in world', !!env);
+                    }
                 }else{
-                    env = env.findProperty(name);
+                    deeperEnv = env.findProperty(name);
+                    if(!deeperEnv){
+                        if(env.getName() === 'Variant' || env.getTag('anything')){
+                            deeperEnv = this.world.Variant
+                        }
+                    }
+                    env = deeperEnv;
                 }
 
                 if( !(env instanceof ClassMetadata) ){
@@ -89,7 +102,7 @@ module.exports = (function () {
 
             }
 
-            if (!(env.getName() in tools.primitives) && env.getName() !== 'Variant') {
+            if (!(env.getName() in tools.primitives) && env.getName() !== 'Variant' && !fromWorld) {
                 // if it is not primitive and if it is not variant
                 env = env.findProperty('value');
                 if(env){

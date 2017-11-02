@@ -138,7 +138,7 @@ module.exports = (function () {
         }*/
 
     };
-    for(var i in out)
-        out[i].ready = true;
+    /*for(var i in out)
+        out[i].ready = true;*/
     return out;
 })();

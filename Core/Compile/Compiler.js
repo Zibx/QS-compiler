@@ -483,9 +483,6 @@ module.exports = (function () {
             var fullPath = path.join(dirPath, entry);
             var stat = fs.statSync(fullPath);
             if (stat.isFile()) {
-                /*if (entry == "TypeTable.js")
-                 ret.push("module.exports.TypeTable=require('../" + fullPath.replace(/\\/g, "/") + "')");
-                 else*/
                 ret.push(path.join(base,entry).replace(/\\/g, "/"));
             }
             if (stat.isDirectory()) {
@@ -530,7 +527,7 @@ module.exports = (function () {
     Compiler.prototype = {
         _primitives: primitives,
         world: {},// known metadata
-        _world: {},// known metadata with garbage
+        _world: {},// known metadata with not full loaded
         waitingFor: { // key - waiting for class, value - Array of waiting classes
 
         },
@@ -570,7 +567,10 @@ module.exports = (function () {
                 if( !what )
                     what = item.class && item.class.data;
             }
-
+            if(what === who){
+                // sometimes subitems have the same type
+                return;
+            }
             if(_world[what] === void 0 || !_world[what].ready) {
                 (waitingFor[what] || (waitingFor[what] = [])).push(who);
                 if(wait.indexOf(what) === -1)
@@ -861,20 +861,23 @@ module.exports = (function () {
                 info.ready = true;
                 //debugger
             }else{
-                //debugger;
                 for( i in info.private){
-                    info.private[i] = new InstanceMetadata({
-                        class: this.world[info.private[i].type],
-                        name: i,
-                        isPublic: true
-                    });
+                    if(!(info.private[i] instanceof InstanceMetadata)){
+                        info.private[i] = new InstanceMetadata( {
+                            class: this.world[info.private[i].type],
+                            name: i,
+                            isPublic: true
+                        } );
+                    }
                 }
                 for( i in info.public){
-                    info.public[i] = new InstanceMetadata({
-                        class: this.world[info.public[i].type],
-                        name: i,
-                        isPublic: true
-                    });
+                    if(!(info.public[i] instanceof InstanceMetadata)){
+                        info.public[i] = new InstanceMetadata( {
+                            class: this.world[info.public[i].type],
+                            name: i,
+                            isPublic: true
+                        } );
+                    }
                 }
                 this.world[name] = info;
                 info.ready = true;

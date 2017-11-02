@@ -30,7 +30,23 @@ module.exports = (function () {
     var compactCode = function(code){
         return code.replace(/\s+/g,' ');
     };
+    var collectEvents = function(item, path){
+        var out = {};
+        for(var i in item.events){
+            var prop = item.events[i];
+            if(!out[path])
+                out[path] = {}
+            prop.forEach(function(prop){
 
+                (out[path][i] ||(
+                    out[path][i] = []
+                )).push(prop);
+
+            });
+
+        }
+        return out;
+    };
     var collect = function(item, path){
         var out = {};
         for(var i in item.values){
@@ -71,9 +87,15 @@ module.exports = (function () {
                 var subAST = result.ast[astName];
                 for( i in subAST.subItems ){
                     Object.assign( out, collect( subAST.subItems[i], i ) );
-
                 }
                 subAST.values = out;
+
+                var out = {};
+                var subAST = result.ast[astName];
+                for( i in subAST.subItems ){
+                    Object.assign( out, collectEvents( subAST.subItems[i], i ) );
+                }
+                subAST.events = out;
             }
 
 
