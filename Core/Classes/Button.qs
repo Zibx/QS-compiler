@@ -68,3 +68,4 @@ def UIComponent Button
     public String navigate: ''
 
     //public Function click
+    public Function fire
