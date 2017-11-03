@@ -5,5 +5,7 @@ def QObject Applications
 	public String err
 	public Boolean appsOnly
 	public Function install
+	public Function installAll
 	public Function uninstall
+	public Function uninstallAll
 	public Function configure
