@@ -18,8 +18,9 @@
   },
   "devDependencies": {
     "chai": "*",
+    "istanbul": "*",
     "mocha": "*",
-    "istanbul": "*"
+    "mocha-junit-reporter": "*"
   },
   "author": "Quokka-labs",
   "license": "MPL-2.0"
