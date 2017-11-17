@@ -14,6 +14,7 @@ var common = require('./toolchain/common'),
 describe('call functions', function() {
     compile('test/qs/functionCalls.qs', function (result) {
         var main = result.ast.main;
+        console.log(result.js)
         it('should compile fn call', function(){
             assert.equal(compact(main.events.b.click[0]._js), '__private.get(["t1"]).start()')
         });
