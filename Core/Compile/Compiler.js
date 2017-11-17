@@ -679,7 +679,7 @@ module.exports = (function () {
             if(!info)
                 return cb('no such class `'+ name +'`');
 
-            var after = info && info.ast && this.getTag(info.ast, fnName),
+            var after = info.findMethod(fnName),
                 result;
 
             if(!after)
@@ -760,7 +760,13 @@ module.exports = (function () {
             //global.console.log(error)
 
             //ok, lets guess
-            if(property.type !== 'Variant'){
+            var className;
+            if(property instanceof InstanceMetadata){
+                className = property.class.getName();
+            }else if(property instanceof ClassMetadata){
+                className = property.getName();
+            }
+            if(className !== 'Variant'){
                 var name = arr[0];
                 if(arr.length === 1){
                     if(name in obj.private){
@@ -784,6 +790,8 @@ module.exports = (function () {
                 });
                 if(!error)
                     return result;
+            }else{
+
             }
             throw new Error('UNEXCEPTABLE VALUE! '+ arr.join(''))
             return JSON.stringify(arr.join(''));
@@ -1044,7 +1052,7 @@ module.exports = (function () {
                     obj.addValue( 'value', new Property( {
                         name: ['value'],
                         ast: obj.ast,
-                        class: obj.class,
+                        class: obj.findProperty('value'),
                         value: obj.value
                     } ) );
                 }

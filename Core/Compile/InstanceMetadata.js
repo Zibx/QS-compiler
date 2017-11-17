@@ -50,8 +50,11 @@ module.exports = (function(){
         return prop;
     };
 
-    InstanceMetadata.prototype.findMethod = function(){
-        return false;
+    InstanceMetadata.prototype.findMethod = function(name){
+        var method = ClassMetadata.prototype.findMethod.call(this, name);
+        if(!method)
+            method = this.class.findMethod(name);
+        return method;
     };
     InstanceMetadata.prototype.noName = false;
     InstanceMetadata.prototype.isPublic = false;
