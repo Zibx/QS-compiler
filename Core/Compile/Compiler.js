@@ -1056,8 +1056,18 @@ module.exports = (function () {
                         value: obj.value
                     } ) );
                 }
+                if(obj.cls && obj.cls.length){
+                    obj.addValue( 'cls', new Property( {
+                        name: ['cls'],
+                        ast: Object.assign( Object.create( obj.ast ), { value: obj.cls } ),
+                        class: obj.findProperty('cls'),
+                        value: obj.cls
+                    } ) );
+                }
 
                 items = obj.ast.items;
+
+                var anything = obj.getTag('anything');
                 for (i = 0, _i = items.length; i < _i; i++) {
                     item = items[i];
                     var propInMeta;
@@ -1066,7 +1076,12 @@ module.exports = (function () {
                     propInMeta = obj.findProperty(searchingFor);
 
                     //var itemPath = path.slice(1).concat(searchingFor);
-
+                    if(!propInMeta && !(searchingFor in this.world)){
+                        if(anything){
+                            // logic of Variants. maybe extend with custom type casting later
+                            propInMeta = this.world.Variant;
+                        }
+                    }
                     if (propInMeta) {
                         // is property
                         var val;
@@ -1113,7 +1128,8 @@ module.exports = (function () {
                             class: this.world[searchingFor],
                             ast: item,
                             isPublic: item.isPublic,
-                            value: item.value
+                            value: item.value,
+                            cls: item.cls
                         });
 
                         if(childItem.class.getName() === 'Function'){

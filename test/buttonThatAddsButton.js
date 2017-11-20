@@ -11,17 +11,17 @@ var assert = require('chai').assert;
 var common = require('./toolchain/common'),
     compile = common.compile, compact = common.compactFn;
 
-describe('call functions', function() {
+describe('new Button and Slider', function() {
 
 
-    it('should compile fn call', function(cb){
-        compile('test/qs/buttonThatAddsButton.qs', function (result) {
+    it('should compile adding of new Button and Slider', function(cb){
+        compile('test/qs/buttonThatAddsButtonAndSlider.qs', function (result) {
             console.log(result.js)
             var main = result.ast.main;
 
-            assert.equal(
-                result.js.match(/new Button\(\s*{\s*value:\s['\w]+\s*}\)/).length,
-                1
+            assert.include(
+                result.js, 'new Button({ value: \'sub\' })'
+                //// Button\(\s*{\s*value:\s['\w]+\s*}\)/
             );
             cb()
         });

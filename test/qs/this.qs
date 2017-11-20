@@ -12,6 +12,10 @@ def Page main
       this.value++;
     .click: ()->
       this.someVal++;
+    .click: ()->
+      title += 'ttl';
+    .click: ()->
+      mur += 'ttl';
 
   Timer
     .tick: ()->
@@ -23,9 +27,9 @@ def Page main
 
   title: t1
   .onload: ()->
-    this.title = 't3'
+    this.title += 't3'
   .onload: ()->
-    title = 't2'
+    title += 't2'
 
   .onload: ()->
     s1 = 8

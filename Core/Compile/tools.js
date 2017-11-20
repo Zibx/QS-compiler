@@ -28,7 +28,10 @@ module.exports = (function () {
                 env, lastEnv, context = false,
                 somePointer = obj.ast.name.pointer,
                 fromWorld = false,
-                deeperEnv;
+                deeperEnv,
+                selfFlag = false,
+                implicit = false
+            ;
 
 
             for (i = 0, _i = stack.length; i < _i; i++){
@@ -40,24 +43,37 @@ module.exports = (function () {
                 if( !env ){
                     if( node.type === 'ThisExpression' ){
                         name = child.getName();
+                        selfFlag = true;
+                        env = {class: child};
                     }
-                    env = child === obj ? {class: child} : false;
+/*
+                    // TODO: strange logic. check it
+                    if(child === obj) {
+                        env = {class: child};
+                        !!env && console.log('This expression. This is', child.getName(),'<'+ child._extendList[0] +'>');
+                    }*/
+
 
                     if(!env){
                         env = child.findProperty( name );
-                        console.log('in child', !!env);
+                        !!env && console.log(name, '<'+ env.class.getName() +'>', 'is in child item');
+                        selfFlag = true;
+
+                        implicit = true;
+
                     }
 
                     if(!env){
                         env = obj.findProperty( name );
-                        console.log('in parent', !!env);
+                        !!env && console.log(name, '<'+ env.class.getName() +'>', 'is in scope');
                     }
 
                     if(!env){
                         if(name in obj.subItems){
                             env = {class: obj.subItems[name]};
+
                         }
-                        console.log('in items', !!env);
+                        !!env && console.log(name, '<'+ env.class.getName() +'>', 'is in sub items of child');
                     }
 
                     if(!env){
@@ -65,10 +81,11 @@ module.exports = (function () {
                             env = this.world[name];
                             fromWorld = true;
                         }
-                        console.log('in world', !!env);
+                        !!env && console.log(name, 'is global Class name');
                     }
                 }else{
                     deeperEnv = env.findProperty(name);
+                    !!deeperEnv && console.log('\t', name,'<'+ deeperEnv.class.getName() +'>', 'is property of <'+ env.getName() +'>');
                     if(!deeperEnv){
                         if(env.getName() === 'Variant' || env.getTag('anything')){
                             deeperEnv = this.world.Variant
@@ -85,8 +102,18 @@ module.exports = (function () {
 
 
                 if(!env){
-                    if(lastEnv.getTag('anything')){
-                        env = this.world.Variant;
+                    if(lastEnv) {
+                        if (lastEnv.getTag('anything')) {
+                            env = this.world.Variant;
+                        }
+                    }else{
+                        if(child.getTag('anything')){
+                            env = this.world.Variant;
+                            console.warn('Avoid implicit usage of <Variant> properties ('+name+')');
+                            implicit = true;
+                        }else {
+                            throw new Error('Compiler does not know what is `' + name + '` and whos Property or Item it is')
+                        }
                     }
                 }
 
@@ -94,7 +121,7 @@ module.exports = (function () {
                     if (context === false) {
                         context = i;
                         // we need to keep context
-                        if (env.type === 'Function')
+                        if (env.getName() === 'Function')
                             context--;
                     }
                 }
@@ -114,7 +141,7 @@ module.exports = (function () {
                     out.push( { name: 'value', class: env, defined: obj, node: ASTtransformer.craft.Literal('value') } );
                 }
             }
-            return new VarInfo({varParts: out, context: context, used: obj});
+            return new VarInfo({fromWorldFlag: fromWorld, implicitFlag: implicit, selfFlag: selfFlag, varParts: out, context: context, used: obj});
         },
         old: function(){
             var metadata = obj;

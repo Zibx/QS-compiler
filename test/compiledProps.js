@@ -27,13 +27,14 @@ describe('Setters', function() {
         it('string setters. string without quotes with quotes inside', function () {
             assert.equal(main.values.combo1.label._val, '"Укажите цвет текста надписи \\"Изображение\\""');
         });
-        it('string setters. single quote', function () {
+
+        it('string setters. variant prop. single quote', function () {
             assert.equal(main.values.data.a._val, '"1"');
         });
-        it('string setters. double quote', function () {
+        it('string setters. variant prop. double quote', function () {
             assert.equal(main.values.data.b._val, '"2"');
         });
-        it('string setters. tripple double', function () {
+        it('string setters. variant prop. tripple double', function () {
             assert.equal(main.values.data.c._val, '"3"');
         });
         it('string setters. tripple double in value', function () {

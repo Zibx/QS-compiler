@@ -25,7 +25,10 @@ describe('this', function() {
         });
 
         it('should compile this++ in variants', function(){
-            assert.equal(compactFn(main.events.Variant_I2.click[0]._js), '__private.set(["Variant_I2"],__private.get(["Variant_I2"])+1)')
+            // OLD COMPILER:
+            //assert.equal(compactFn(main.events.Variant_I2.click[0]._js), '__private.set(["Variant_I2"],__private.get(["Variant_I2"])+1)')
+
+            assert.equal(compactFn(main.events.Variant_I2.click[0]._js), '__private.set(["Variant_I2","value"],__private.get(["Variant_I2","value"])+1)')
         });
 
         it('should compile this.value++ in variants', function(){
@@ -34,19 +37,23 @@ describe('this', function() {
         it('should compile this.someVal++ in variants', function(){
             assert.equal(compactFn(main.events.Variant_I2.click[2]._js), '__private.set(["Variant_I2","someVal"],__private.get(["Variant_I2","someVal"])+1)')
         });
+        it('should compile implicit set of global title in Items event', function(){
+            assert.equal(compactFn(main.events.Variant_I2.click[3]._js), '_self.set(["title"],_self.get(["title"])+"ttl")')
+        });
+
         it('should compile this.enabled = false in timer', function(){
             assert.equal(compactFn(main.events.Timer_I3.tick[0]._js), '__private.set(["Timer_I3","enabled"],false)')
         });
 
-        it('should compile this.title in main object event', function(){
-            assert.equal(compactFn(main.events.___this___.onload[0]._js), '_self.set(["title"],"t3")')
+        it('should compile set of this.title in main object event', function(){
+            assert.equal(compactFn(main.events.___this___.onload[0]._js), '_self.set(["title"],_self.get(["title"])+"t3")')
         });
 
-        it('should compile title in main object event', function(){
-            assert.equal(compactFn(main.events.___this___.onload[1]._js), '_self.set(["title"],"t2")')
+        it('should compile set of title in main object event', function(){
+            assert.equal(compactFn(main.events.___this___.onload[1]._js), '_self.set(["title"],_self.get(["title"])+"t2")')
         });
 
-        it('should compile title in main object event', function(){
+        it('should compile set of scoped object value. s1<Slider> = 8', function(){
             assert.equal(compactFn(main.events.___this___.onload[2]._js), '__private.set(["s1","value"],8)')
         });
 
@@ -54,7 +61,7 @@ describe('this', function() {
             assert.equal(compactFn(main.events.___this___.onload[3]._js), '_self.showNext()');
         });
 
-        it('should compile main methods call in main object event', function(){
+        it('should compile main methods call without `this` in main object event', function(){
             assert.equal(compactFn(main.events.___this___.onload[4]._js), '_self.showNext()');
         });
 

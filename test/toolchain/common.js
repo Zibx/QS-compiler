@@ -95,6 +95,7 @@ module.exports = (function () {
                 for( i in subAST.subItems ){
                     Object.assign( out, collectEvents( subAST.subItems[i], i ) );
                 }
+                out.___this___ = subAST.events;
                 subAST.events = out;
             }
 

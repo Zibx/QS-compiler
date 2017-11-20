@@ -86,13 +86,23 @@ module.exports = (function () {
                             info.varParts[0].name = info.varParts[0].name.name;
                         info.varParts[0].node.computed = true;
                     }
-                    var what = cls.itemsInfo[info.varParts[0].name];
+                    var what = cls.subItems[info.varParts[0].name];
 
-                    if ((what === void 0 && info.self) || (what !== void 0 && what.isPublic)) {
+                    if (
+                        (
+                            (what === void 0 && info.selfFlag) ||
+                            (what !== void 0 && what.isPublic)
+                        ) && !info.fromWorldFlag
+                    ) {
                         who = ASTtransformer.craft.Identifier('_self');
+                        if(!info.implicitFlag){
+                            skipFirst = true;
+                        }
                     } else {
                         if(what === void 0) {
                             who = ASTtransformer.craft.Identifier(firstToken.name);
+                            // TODO: add dependency firstToken.class
+
                             skipFirst = true;
                             skipValue = true;
                         }else{
@@ -117,7 +127,7 @@ module.exports = (function () {
                     for (i = skipFirst ? 1 : 0, _i = varParts.length; i < _i; i++) {
 
                         item = varParts[i];
-                        if(i===0 && item.name === 'this')
+                        if(i===0 && info.selfFlag)
                             if(item.node.computed === false)
                                 continue;
                         if (item.node.computed) {
@@ -162,17 +172,21 @@ module.exports = (function () {
 
                 },
                 transformFnSet = function (node, stack, scope) {
-                    var c0 = cls;
+                    var c0 = cls, i, _i;
                     var list = stack.slice().reverse(),
                         varParts,
 
                         info = tools.getVarInfo.call(_self, list, cls, child, scope);
+
                     var firstToken = info.varParts[0],
                         who;
 
                     //    first = list[0];
                     // var env = tools.isNameOfEnv(first.name, meta),
                     //     who;
+
+                    var skipFirst = false,
+                        skipValue = false;
 
                     if(info.thisFlag){
                         info.varParts[0].name = info.varParts[0].e;
@@ -185,15 +199,29 @@ module.exports = (function () {
                         info.varParts[0].name = info.varParts[0].e;
                         info.varParts[0].node.computed = true;
                     }*/
-                    var what = cls.itemsInfo[info.varParts[0].name];
-                    if(what === void 0){
-                        what = {isPublic: true};
-                    }
-                    if ( what.isPublic) {
+
+                    var what = cls.subItems[info.varParts[0].name];
+                    if ((what === void 0 && info.selfFlag) || (what !== void 0 && what.isPublic)) {
                         who = ASTtransformer.craft.Identifier('_self');
-                    } else {
-                        who = ASTtransformer.craft.Identifier('__private');
+
+                        if(!info.implicitFlag){
+                            skipFirst = true;
+                        }
+                    }else {
+                        if(what === void 0) {
+                            who = ASTtransformer.craft.Identifier(firstToken.name);
+                            skipFirst = true;
+                            skipValue = true;
+                        }else {
+                            if (what.isPublic) {
+                                who = ASTtransformer.craft.Identifier('_self');
+                            } else {
+                                who = ASTtransformer.craft.Identifier('__private');
+                            }
+                        }
                     }
+
+
 
                     /*if (info.self) {
                         who = ASTtransformer.craft.Identifier('self');
@@ -206,6 +234,35 @@ module.exports = (function () {
                         info.varParts.push({name: 'value'});
 
                     var val = scope.doTransform.call(scope.me, node.right, scope.options);
+                    var argumentsList = [],
+                        varItem;
+
+                    varParts = info.varParts;
+
+                    for (i = skipFirst ? 1 : 0, _i = varParts.length; i < _i; i++) {
+                        var item = varParts[i]
+                        if(i===0 && info.selfFlag){
+                            if(item.node.computed === false) {
+                                continue;
+                            }
+                        }
+
+                        if (item.node && item.node.computed) {
+                            varItem = scope.doTransform.call(scope.me, item.node, scope.options);
+                        } else {
+                            var varItem = {
+                                'type': 'Literal',
+                                'value': item.name,
+                                'raw': '\'' + item.name + '\''
+                            };
+                            if ('_id' in item)
+                                varItem._id = item._id;
+
+                        }
+                        argumentsList.push(varItem);
+                    }
+
+
 
                     return {
                         'type': 'CallExpression',
@@ -221,22 +278,7 @@ module.exports = (function () {
                         'arguments': [
                             {
                                 'type': 'ArrayExpression',
-                                'elements':
-                                    (info.varParts[0].name === 'this' ? info.varParts.slice(1) : info.varParts).map(function (item) {
-                                        if (item.node && item.node.computed) {
-                                            return scope.doTransform.call(scope.me, item.node, scope.options);
-                                        } else {
-                                            var out = {
-                                                'type': 'Literal',
-                                                'value': item.name,
-                                                'raw': '\'' + item.name + '\''
-                                            };
-                                            if ('_id' in item)
-                                                out._id = item._id;
-
-                                            return out;
-                                        }
-                                    })
+                                'elements': argumentsList
                             },
                             val
                         ]
