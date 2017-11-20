@@ -30,7 +30,8 @@ module.exports = (function () {
 */
     //var console = new (require('../../console'))('Compiler');
     var craft = require('../JS/ASTtransformer').craft;
-    var buildFunction = require('./FunctionTransformer');
+    //var buildFunction = require('./FunctionTransformer');
+    var FunctionTransformer = require('./FunctionTransformer');
 
     var VariableExtractor = require('../JS/VariableExtractor');
     var tools = require('./tools');
@@ -424,7 +425,8 @@ module.exports = (function () {
                 item = new ClassMetadata({
                     //ready: true,
                     js: true,
-                    name: {data: i}
+                    name: {data: i},
+                    namespace: cfg.namespace
                 });
 
                 if(cfg.public)
@@ -552,7 +554,9 @@ module.exports = (function () {
         },
 
         addDependency: function(who, item){
-
+            if(who instanceof ClassMetadata){
+                who = who.getName();
+            }
             var _world = this._world,
                 waitingFor = this.waitingFor,
                 wait = this.wait[who],
@@ -585,8 +589,12 @@ module.exports = (function () {
         add: function(ast, cfg){
             var info = ast instanceof ClassMetadata ? ast : new ClassMetadata({
                     name: ast.name,
-                    ast: ast
+                    ast: ast,
+                    namespace: ast.namespace
                 });
+
+            info.setNameSpace(ast.namespace || ast.getTag('ns'))
+
             var name = info.getName();
             cfg && Object.assign(info, cfg);
             this._world[name] = info;
@@ -626,9 +634,14 @@ module.exports = (function () {
                 ast: {native: true}
             }).setNameSpace(ns);
 
+            this.wait[name] = [];
 
-            if(info.ctor.parent)
-                obj.ast = {extend: [{data: info.ctor.parent.name}]};
+            if(info.ctor.parent){
+                var parentName = info.ctor.parent.name;
+                obj.ast = { extend: [{ data: parentName}] };
+                obj.__extend(parentName, this.world[parentName]);
+                this.addDependency(name, parentName)
+            }
 
             if(props)
                 for( i in props){
@@ -651,7 +664,7 @@ module.exports = (function () {
                 }
             }
 
-            this.wait[name] = [];
+
 
             /*if(obj.ast.extend)
                 obj.ast.extend
@@ -710,11 +723,14 @@ module.exports = (function () {
                 debugger
             }
             if(info.type === 'FUNCTION'){
-                return buildFunction.call(this, item, obj, whos, sm);
+                var transform = new FunctionTransformer(item, obj, whos, this);
+                return transform.transform();//buildFunction.call(this, item, obj, whos, sm);
             }
             if( info.type === 'Function'){
                 //item.item._matchers.func({tokens: item.item.value,matched: item.item, item: item})
-                return buildFunction.call(this, item.ast.value, obj, whos, sm);
+                var transform = new FunctionTransformer(item.ast.value, obj, whos, this);
+
+                return transform.transform();//buildFunction.call(this, item.ast.value, obj, whos, sm);
             }
             if(info.type === 'PIPE'){
                 return 'function(){'+info.data+'}';

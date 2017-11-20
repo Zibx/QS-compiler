@@ -12,55 +12,12 @@ module.exports = (function () {
     var VariableExtractor = require('../JS/VariableExtractor'),
         ASTtransformer = require('../JS/ASTtransformer'),
         tools = require('./tools');
+
+
     var getName = function (el) {
         return el.name;
     };
     var transformer = {
-        _functionTransform: function (fn, definedVars) {
-            var vars = VariableExtractor.parse(fn),
-                counter = 1,
-                _self = this, i,
-                undefinedVars = vars.getFullUnDefined(),
-
-                intermediateVars = {},
-                wereTransforms = false;
-
-            definedVars = definedVars || {};
-
-            for (i in definedVars)
-                undefinedVars[i] = null;
-
-            fn = new ASTtransformer().transform(vars.getAST(), undefinedVars, {
-                escodegen: { format: { compact: true } },
-                variableTransformer: function (node, stack) {
-                    wereTransforms = true;
-
-                    var crafted = ASTtransformer.craft.js(node),
-                        sub, id = 'var' + (counter++);
-
-                    //console.log('! ', crafted, node.type)
-                    if (node.type === 'MemberExpression') {
-                        var subDefinedVars = Object.create(definedVars),
-                            deepestVar = stack[stack.length - 1].name;
-                        subDefinedVars[deepestVar] = true;
-
-
-                        //console.log('^^$ ')
-                        sub = _self._functionTransform(ASTtransformer.craft.js(node), subDefinedVars, true);
-                        //console.log('^^ '+sub)
-                        intermediateVars[id] = sub;
-                        typeof sub !== 'string' && (sub[deepestVar] = deepestVar);
-                    } else {
-                        intermediateVars[id] = ASTtransformer.craft.js(node);
-                    }
-
-                    return ASTtransformer.craft.Identifier(id);
-                }
-            });
-            intermediateVars[' fn '] = fn;
-            //console.log(intermediateVars);
-            return intermediateVars;//wereTransforms?intermediateVars:fn;
-        },
         functionTransform: function (fnObj, cls, child) {
             var meta = cls.metadata;
             var _self = this;
@@ -101,6 +58,7 @@ module.exports = (function () {
                     } else {
                         if(what === void 0) {
                             who = ASTtransformer.craft.Identifier(firstToken.name);
+                            _self.addDependency(cls, firstToken.name);
                             // TODO: add dependency firstToken.class
 
                             skipFirst = true;
@@ -303,5 +261,20 @@ module.exports = (function () {
         return body;
         
     };
-    return functionTransformer;
+    var FunctionTransformer = function(fn, cls, instance, compiler){
+        this.fn = fn;
+        this.cls = cls;
+        this.instance = instance;
+        this.compiler = compiler;
+
+    };
+    FunctionTransformer.prototype = {
+        transform: function(){
+            var fn = this.fn;
+            var body = transformer.functionTransform.call(
+                this.compiler, {fn: fn.value.body, args: fn.value.arguments}, this.cls, this.instance);
+            return body;
+        }
+    };
+    return FunctionTransformer;//FunctionTransformer;//functionTransformer;
 })();

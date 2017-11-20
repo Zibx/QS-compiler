@@ -29,7 +29,7 @@ module.exports = (function () {
         });
         Object.assign(this, cfg);
 
-
+        this.namespace = this.namespace || null;
     };
     ClassMetadata.prototype = {
         public: null,
@@ -52,6 +52,9 @@ module.exports = (function () {
         ast: null,
         extend: function(info){
             var name = info.getName();
+            this.__extend(name, info);
+        },
+        __extend: function(name, info){
             if(!(name in this._extend)){
 
                 this._extend[name] = info;
@@ -77,6 +80,7 @@ module.exports = (function () {
             return this;
         },
         setNameSpace: function(ns){
+            ns = ns || null;
             this.namespace = ns;
             this.addTag('ns', ns);
             return this;

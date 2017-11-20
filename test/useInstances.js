@@ -17,7 +17,7 @@ describe('compile passing of constructor', function() {
         var main = result.ast.main;
         it('should create template and pass it\'s constructor to ContainerComponent', function(){
             assert.equal(main.values.c1.itemTemplate._val, 'T');
-            assert.equal(result.js.indexOf('"inline.T"')>0, true);
+            assert.include(result.js, '"inline.T"');
             assert.equal(result.js.indexOf('T,')>0, true);
         });
     });

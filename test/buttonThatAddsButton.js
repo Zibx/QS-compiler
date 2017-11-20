@@ -19,10 +19,16 @@ describe('new Button and Slider', function() {
             console.log(result.js)
             var main = result.ast.main;
 
-            assert.include(
-                result.js, 'new Button({ value: \'sub\' })'
-                //// Button\(\s*{\s*value:\s['\w]+\s*}\)/
+            assert.match(
+                result.js, /new\s*Button\s*\(\s*{\s*['"\s]*value['"\s]*:\s*["'\w]+\s*}\s*\)/
             );
+            assert.match(
+                result.js, /new\s*Slider\s*\(\s*{\s*/
+            );
+
+            assert.include(result.js, 'UI.Controls.Button');
+            assert.include(result.js, 'UI.Controls.Slider');
+
             cb()
         });
     });

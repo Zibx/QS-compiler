@@ -124,8 +124,13 @@ module.exports = (function () {
                         return JSON.stringify(name)
                     }).join(', ') + ', function(');
 
-                source.push('\t' + varNames.join(',\t\n') + '\n){');
+                source.push('\t' + varNames.join(',\n\t') + '\n){');
                 source.push('"use strict";');
+
+
+                if(obj.privatesFlag){
+                    source.push('\tvar _private = Symbol();debugger;');
+                }
 
                 return source;
             };
@@ -135,6 +140,7 @@ module.exports = (function () {
                 '.extend(\''+ ns +'\', '+'\'' + obj.name+'\', {');
 */
 
+
             source.push('return ' + baseClassName +
                 '.extend(\'' + ns + '\', \'' + obj.getName() + '\', {');
 
@@ -143,7 +149,7 @@ module.exports = (function () {
             //console.log('REQUIRES: '+requires.join('\n'));
 
             ctor.push('ctor: function(){');
-            ctor.push('var _self = this;');
+            ctor.push('%PRIVATEVARS%');
             var privateDefined = false;
             var checkDefinePrivates = function(){
                 if(!privateDefined){
@@ -510,7 +516,15 @@ module.exports = (function () {
                     props.push( i + ': {}' );
                 }
             }
-            ctor = ctor.join('\n');
+            var privateVars = ['var _self = this;'];
+            console.log('privatesFlag', obj.privatesFlag)
+            if(obj.privatesFlag){
+
+                privateVars.push('var __private = this[_private] = new QObject();');
+                this.addDependency(obj, 'QObject');
+            }
+
+            ctor = ctor.join('\n').replace('%PRIVATEVARS%', privateVars.join('\n')+'\n');
             props = '_prop: {\n'+ props.join(',\n') +'\n}\n';
 
 //console.log('/////', inlines)
@@ -617,7 +631,9 @@ module.exports = (function () {
                             vals[propName] = propValue;// + sm(prop.item.semiToken);
                         }else {
                             var pipePath = path.concat(propName);
-
+                            if(!isPublic){
+                                ctx.mainCls.privatesFlag = true;
+                            }
                             piped.push(
                                 (isPublic?'this': '__private')+'.set(' +
                                 sm(prop.ast.class) +
@@ -645,7 +661,7 @@ module.exports = (function () {
                     eventSubs.push((isPublic?'this': '__private')+'.get(' +
                         JSON.stringify(path) + ').on('+ JSON.stringify(evtName) +','+
                             propValue +
-                        + ')');
+                        ')');
                 }
             }
 
@@ -678,8 +694,7 @@ module.exports = (function () {
             if(isPublic) {
                 return (_tinyPadLeft+ 'this.set(\'' + obj.getName() + '\', '+ stringData +')')
             } else {
-                //checkDefinePrivates();
-
+                ctx.mainCls.privatesFlag = true;
                 return (_tinyPadLeft+ '__private.set(\'' + obj.getName() + '\', '+ stringData +')')
             }
 
