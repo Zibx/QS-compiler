@@ -335,70 +335,7 @@ module.exports = (function () {
                 return true;
         return false;
     };
-    /*
-    var get = function(){
 
-    };
-    var extract = function(ast){
-        //debugger;
-        var i, prop, propClass, item, itemClass;
-
-        var metadata = {};
-
-        var info = {
-            require: {},
-            exports: {}
-        };
-
-        for(i in ast.public) {
-            prop = ast.public[i];
-            propClass = prop.class;
-            info.exports[i] = prop;
-            //(info.require[propClass.data] || (info.require[propClass.data] = [])).push(prop);
-        }
-
-        info.exports[ast.name.data] = ast.name;
-        var localVars = {};
-        for(i in ast.items) {
-            item = ast.items[i];
-            itemClass = item.class;
-            //info.exports[i] = prop;
-            (info.require[itemClass.data] || (info.require[itemClass.data] = [])).push(item);
-            // TODO items public props to exports
-            if(item.name)
-                localVars[item.name.data] = item.name;
-        }
-        ast.extend.forEach(function(item){
-            (info.require[item.data] || (info.require[item.data] = [])).push(item);
-        });
-
-
-
-        for( i in ast.events ){
-            ast.events[i].forEach(function(event){
-                if(event.value.type === 'FUNCTION'){
-                    var vars = event.value.body.vars;
-
-                    for(var j in vars) {
-                        !localVars[j] && (info.require[j] || (info.require[j] = [])).push(vars[j]);
-                    }
-                }
-
-
-                // TODO substract event body variables from locals.
-                // otherwise - store as unknown required
-            });
-        }
-
-        if(info.exports.value === void 0){
-            info.exports.value = {};
-        }
-        //console.log(ast.unclassified[0].tokens);
-        //console.log(ast.events.endEvt[0].value);
-        return info;
-    };
-    //return {extract: extract, get: get};
-*/
     var tokenizer = require('../Tokenizer'),
         lexer = require('../Preprocess'),
         fs = require('fs'),
@@ -853,9 +790,6 @@ module.exports = (function () {
                     // if deps are resolved - try collect information about props\children
 
 
-                    //console.log(internals)
-                    /*delete mixed.instances;
-                    delete mixed.instances;*/
                     mixed.instances = {};
                     mixed.variables = {};
                     mixed.values = {};
@@ -878,11 +812,6 @@ module.exports = (function () {
                         return false;
                     }
 
-                    /*this.applyAST(mixed.public, mixed.public, {defined: name});
-                    this.applyAST(mixed.private, mixed.private, {defined: name});
-
-                    this.applyAST(mixed.public, info.ast.public, {defined: name});
-                    this.applyAST(mixed.private, info.ast.private, {defined: name});*/
                     info.isInternalsGenerated = true;
                 }
                 // TODO if(no other deps)
@@ -1179,86 +1108,11 @@ module.exports = (function () {
                         }
 
                         cls.addItem(typeof objectName === 'string' ? objectName : objectName.data, childItem); // TODO check if condition is needed
-/*
-                        if(item.value && item.value.length){
-
-                            var childObjectName = childItem.name;
-
-                            if(!(childObjectName in cls.values))
-                                cls.values[childObjectName] = {};
-
-                            prop = this.callMethod('__isProperty', childItem, 'value');
-                            //TODO Property!
-
-                            var valueDataType = this.world[item.class.getValue()].getPublic('value').class;
-                            if(!valueDataType){
-                                console.warn(item.class.getValue() + ' has no value property, but you try to set it to '+ item.value[0])
-                                valueDataType = this.world.Variant;
-                            }
-                            //.class;
-                            var value = new Property({
-                                class: valueDataType,
-                                ast: item,
-                                name: path.concat('value'),
-                                value: item.value
-                            });
-                            cls.addValue(childObjectName, 'value', value);
-
-                        }else if(item.value){
-                            childItem.value = item.value;
-                        }
-
-                        if(item.cls && item.cls.length){
-                            var childObjectName = childItem.name;
-
-                            if(!(childObjectName in cls.values))
-                                cls.values[childObjectName] = {};
-
-                            cls.addValue(childObjectName, searchingFor+'.cls', val = new Property({
-                                class: this.world.String,
-                                name: path.concat('cls'),
-                                ast: Object.assign(Object.create(item),{value: item.cls}), //was item
-                                value: item.cls
-                            }));
-                        }*/
-
-                        //if(item.isPublic)
-                        /*
-                                                for(var propName in item.private){
-                                                    cls.private[propName] = item.private[propName];
-                                                }
-                                                for(var propName in item.public){
-                                                    cls.public[propName] = item.public[propName];
-                                                }
-
-                                                for(var eventName in item.events){
-
-                                                    item.events[eventName].forEach(function (event) {
-
-                                                        if(!('events' in cls)){
-                                                            cls.events = {};
-                                                        }
-                                                        if(!(childItem.name in cls.events))
-                                                            cls.events[childItem.name] = {};
-
-                                                        var name = event.name.data;
-
-                                                        (cls.events[childItem.name][name] ||
-                                                        (cls.events[childItem.name][name] = []))
-                                                            .push(event.value);
-
-                                                    });
-
-
-                                                }*/
-
-
 
                     }
 
 
                 }
-                //obj.items = internals;
 
             }
         }
