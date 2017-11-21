@@ -526,6 +526,7 @@ module.exports = (function () {
         });
 
     };
+
     Compiler.prototype = {
         _primitives: primitives,
         world: {},// known metadata
@@ -553,7 +554,7 @@ module.exports = (function () {
                 return tagVal[0].value;
         },
 
-        addDependency: function(who, item){
+        addDependency: function(who, item, cb){
             if(who instanceof ClassMetadata){
                 who = who.getName();
             }
@@ -577,8 +578,11 @@ module.exports = (function () {
             }
             if(_world[what] === void 0 || !_world[what].ready) {
                 (waitingFor[what] || (waitingFor[what] = [])).push(who);
+                typeof cb === 'function' && waitingFor[what].push(cb);
                 if(wait.indexOf(what) === -1)
                     wait.push(what);
+            }else{
+                typeof cb === 'function' && cb();
             }
 
             (info.require[what] || (info.require[what] = [])).push(item);
@@ -639,8 +643,11 @@ module.exports = (function () {
             if(info.ctor.parent){
                 var parentName = info.ctor.parent.name;
                 obj.ast = { extend: [{ data: parentName}] };
-                obj.__extend(parentName, this.world[parentName]);
-                this.addDependency(name, parentName)
+                var _self = this;
+                this.addDependency(name, parentName, function(){
+                    obj.__extend(parentName, _self.world[parentName]);
+                });
+
             }
 
             if(props)
@@ -796,6 +803,8 @@ module.exports = (function () {
                         obj.require[name] = [];
                     }
                     obj.require[name].push(item.ast);
+                    //obj.re
+                    this.addDependency(obj, name);
                     return name;
                 }
                 var error = false;
@@ -945,19 +954,27 @@ module.exports = (function () {
         },
         loaded: function(name){
             var i, _i, waitingForList = this.waitingFor[name], waitList,
+                waitingItem, callbacks = [],
                 j;
             if(waitingForList){
                 for(i = 0, _i = waitingForList.length; i < _i; i++){
                     // remove class from wait list
-                    waitList = this.wait[waitingForList[i]];
-                    for(j = waitList.length; j;)
-                        if(waitList[--j] === name)
-                            waitList.splice(j,1);
-                    if(waitList.length === 0)
-                        this.tryInspect(waitingForList[i]);
+                    waitingItem = waitingForList[i];
+                    if(typeof waitingItem === 'function'){
+                        callbacks.push(waitingItem);
+                    }else{
+                        waitList = this.wait[waitingItem];
+                        for( j = waitList.length; j; )
+                            if( waitList[--j] === name )
+                                waitList.splice( j, 1 );
+                        if( waitList.length === 0 )
+                            this.tryInspect( waitingItem );
+                    }
                 }
                 delete this.waitingFor[name];
             }
+            for( i = 0, _i = callbacks.length; i < _i; i++)
+                callbacks[i].call(this.world[name]);
         },
         isInstanceOf: function (who, whosInstance) {
             if(who.data)
@@ -1247,6 +1264,7 @@ module.exports = (function () {
         }
 
     };
+
     Compiler.Property = Property;
     Compiler.InstanceMetadata = InstanceMetadata;
     Compiler.ClassMetadata = ClassMetadata;

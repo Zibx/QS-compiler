@@ -4,22 +4,21 @@
  * *
  */
 ;// QUOKKA 2017
-// By zibx on 2/7/17.
+// By zibx on 11/21/17.
 
-'use strict';
 var assert = require('chai').assert;
-    fs = require('fs');
-var fileName = 'billValidator';
+fs = require('fs');
+var fileName = 'CollectionLookingToCollection';
 var common = require('./toolchain/common'),
     compile = common.compile, compact = common.compact;
-describe('Compile '+ fileName, function() {
+describe('Compile '+ fileName,  function() {
 
     compile('test/qs/'+fileName+'.qs', function(result){
 
-
-        it('extract', function () {
-
-            fs.writeFileSync('test/generate/'+ fileName +'.js', result.js);
+        console.log(result.js)
+        it('should link by name', function () {
+            assert.equal(result.ast.main.values.c2.dataSource._val, '22')
+            //fs.writeFileSync('test/generate/'+ fileName +'.js', result.js);
 
             //console.log(compiler.world.main)
 
@@ -27,4 +26,3 @@ describe('Compile '+ fileName, function() {
         });
     })
 });
-

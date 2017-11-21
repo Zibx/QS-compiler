@@ -129,7 +129,7 @@ module.exports = (function () {
 
 
                 if(obj.privatesFlag){
-                    source.push('\tvar _private = Symbol();debugger;');
+                    source.push('\tvar _private = Symbol();');
                 }
 
                 return source;

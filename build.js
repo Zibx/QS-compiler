@@ -152,7 +152,7 @@ module.exports = (function () {
                     var parsed = path.parse(filePath);
                     if(parsed.ext !== '.js') {
                         if(parsed.ext === '.qs') {
-                            qsList.push({fileName: filePath, data: fs.readFileSync(filePath).toString('utf-8')});1
+                            qsList.push({fileName: filePath, data: fs.readFileSync(filePath).toString('utf-8')});
 
                         }
                         return;
@@ -237,7 +237,7 @@ module.exports = (function () {
                         }catch(e){
                             throw new Error('Error matching `' + fileName + '`')
                         }
-                    }
+                       }
 
 
                     if(matched.length){
@@ -292,7 +292,7 @@ module.exports = (function () {
                 ns = nsTokens.join('.');
             }
 
-            compiler.world[name].addTag('ns', ns);
+            compiler.world[name].setNameSpace(ns);
         });
 
         if(!config.main){

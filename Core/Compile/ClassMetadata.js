@@ -208,5 +208,14 @@ module.exports = (function () {
             }
         }
     };
+/*    Object.defineProperty(ClassMetadata.prototype, 'namespace', {
+        set: function(val){
+            this.__namespace = val;
+            debugger;
+        },
+        get: function(val){
+            return this.__namespace;
+        }
+    })*/
     return ClassMetadata;
 })();

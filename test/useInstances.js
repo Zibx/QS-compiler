@@ -13,12 +13,19 @@ var common = require('./toolchain/common'),
     compactCode = common.compactCode;
 
 describe('compile passing of constructor', function() {
-    compile('test/qs/useInstances.qs', {newWay: true, sourceMap: false}, function (result) {
+    compile('test/qs/useInstances.qs', {newWay: true, sourceMap: false, ns: 'inline'}, function (result) {
         var main = result.ast.main;
-        it('should create template and pass it\'s constructor to ContainerComponent', function(){
+        console.log(result.js);
+        it('should require template var', function(){
+            assert.include(result.js, '\tT,');
+        });
+        it('should pass constructor to ContainerComponent as a parameter', function(){
             assert.equal(main.values.c1.itemTemplate._val, 'T');
+        });
+        it('should require template full name', function(){
+
             assert.include(result.js, '"inline.T"');
-            assert.equal(result.js.indexOf('T,')>0, true);
+
         });
     });
 });
