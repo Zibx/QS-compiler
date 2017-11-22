@@ -17,12 +17,7 @@ describe('Compile '+ fileName,  function() {
 
         console.log(result.js)
         it('should link by name', function () {
-            assert.equal(result.ast.main.values.c2.dataSource._val, '22')
-            //fs.writeFileSync('test/generate/'+ fileName +'.js', result.js);
-
-            //console.log(compiler.world.main)
-
-            //console.log(JSON.stringify(compiler.world.main.require,null,2))
+            assert.equal(result.ast.main.values.c2.dataSource._val, '__private.ref("c1")')
         });
     })
 });
