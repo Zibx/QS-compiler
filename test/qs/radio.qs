@@ -12,7 +12,7 @@ def Page main
       group: animal
         enabled: {{rb}}
       displayValue: медведь
-    Label l1: {{rb}}
+    Label l1: {{animal}}
 
     DATA data: """a"""
       a: '1'

@@ -18,6 +18,8 @@ module.exports = (function(){
             }
         }
         this.isPublic = !!cfg.isPublic;
+        if(cfg.name)
+            this.setName(cfg.name);
     };
 
     InstanceMetadata.prototype = new ClassMetadata;

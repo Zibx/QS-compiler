@@ -144,36 +144,49 @@ module.exports = (function () {
             var piped = [];
             var eventSubs = [];
             var valuesCollector = {};
-            for(var where in obj.instances) {
-                obj.instances[where].forEach(function (what) {
-                    if (what.type === 'child') {
-                        var gathererCtx = {
-                            piped: piped, mainCls: obj, sm: sm, base: what, eventSubs: eventSubs
-                        };
-                        ctor.push(_self.callMethod('valueGatherer', what, gathererCtx))
-                    }else if(what.type === 'inline'){
-                        var trailingComment = [], tag;
-                        if(what.ast.tags &&
-                            (tag = what.ast.tags.description || what.ast.tags.info)){
-                            trailingComment.push(_self.extractFirstTag(tag),'');
-                        }
+            var create = [];
 
-                        what.value.arguments.forEach(function(item){
-                            trailingComment.push('@param {'+item.type+'} '+item.name);
-                        });
-                        trailingComment.push('@returns {'+what.value.returnType+'}');
-                        inlines.push(
-                            (trailingComment.length > 0 ? '\n/**\n\t * '+trailingComment.join('\n\t * ')+'\n\t */': '')+
-                            what.name +': function('+
-                            what.value.arguments.map(function(item){
+
+            var valueGatherer = function (what) {
+                if (what.type === 'child') {
+                    var gathererCtx = {
+                        piped: piped, mainCls: obj, sm: sm, base: what, eventSubs: eventSubs, create: create, valueGatherer: valueGatherer
+                    };
+                    ctor.push(_self.callMethod('valueGatherer', what, gathererCtx))
+                }else if(what.type === 'inline'){
+                    var trailingComment = [], tag;
+                    if(what.ast.tags &&
+                        (tag = what.ast.tags.description || what.ast.tags.info)){
+                        trailingComment.push(_self.extractFirstTag(tag),'');
+                    }
+
+                    what.value.arguments.forEach(function(item){
+                        trailingComment.push('@param {'+item.type+'} '+item.name);
+                    });
+                    trailingComment.push('@returns {'+what.value.returnType+'}');
+                    inlines.push(
+                        (trailingComment.length > 0 ? '\n/**\n\t * '+trailingComment.join('\n\t * ')+'\n\t */': '')+
+                        what.name +': function('+
+                        what.value.arguments.map(function(item){
                                 return item.name;
                             })
-                                .join(', ')+
-                            '){'+ what.value.body.data +'}');
-                    }
-                });
+                            .join(', ')+
+                        '){'+ what.value.body.data +'}');
+                }
+            };
 
+            var parts = {gathered: [], precreate: []}, tmpCtor = ctor;
+            ctor = parts.gathered;
+            for(var where in obj.instances) {
+                obj.instances[where].forEach(valueGatherer);
             }
+
+            obj.state = 'inlineCreate';
+            ctor = parts.precreate;
+            create.forEach(valueGatherer);
+            ctor = tmpCtor.concat(parts.precreate).concat(parts.gathered);
+
+
             if(valuesCollector['this']){
                 var vals = valuesCollector['this'],
                     data = [],
@@ -341,6 +354,8 @@ module.exports = (function () {
             return result;
         },
         valueGatherer: function(obj, ctx, path){
+            if(obj.inlineCreate && ctx.mainCls.state !== 'inlineCreate')
+                return;
             var piped = ctx.piped,
                 eventSubs = ctx.eventSubs;
             var propName, values = obj.values, prop;
@@ -355,12 +370,61 @@ module.exports = (function () {
             for(propName in values){
                 prop = values[propName];
 
-                if(prop instanceof Property){
 
+                // get information about property from class where it is defined
+                var propInObject = obj.findProperty(propName);
+
+                if(propInObject){
+                    if( propInObject.getTag( 'create' ) ){
+                        if(prop instanceof Property){
+                            propValue = prop.getValue();
+                        }else{
+                            propValue = prop.values.value.getValue();
+                        }
+                        if(propValue.length && propValue[0] && propValue[0].data){
+                            var propValueRaw = propValue[0].data;
+
+
+                            //propValue = prop.values.value this.getPropertyValue(prop.values.value, ctx.mainCls, obj, sm);
+
+
+                            if( !ctx.mainCls.findProperty( propValueRaw ) ){
+                                var createClsName = propInObject.class.getName();
+                                this.addDependency(ctx.mainCls, createClsName)
+                                var instance = new InstanceMetadata({
+                                    class: this.world[createClsName],
+                                    ast: prop.ast,
+                                    isPublic: false,
+                                    //value: item.value,
+                                    name: propValueRaw,
+                                    values: prop.values,
+                                    inlineCreate: true
+                                });
+                                delete prop.values.value
+                                ctx.mainCls.addItem( '___this___', instance );
+                                ctx.create.push(instance);
+
+
+                            }
+                            prop = new Property( {
+                                name: [propName],
+                                ast: prop.ast,
+                                class: obj.findProperty( propName ),
+                                value: propValue
+                            } );
+                        }else{
+                            console.log('no value in property that is marked as creating inline')
+                        }
+                    }
+                }
+
+                if(prop instanceof Property){
                     var resultString;
 
                     var propValue = prop.getValue();
                     var propValue = this.getPropertyValue(prop, ctx.mainCls, obj, sm);
+
+
 
                     if(propValue !== void 0) {
                         if(typeof propValue.indexOf !== 'function'){
@@ -394,8 +458,9 @@ module.exports = (function () {
                     }
 
                 }else if(prop instanceof InstanceMetadata){
-                    vals[propName] = this.callMethod('valueGatherer', prop, ctx, path.concat(propName))
+                    vals[propName] = this.callMethod( 'valueGatherer', prop, ctx, path.concat( propName ) )
                 }
+
             }
 
             for(var evtName in obj.events){
