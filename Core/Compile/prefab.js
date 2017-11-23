@@ -216,7 +216,7 @@ module.exports = (function () {
                             childGetter,
                             parent,
                             parentGetter;
-                        console.log(info.class.getName() +' is '+(fromQObject?'':'not ')+'instance of QObject ');
+                        console.log(info.getName() +'<'+info.class.getName() +'> is '+(fromQObject?'':'not ')+'instance of QObject ');
                         if(fromQObject) {
                             if(what.isPublic){
                                 childGetter = 'this.get(\''+ what.name +'\')';

@@ -110,7 +110,7 @@ module.exports = (function(){
                 isPublic,
                 currentPropHolder, child, newItem;
 
-            if(matched = matchers.prop(item)){
+            if((matched = matchers.prop(item)).isNotError()){
                 newItem = new AST_Property(matched);
                 if(!parent|| !parent.items)
                     return;
@@ -131,17 +131,17 @@ module.exports = (function(){
                 }else{
 
                 }
-            }else if(matched = match('EVENT', item)){
+            }else if((matched = match('EVENT', item)).isNotError()){
                 newItem = new AST_Event(matched);
                 parent.addEvent(matched.name.data, newItem);
-            }else if(matched = match('METADATA', item)){
+            }else if((matched = match('METADATA', item)).isNotError()){
                 // TODO: not parent, but next folowing prop
 
                 storage.addTag(matched.name.data, matched, item.children);
                 storage.anyTags = true;
             }
 
-            if(!matched){
+            if(!matched.isNotError()){
                 // RAW DATA. component may have custom syntax
                 parent.unclassified.push(item);
             }else{
@@ -180,7 +180,7 @@ module.exports = (function(){
             for( i = 0, _i = children.length; i < _i; i++ ){
                 child = children[i];
 
-                if(definition = matchers.define(child)){
+                if((definition = matchers.define(child)).isNotError()){
                     current = (new AST_Define(definition))
                         .addTags(tags.tags);
 
@@ -193,10 +193,13 @@ module.exports = (function(){
                     }
 
                     tags = new AST_Define({tagStore: true});
-                }else if(matched = matchers.metadata(child)){
+                }else if((matched = matchers.metadata(child)).isNotError()){
                     tags.addTag(matched.name.data, matched, child.children);
                 }else{
-                    throw new Error('can not match '+child.pointer)
+                    var rule = match.getRule(definition.list[0].rules[0]),
+                        ruleText = rule.type +'('+ Object.keys(rule.data).join('|')+')';
+
+                    throw new Error('can not match '+ruleText+' in '+ definition.list[0].token.type +'('+ definition.list[0].token.data+') ' +child.pointer)
                 }
             }
             tree = tree.children[0];

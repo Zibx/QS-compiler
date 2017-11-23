@@ -516,8 +516,12 @@ module.exports = (function () {
             if(_world[what] === void 0 || !_world[what].ready) {
                 (waitingFor[what] || (waitingFor[what] = [])).push(who);
                 typeof cb === 'function' && waitingFor[what].push(cb);
-                if(wait.indexOf(what) === -1)
-                    wait.push(what);
+                if(wait.indexOf(what) === -1){
+                    wait.push( what );
+
+                    // deps that are not in world yet
+                    //this.searchDeps && this.searchDeps( [what] );
+                }
             }else{
                 typeof cb === 'function' && cb();
             }
@@ -530,8 +534,7 @@ module.exports = (function () {
         add: function(ast, cfg){
             var info = ast instanceof ClassMetadata ? ast : new ClassMetadata({
                     name: ast.name,
-                    ast: ast,
-                    namespace: ast.namespace
+                    ast: ast
                 });
 
             info.setNameSpace(ast.namespace || ast.getTag('ns'))
@@ -556,6 +559,15 @@ module.exports = (function () {
                 }else{
                     ast.extend
                         .forEach( this.addDependency.bind( this, name ) );
+
+                    var _self = this;
+                    var notInWorld = this.wait[name].filter( function( name ){
+                        return !(name in _self._world);
+                    } );
+                    notInWorld.length && this.searchDeps && this.searchDeps( notInWorld );
+
+                    // deps that are not in world yet
+                    this.searchDeps && this.searchDeps( notInWorld );
                 }
             }
             this.tryInspect(name);
@@ -662,6 +674,9 @@ module.exports = (function () {
                 ohNoItSPipe = false,
                 result;
 
+            if(info === void 0){
+                info = item.getValue()
+            }
             //global.console.log(item.name+' <'+property.type+'>')
             if(info.type === 'DEEP'){
                 debugger
@@ -861,7 +876,7 @@ module.exports = (function () {
                 this.define(name);
 
             }else{
-                //console.log(this.wait[name])
+                console.log(this.wait[name])
             }
 
             if(this._world[name].ready){
