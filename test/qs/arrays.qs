@@ -9,3 +9,7 @@ def Page main
 
 	TileStripSmall ts3
 		itemSource: {{[a.apps[0],a.apps[1]]}}
+
+	DATA d0
+		a: 1
+			b: 2

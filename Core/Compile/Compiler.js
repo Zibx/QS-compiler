@@ -1067,15 +1067,25 @@ module.exports = (function () {
                             } ) );
                         }
                         if(item.items.length){
-
+                            var itemClass;
+                            if(propInMeta instanceof InstanceMetadata){
+                                itemClass = propInMeta.class;
+                            }else{
+                                if(propInMeta.getTag('anything')){
+                                    itemClass = this.world.Variant;
+                                }else{
+                                    throw new Error('Item has')
+                                }
+                            }
 
                             var childItem = new InstanceMetadata({
-                                class: propInMeta.class,
+                                class: itemClass,
                                 ast: item,
                                 name: path.concat(searchingFor),
                                 isPublic: item.isPublic,
                                 value: item.value
                             });
+
 
 
                             obj.addValue( searchingFor, childItem)
