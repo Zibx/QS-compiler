@@ -190,6 +190,14 @@ module.exports = (function () {
 
             this.values[whos][name].push(value);*/
         },
+        getValue: function(name){
+            if(name in this.values){
+                var val = this.values[name];
+                return val.getValue();
+            }else{
+                return void 0;
+            }
+        },
         addItem: function (objectName, item) {
             this.items.push(item);
 

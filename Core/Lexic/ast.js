@@ -33,7 +33,7 @@ module.exports = (function(){
             unclassified: []
         });
 
-        cfg && Z.apply(this, cfg);
+        cfg && Z.applyBut(this, cfg, ['getValue']);
     };
     AST_Define.prototype = {
         _matchers: matchers,
@@ -100,6 +100,9 @@ module.exports = (function(){
     AST_Event.prototype = AST_Define.prototype;
 
     var AST_Metadata = function (cfg) {
+        for(var i in cfg)
+            if(typeof cfg[i] === 'function')
+                debugger;
         AST_Define.call(this, cfg);
     };
     AST_Metadata.prototype = AST_Define.prototype;
@@ -137,7 +140,7 @@ module.exports = (function(){
             }else if((matched = match('METADATA', item)).isNotError()){
                 // TODO: not parent, but next folowing prop
 
-                storage.addTag(matched.name.data, matched, item.children);
+                storage.addTag(matched.name.getValue(), matched, item.children);
                 storage.anyTags = true;
             }
 
@@ -189,7 +192,8 @@ module.exports = (function(){
 
                     if(inner){
                         var tagStore = new AST_Define({tagStore: true});
-                        inner.forEach(subMatcher(current, tagStore));
+                        inner.map(subMatcher(current, tagStore));
+
                     }
 
                     tags = new AST_Define({tagStore: true});

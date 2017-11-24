@@ -53,7 +53,7 @@ module.exports = (function () {
 
         return tokens;
 
-    };
+        };
 
     preprocess.quotesAndLongComments = quotesAndLongComments;
     preprocess.shortCommentsAndURLs = shortCommentsAndURLs;

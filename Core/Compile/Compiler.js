@@ -518,9 +518,6 @@ module.exports = (function () {
                 typeof cb === 'function' && waitingFor[what].push(cb);
                 if(wait.indexOf(what) === -1){
                     wait.push( what );
-
-                    // deps that are not in world yet
-                    //this.searchDeps && this.searchDeps( [what] );
                 }
             }else{
                 typeof cb === 'function' && cb();
@@ -674,9 +671,6 @@ module.exports = (function () {
                 ohNoItSPipe = false,
                 result;
 
-            if(info === void 0){
-                info = item.getValue()
-            }
             //global.console.log(item.name+' <'+property.type+'>')
             if(info.type === 'DEEP'){
                 debugger
@@ -876,7 +870,7 @@ module.exports = (function () {
                 this.define(name);
 
             }else{
-                console.log(this.wait[name])
+                //console.log(this.wait[name])
             }
 
             if(this._world[name].ready){

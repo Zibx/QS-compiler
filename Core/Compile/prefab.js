@@ -379,9 +379,9 @@ module.exports = (function () {
                         if(prop instanceof Property){
                             propValue = prop.getValue();
                         }else{
-                            propValue = prop.values.value.getValue();
+                            propValue = prop.getValue('value');// values.value.getValue();
                         }
-                        if(propValue.length && propValue[0] && propValue[0].data){
+                        if(propValue && propValue.length && propValue[0] && propValue[0].data){
                             var propValueRaw = propValue[0].data;
 
 

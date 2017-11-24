@@ -64,22 +64,24 @@ module.exports = (function () {
             {type: 'DOT'},
             {type: 'WORD', put: 'name'},
             {type: 'OR', items: [
-                {type: 'SEMICOLON', data: ':'},
+
                 {type: '?', items: [
                     {type: 'SEMICOLON', data: ':'},
                     {type: 'ALL', put: 'value'}
-                ]}
+                ]},
+                {type: 'SEMICOLON', data: ':'}
             ]}
         ],
         'METADATA': [
             {type: 'DOG'},
             {type: 'WORD', put: 'name'},
             {type: 'OR', items: [
-                {type: 'SEMICOLON', data: ':'},
+
                 {type: '?', items: [
                     {type: 'SEMICOLON', data: ':'},
                     {type: 'ALL', put: 'value'}
-                ]}
+                ]},
+                {type: 'SEMICOLON', data: ':'}
             ]}
         ],
         'FUNCTION': [
