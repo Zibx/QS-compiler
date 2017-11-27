@@ -17,7 +17,7 @@ module.exports = (function () {
                         break;
                 }
                 if (!matched)
-                    return new match.MatchErrors(errors);
+                    return false//new match.MatchErrors(errors);
                 return cb(matched, item);
             };
         };

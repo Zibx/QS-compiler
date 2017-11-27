@@ -536,7 +536,8 @@ module.exports = (function () {
 
             info.setNameSpace(ast.namespace || ast.getTag('ns'))
 
-            var name = info.getName();
+            var name = info.getName(),
+                inspect = true;
             cfg && Object.assign(info, cfg);
             this._world[name] = info;
 
@@ -561,13 +562,16 @@ module.exports = (function () {
                     var notInWorld = this.wait[name].filter( function( name ){
                         return !(name in _self._world);
                     } );
-                    notInWorld.length && this.searchDeps && this.searchDeps( notInWorld );
+                    if(notInWorld.length){
+                        this.searchDeps && this.searchDeps( notInWorld );
+                        inspect = false;
+                    }
 
-                    // deps that are not in world yet
-                    this.searchDeps && this.searchDeps( notInWorld );
+
+
                 }
             }
-            this.tryInspect(name);
+            inspect && this.tryInspect(name);
 
         },
         addNative: function(info){
@@ -898,9 +902,19 @@ module.exports = (function () {
                 for(i = 0, _i = waitingForList.length; i < _i; i++){
                     // remove class from wait list
                     waitingItem = waitingForList[i];
-                    if(typeof waitingItem === 'function'){
-                        callbacks.push(waitingItem);
-                    }else{
+                    if( typeof waitingItem === 'function' ){
+                        callbacks.push( waitingItem );
+                    }
+                }
+
+                for( i = 0, _i = callbacks.length; i < _i; i++){
+                    callbacks[i].call( this.world[name] );
+                }
+
+                for(i = 0, _i = waitingForList.length; i < _i; i++){
+                    // remove class from wait list
+                    waitingItem = waitingForList[i];
+                    if(typeof waitingItem !== 'function'){
                         waitList = this.wait[waitingItem];
                         for( j = waitList.length; j; )
                             if( waitList[--j] === name )
@@ -911,8 +925,7 @@ module.exports = (function () {
                 }
                 delete this.waitingFor[name];
             }
-            for( i = 0, _i = callbacks.length; i < _i; i++)
-                callbacks[i].call(this.world[name]);
+
         },
         isInstanceOf: function (who, whosInstance) {
             if(who.data)

@@ -100,20 +100,19 @@ module.exports = (function(){
     AST_Event.prototype = AST_Define.prototype;
 
     var AST_Metadata = function (cfg) {
-        for(var i in cfg)
-            if(typeof cfg[i] === 'function')
-                debugger;
         AST_Define.call(this, cfg);
     };
     AST_Metadata.prototype = AST_Define.prototype;
-
+    var isNotError = function(val){
+        return val;
+    };
     var subMatcher = function(parent, storage){
         return function(item){
             var matched,
                 isPublic,
                 currentPropHolder, child, newItem;
 
-            if((matched = matchers.prop(item)).isNotError()){
+            if(isNotError(matched = matchers.prop(item))){
                 newItem = new AST_Property(matched);
                 if(!parent|| !parent.items)
                     return;
@@ -134,17 +133,17 @@ module.exports = (function(){
                 }else{
 
                 }
-            }else if((matched = match('EVENT', item)).isNotError()){
+            }else if(isNotError(matched = match('EVENT', item))){
                 newItem = new AST_Event(matched);
                 parent.addEvent(matched.name.data, newItem);
-            }else if((matched = match('METADATA', item)).isNotError()){
+            }else if(isNotError(matched = match('METADATA', item))){
                 // TODO: not parent, but next folowing prop
 
                 storage.addTag(matched.name.getValue(), matched, item.children);
                 storage.anyTags = true;
             }
 
-            if(!matched.isNotError()){
+            if(!isNotError(matched)){
                 // RAW DATA. component may have custom syntax
                 parent.unclassified.push(item);
             }else{
@@ -183,7 +182,7 @@ module.exports = (function(){
             for( i = 0, _i = children.length; i < _i; i++ ){
                 child = children[i];
 
-                if((definition = matchers.define(child)).isNotError()){
+                if(isNotError(definition = matchers.define(child))){
                     current = (new AST_Define(definition))
                         .addTags(tags.tags);
 
@@ -192,12 +191,11 @@ module.exports = (function(){
 
                     if(inner){
                         var tagStore = new AST_Define({tagStore: true});
-                        inner.map(subMatcher(current, tagStore));
-
+                        inner.forEach(subMatcher(current, tagStore));
                     }
 
                     tags = new AST_Define({tagStore: true});
-                }else if((matched = matchers.metadata(child)).isNotError()){
+                }else if(isNotError(matched = matchers.metadata(child))){
                     tags.addTag(matched.name.data, matched, child.children);
                 }else{
                     var rule = match.getRule(definition.list[0].rules[0]),

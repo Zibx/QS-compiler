@@ -159,7 +159,7 @@ module.exports = function (matchers) {
                 }
                 nextRules = [];
                 if(!rules.length)
-                    return new MatchError(lastRules, lastToken);
+                    return false;//new MatchError(lastRules, lastToken);
 
                 for(j = rules.length; j;){
                     ruleHolder = rules[--j];
@@ -284,9 +284,9 @@ module.exports = function (matchers) {
             if(out.length)
                 return new Match(type, out[0]);
             else
-                return new MatchError(lastRules, lastToken);
+                return void 0;//false;//new MatchError(lastRules, lastToken);
         }else
-            return new MatchError(lastRules, lastToken);
+            return false;//new MatchError(lastRules, lastToken);
 
     };
     match.MatchError = MatchError;

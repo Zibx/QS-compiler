@@ -12,4 +12,4 @@ def Page main
 
 	DATA d0
         a: 1
-            b: 2
+        b: 2
