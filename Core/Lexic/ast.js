@@ -33,7 +33,7 @@ module.exports = (function(){
             unclassified: []
         });
 
-        cfg && Z.apply(this, cfg);
+        cfg && Z.applyBut(this, cfg, ['getValue']);
     };
     AST_Define.prototype = {
         _matchers: matchers,
@@ -103,14 +103,16 @@ module.exports = (function(){
         AST_Define.call(this, cfg);
     };
     AST_Metadata.prototype = AST_Define.prototype;
-
+    var isNotError = function(val){
+        return val.isNotError();
+    };
     var subMatcher = function(parent, storage){
         return function(item){
             var matched,
                 isPublic,
                 currentPropHolder, child, newItem;
 
-            if(matched = matchers.prop(item)){
+            if(isNotError(matched = matchers.prop(item))){
                 newItem = new AST_Property(matched);
                 if(!parent|| !parent.items)
                     return;
@@ -131,17 +133,17 @@ module.exports = (function(){
                 }else{
 
                 }
-            }else if(matched = match('EVENT', item)){
+            }else if(isNotError(matched = match('EVENT', item))){
                 newItem = new AST_Event(matched);
                 parent.addEvent(matched.name.data, newItem);
-            }else if(matched = match('METADATA', item)){
+            }else if(isNotError(matched = match('METADATA', item))){
                 // TODO: not parent, but next folowing prop
 
-                storage.addTag(matched.name.data, matched, item.children);
+                storage.addTag(matched.name.getValue(), matched, item.children);
                 storage.anyTags = true;
             }
 
-            if(!matched){
+            if(!isNotError(matched)){
                 // RAW DATA. component may have custom syntax
                 parent.unclassified.push(item);
             }else{
@@ -180,7 +182,7 @@ module.exports = (function(){
             for( i = 0, _i = children.length; i < _i; i++ ){
                 child = children[i];
 
-                if(definition = matchers.define(child)){
+                if(isNotError(definition = matchers.define(child))){
                     current = (new AST_Define(definition))
                         .addTags(tags.tags);
 
@@ -193,10 +195,13 @@ module.exports = (function(){
                     }
 
                     tags = new AST_Define({tagStore: true});
-                }else if(matched = matchers.metadata(child)){
+                }else if(isNotError(matched = matchers.metadata(child))){
                     tags.addTag(matched.name.data, matched, child.children);
                 }else{
-                    throw new Error('can not match '+child.pointer)
+                    var rule = match.getRule(definition.list[0].rules[0]),
+                        ruleText = rule.type +'('+ Object.keys(rule.data).join('|')+')';
+
+                    throw new Error('can not match '+ruleText+' in '+ definition.list[0].token.type +'('+ definition.list[0].token.data+') ' +child.pointer)
                 }
             }
             tree = tree.children[0];

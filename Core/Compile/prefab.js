@@ -216,7 +216,7 @@ module.exports = (function () {
                             childGetter,
                             parent,
                             parentGetter;
-                        console.log(info.class.getName() +' is '+(fromQObject?'':'not ')+'instance of QObject ');
+                        console.log(info.getName() +' <'+info.class.getName() +'> is '+(fromQObject?'':'not ')+'instance of QObject ');
                         if(fromQObject) {
                             if(what.isPublic){
                                 childGetter = 'this.get(\''+ what.name +'\')';
@@ -350,10 +350,10 @@ module.exports = (function () {
                 var map = sourceMap.toString();
             }
             var result = {source: source, map: map};
-            console.log(result)
+            //console.log(result)
             return result;
         },
-        valueGatherer: function(obj, ctx, path){
+        valueGatherer: function(obj, ctx, path, deep){
             if(obj.inlineCreate && ctx.mainCls.state !== 'inlineCreate')
                 return;
             var piped = ctx.piped,
@@ -379,9 +379,9 @@ module.exports = (function () {
                         if(prop instanceof Property){
                             propValue = prop.getValue();
                         }else{
-                            propValue = prop.values.value.getValue();
+                            propValue = prop.getValue('value');// values.value.getValue();
                         }
-                        if(propValue.length && propValue[0] && propValue[0].data){
+                        if(propValue && propValue.length && propValue[0] && propValue[0].data){
                             var propValueRaw = propValue[0].data;
 
 
@@ -458,7 +458,7 @@ module.exports = (function () {
                     }
 
                 }else if(prop instanceof InstanceMetadata){
-                    vals[propName] = this.callMethod( 'valueGatherer', prop, ctx, path.concat( propName ) )
+                    vals[propName] = this.callMethod( 'valueGatherer', prop, ctx, path.concat( propName ), true )
                 }
 
             }
@@ -484,7 +484,7 @@ module.exports = (function () {
             for( i in vals){
                 data.push( _padLeft+ JSON.stringify(i) + ': '+ vals[i] );
             }
-            data.push( _padLeft+ '"#": '+JSON.stringify(path.join('.')));
+            !deep && data.push( _padLeft+ '"#": '+JSON.stringify(path.join('.')));
 
 
 
@@ -502,12 +502,15 @@ module.exports = (function () {
             });
 
             isPublic = obj.isPublic;
-
-            if(isPublic) {
-                return (_tinyPadLeft+ 'this.set(\'' + obj.getName() + '\', '+ stringData +')')
-            } else {
-                ctx.mainCls.privatesFlag = true;
-                return (_tinyPadLeft+ '__private.set(\'' + obj.getName() + '\', '+ stringData +')')
+            if(deep){
+                return stringData;
+            }else{
+                if( isPublic ){
+                    return (_tinyPadLeft + 'this.set(\'' + obj.getName() + '\', ' + stringData + ')')
+                }else{
+                    ctx.mainCls.privatesFlag = true;
+                    return (_tinyPadLeft + '__private.set(\'' + obj.getName() + '\', ' + stringData + ')')
+                }
             }
 
         },

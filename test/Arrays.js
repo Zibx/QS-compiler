@@ -14,6 +14,7 @@ var common = require('./toolchain/common'),
 describe('Arrays', function() {
     compile('test/qs/arrays.qs', function (result) {
         var main = result.ast.main;
+        console.log(result.js)
         it('respect their methods', function(){
             assert.equal(compact(main.values.ts.itemSource._val),
                 'new Pipe(__private.ref("a.apps"),function(a_apps){return a_apps.slice(3)})');

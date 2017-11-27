@@ -85,13 +85,10 @@ module.exports = (function () {
             this.addTag('ns', ns);
             return this;
         },
-        getTag: function(name, own){
+        getTags: function(name, own){
             var val = this.tags[name];
             if(val) {
-                if(val.length === 1)
-                    return val[0].value;
-                else
-                    console.log('lots of tags')
+                return val
             }
 
             if(own)
@@ -104,10 +101,16 @@ module.exports = (function () {
                 return false;
 
             for(i = 0, _i = list.length; i < _i; i++){
-                val = this._extend[list[i]].getTag(name);
+                val = this._extend[list[i]].getTags(name);
                 if(val)
                     return val;
             }
+            return false;
+        },
+        getTag: function(name, own){
+            var tags = this.getTags(name, own);
+            if(tags && tags.length)
+                return tags[0].value;
 
             return false;
         },
@@ -186,6 +189,14 @@ module.exports = (function () {
                 this.values[whos][name] = [];
 
             this.values[whos][name].push(value);*/
+        },
+        getValue: function(name){
+            if(name in this.values){
+                var val = this.values[name];
+                return val.getValue();
+            }else{
+                return void 0;
+            }
         },
         addItem: function (objectName, item) {
             this.items.push(item);

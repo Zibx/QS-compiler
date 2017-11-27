@@ -456,11 +456,21 @@ module.exports = (function () {
         this.wait = {};
         this.waitingFor = {};
         var _self = this;
+        if(cfg && cfg.searchDeps){
+            this.searchDeps = function(){
+
+            };
+        }
+
         system.forEach(function(clses, i){
             clses.forEach(function(cls){
                 _self.add(cls);
             });
         });
+
+        if(cfg && cfg.searchDeps){
+            this.searchDeps = cfg.searchDeps;
+        }
 
     };
 
@@ -516,8 +526,9 @@ module.exports = (function () {
             if(_world[what] === void 0 || !_world[what].ready) {
                 (waitingFor[what] || (waitingFor[what] = [])).push(who);
                 typeof cb === 'function' && waitingFor[what].push(cb);
-                if(wait.indexOf(what) === -1)
+                if(wait.indexOf(what) === -1){
                     wait.push(what);
+                }
             }else{
                 typeof cb === 'function' && cb();
             }
@@ -530,13 +541,13 @@ module.exports = (function () {
         add: function(ast, cfg){
             var info = ast instanceof ClassMetadata ? ast : new ClassMetadata({
                     name: ast.name,
-                    ast: ast,
-                    namespace: ast.namespace
+                    ast: ast
                 });
 
             info.setNameSpace(ast.namespace || ast.getTag('ns'))
 
-            var name = info.getName();
+            var name = info.getName(),
+                inspect = true;
             cfg && Object.assign(info, cfg);
             this._world[name] = info;
 
@@ -556,9 +567,18 @@ module.exports = (function () {
                 }else{
                     ast.extend
                         .forEach( this.addDependency.bind( this, name ) );
+
+                    var _self = this;
+                    var notInWorld = this.wait[name].filter( function( name ){
+                        return !(name in _self._world);
+                    } );
+                    if(notInWorld.length){
+                        this.searchDeps && this.searchDeps( notInWorld );
+                        inspect = false;
+                    }
                 }
             }
-            this.tryInspect(name);
+            inspect && this.tryInspect(name);
 
         },
         addNative: function(info){
@@ -856,7 +876,7 @@ module.exports = (function () {
 
             if(this.wait[name].length === 0){
                 console.combine(name, function(arr){
-                    console.log('LOADED', arr.sort().join(', '))
+                    console.log('LOADED', arr.sort().join(', '));
                 });//, this._world[name])
                 this.define(name);
 
@@ -891,7 +911,17 @@ module.exports = (function () {
                     waitingItem = waitingForList[i];
                     if(typeof waitingItem === 'function'){
                         callbacks.push(waitingItem);
-                    }else{
+                    }
+                }
+
+                for( i = 0, _i = callbacks.length; i < _i; i++){
+                    callbacks[i].call( this.world[name] );
+                }
+
+                for(i = 0, _i = waitingForList.length; i < _i; i++){
+                    // remove class from wait list
+                    waitingItem = waitingForList[i];
+                    if(typeof waitingItem !== 'function'){
                         waitList = this.wait[waitingItem];
                         for( j = waitList.length; j; )
                             if( waitList[--j] === name )
@@ -902,8 +932,7 @@ module.exports = (function () {
                 }
                 delete this.waitingFor[name];
             }
-            for( i = 0, _i = callbacks.length; i < _i; i++)
-                callbacks[i].call(this.world[name]);
+
         },
         isInstanceOf: function (who, whosInstance) {
             if(who.data)
