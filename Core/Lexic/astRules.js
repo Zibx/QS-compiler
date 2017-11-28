@@ -67,8 +67,7 @@ module.exports = (function () {
 
             {type: '?', items: [
                 {type: 'SEMICOLON', data: ':'},
-                {type: 'ALL', put: 'value'}
-                ]},
+                {type: 'ALL', put: 'value'}]},
                 {type: 'SEMICOLON', data: ':'}
             ]}
         ],
@@ -79,8 +78,7 @@ module.exports = (function () {
 
             {type: '?', items: [
                 {type: 'SEMICOLON', data: ':'},
-                {type: 'ALL', put: 'value'}
-                ]},
+                {type: 'ALL', put: 'value'}]},
                 {type: 'SEMICOLON', data: ':'}
             ]}
         ],

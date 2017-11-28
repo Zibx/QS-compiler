@@ -19,6 +19,21 @@ module.exports = (function () {
         varParts: []
     };
     var tools = {
+        pad: function(number, symbol){
+            return new Array(number+1).join(symbol||' ');
+        },
+        indent: function (number, data) {
+            if (!number)
+                return data;
+
+            var indent = (new Array(number + 1)).join('\t');
+            if (Array.isArray(data))
+                return data.map(function (line) {
+                    return indent + line;
+                });
+            else
+                return this.indent(number, data.split('\n')).join('\n');
+        },
         primitives: {
             'Number': true, 'String': true, 'Array': true, 'Boolean': true, 'Function': true
         },

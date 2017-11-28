@@ -39,7 +39,7 @@ module.exports = (function () {
 
     var tokenizer = function(text, source){
 
-        var PointerFactory = AbstractPointerFactory(source),
+        var PointerFactory = AbstractPointerFactory(source, text),
 
             i, _i, symbol, lastSymbol,
 

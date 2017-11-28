@@ -169,7 +169,7 @@ module.exports = (function(){
         }
     };
 
-    var process = function (tree) {
+    var process = function (tree, errorStorage) {
         var i, _i, children, child,
             ast = [], current, info,
             definition, inner, matched,
@@ -201,7 +201,14 @@ module.exports = (function(){
                     var rule = match.getRule(definition.list[0].rules[0]),
                         ruleText = rule.type +'('+ Object.keys(rule.data).join('|')+')';
 
-                    throw new Error('can not match '+ruleText+' in '+ definition.list[0].token.type +'('+ definition.list[0].token.data+') ' +child.pointer)
+                    errorStorage.push(child.pointer.error(
+                        'can not match '+ ruleText +' in '+ definition.list[0].token.type +
+                        '('+ definition.list[0].token.data+') ',
+
+                        Object.keys(rule.data).map(child.pointer.suggest('It looks like you mean: ', definition.list[0].token.data))
+                    ));
+
+                    //throw new Error('can not match '+ruleText+' in '+ definition.list[0].token.type +'('+ definition.list[0].token.data+') ' +child.pointer)
                 }
             }
             tree = tree.children[0];

@@ -527,7 +527,7 @@ module.exports = (function () {
                 (waitingFor[what] || (waitingFor[what] = [])).push(who);
                 typeof cb === 'function' && waitingFor[what].push(cb);
                 if(wait.indexOf(what) === -1){
-                    wait.push(what);
+                    wait.push( what );
                 }
             }else{
                 typeof cb === 'function' && cb();
@@ -909,8 +909,8 @@ module.exports = (function () {
                 for(i = 0, _i = waitingForList.length; i < _i; i++){
                     // remove class from wait list
                     waitingItem = waitingForList[i];
-                    if(typeof waitingItem === 'function'){
-                        callbacks.push(waitingItem);
+                    if( typeof waitingItem === 'function' ){
+                        callbacks.push( waitingItem );
                     }
                 }
 

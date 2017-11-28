@@ -75,7 +75,9 @@ module.exports = (function () {
         }
     };
 
-    var Compiler = require('./Core/Compile/Compiler');
+    var Compiler = require('./Core/Compile/Compiler'),
+        cTools = require('./Core/Compile/tools');
+
     var build = function build(cfg, callback){
         var config, i, opt, _i;
 
@@ -188,6 +190,7 @@ module.exports = (function () {
         /** TRY BUILDING */
         var tokenizer = require('./Core/Tokenizer'),
             lexer = require('./Core/Preprocess');
+
         if(config.build) {
             if(!Array.isArray(config.build))
                 config.build = [config.build];
@@ -213,10 +216,10 @@ module.exports = (function () {
         data = data.map(function(data){
             return data.replace(/\r/g, '');
         });
-
+        var errorStorage = [];
         var lexes = sourcePaths.map(function(sourcePath, i){
             var tokens = tokenizer(data[i], sourcePath),
-                lex = lexer(tokens);
+                lex = lexer(tokens, false, errorStorage);
             return lex;
         });
         var lex = [].concat.apply([],lexes);
@@ -305,6 +308,10 @@ module.exports = (function () {
                 if(filtered.length === 1){
                     config.main = filtered[0].name.data;
                 }else{
+                    var err
+                    if(errorStorage.length){
+                        errorStorage.map(errorDrawer);
+                    }
                     showHelp('Please specify main object')
                 }
             }
@@ -413,6 +420,47 @@ module.exports = (function () {
     };
 
     Object.assign(build, Compiler);
+    function errorDrawer(error){
+
+
+        var pos = [error.row, error.col];
+        var pointer = error.pointer;
+        var suggestions = error.suggestions;
+
+        var code = pointer.code,
+            lines = code.split('\n'),
+            row = pos[0],
+            col = pos[1],
+            i, _i, out = [], padding = 2, line, maxL,
+            j, _j, currentRow;
+
+        i = Math.max(row - padding - 1, 0);
+        _i = Math.min(row + padding + 1, lines.length);
+        maxL = (Math.log10(_i-1)+1)|0;
+
+        for(i; i < _i; i++){
+
+            currentRow = (i+1);
+            if(currentRow >= i && currentRow <= _i) {
+                out.push(currentRow + ': ' + cTools.pad(maxL - (currentRow + '').length) + lines[i]);
+                if (currentRow === row)
+                    out.push(cTools.pad(col + maxL + 1) + '^---- linker was scared here ----');
+            }
+
+        }
+        if(suggestions){
+            suggestions = suggestions.map( function(item, i){
+                return (item.description || '%NUM%').replace(/%NUM%/g, i+1) +item.matchTo;
+            } );
+        }
+        throw new Error(error.description.replace(/</g,'&lt;').replace(/>/g,'&gt;') +' '+error.pointer+'\n\n'+
+            'Source:\n'+ cTools.indent(1,out).join('\n')+'\n\n'+
+            (suggestions && suggestions.length?'Suggestions:\n'+ cTools.indent(1,suggestions).join('\n').replace(/</g,'&lt;').replace(/>/g,'&gt;') +'\n\n':'')+
+            'Stacktrace:'
+        );
+
+        console.error(error)
+    };
 
     if(module.parent){
         showHelp = function(error, e){

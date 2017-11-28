@@ -35,7 +35,9 @@ module.exports = (function () {
         return item.data+'|'+item.type;
     };
 
-    var preprocess = function (tokens, noAST) {
+    var preprocess = function (tokens, noAST, errorStorage) {
+
+        errorStorage = errorStorage || [];
 
         //var AST = lineSplitter(tokens);
         tokens = quotesAndLongComments(tokens);//* +
@@ -49,11 +51,11 @@ module.exports = (function () {
         tokens = indentation(tokens);
 
         if(!noAST)
-            tokens = ast(tokens);
+            tokens = ast(tokens, errorStorage);
 
         return tokens;
 
-    };
+        };
 
     preprocess.quotesAndLongComments = quotesAndLongComments;
     preprocess.shortCommentsAndURLs = shortCommentsAndURLs;

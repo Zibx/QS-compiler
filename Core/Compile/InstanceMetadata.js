@@ -41,21 +41,38 @@ module.exports = (function(){
     };
     InstanceMetadata.prototype.findProperty = function(name){
         var prop = ClassMetadata.prototype.findProperty.call(this, name);
-        if(!prop)
-            prop = this.class.findProperty(name);
+        if(!prop){
+            if(this.class){
+                prop = this.class.findProperty( name );
+            }else{
+                console.log('findProperty: No class in ', this.getName())
+            }
+        }
         return prop;
     };
     InstanceMetadata.prototype.getTag = function(name){
         var prop = ClassMetadata.prototype.getTag.call(this, name);
-        if(!prop)
-            prop = this.class.getTag(name);
+        if(!prop){
+            if( this.class ){
+                prop = this.class.getTag( name );
+            }else{
+                console.log( 'getTag: No class in ', this.getName() )
+            }
+        }
+
         return prop;
     };
 
     InstanceMetadata.prototype.findMethod = function(name){
         var method = ClassMetadata.prototype.findMethod.call(this, name);
-        if(!method)
-            method = this.class.findMethod(name);
+        if(!method){
+            if( this.class ){
+                method = this.class.findMethod( name );
+            }else{
+                console.log( 'findMethod: No class in ', this.getName() )
+            }
+        }
+
         return method;
     };
     InstanceMetadata.prototype.noName = false;

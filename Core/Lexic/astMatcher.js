@@ -130,6 +130,8 @@ module.exports = function (matchers) {
             suit,
             putKey, multiple, store, whatever = false;
 
+
+
         // if first rule is complex - we need to get into it,
         // so I add invisible first rule 'START' and use mechanics
         // of normal rule iterating
@@ -157,7 +159,7 @@ module.exports = function (matchers) {
                 }
                 nextRules = [];
                 if(!rules.length)
-                    return new MatchError(lastRules, lastToken);
+                    return new MatchError(lastRules, lastToken);//new MatchError(lastRules, lastToken);
 
                 for(j = rules.length; j;){
                     ruleHolder = rules[--j];
@@ -255,6 +257,7 @@ module.exports = function (matchers) {
                     console.log(list)
 
                 }
+
                 if(whatever)
                     break;
             }
@@ -283,7 +286,7 @@ module.exports = function (matchers) {
             else
                 return new MatchError(lastRules, lastToken);
         }else
-            return new MatchError(lastRules, lastToken);
+            return new MatchError(lastRules, lastToken);//new MatchError(lastRules, lastToken);
 
     };
     match.MatchError = MatchError;

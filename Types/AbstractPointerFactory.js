@@ -8,7 +8,57 @@
 
 module.exports = (function () {
     'use strict';
-    var AbstractPointerFactory = function(source){
+    var distance = function(a, b) {
+        var i, aLength = a.length, bLength = b.length, row, prev, val;
+        if(aLength === 0) return bLength;
+        if(bLength === 0) return aLength;
+
+        // swap to save some memory O(min(a,b)) instead of O(a)
+        if(a.length > b.length) {
+            var tmp = a;
+            a = b;
+            b = tmp;
+        }
+
+        row = [];
+        // init the row
+        for(i = 0; i <= aLength; i++){
+            row[i] = i;
+        }
+
+        // fill in the rest
+        for(i = 1; i <= b.length; i++){
+            prev = i;
+            for(var j = 1; j <= aLength; j++){
+                if(b.charAt(i-1) === a.charAt(j-1)){
+                    val = row[j-1]; // match
+                } else {
+                    val = Math.min(row[j-1] + 1, // substitution
+                        prev + 1,     // insertion
+                        row[j] + 1);  // deletion
+                }
+                row[j - 1] = prev;
+                prev = val;
+            }
+            row[a.length] = prev;
+        }
+
+        return row[a.length];
+    };
+    var Distance = function(a, b, text){
+        this.search = a;
+        this.matchTo = b;
+        this.distance = distance(a,b);
+        console.log(a,b, this.distance);
+        this.description = text;
+    };
+    Distance.sort = function(a,b){
+        return a.distance - b.distance;
+    };
+    Distance.isNear = function(item){
+        return item.distance < 5;
+    };
+    var AbstractPointerFactory = function(source, code){
         var PointerFactory = function( cfg ){
             if( cfg.col ){
                 this.col = cfg.col;
@@ -18,6 +68,7 @@ module.exports = (function () {
         PointerFactory.prototype = {
             errors: [],
             source: source,
+            code: code,
             col: 1,
             row: 1,
             clone: function( i ){
@@ -34,12 +85,25 @@ module.exports = (function () {
 
                 return this;
             },
-            error: function(description, info){
-                this.errors.push({
+            error: function(description, info, suggestions){
+                if(Array.isArray(info)){
+                    suggestions = info;
+                    info = this;
+                }
+                var item = {
                     description: description,
                     col: info && info.col !== void 0 ? info.col : this.col,
-                    row: info && info.row !== void 0 ? info.row : this.row
-                });
+                    row: info && info.row !== void 0 ? info.row : this.row,
+                    suggestions: suggestions.filter(Distance.isNear).sort(Distance.sort),
+                    pointer: this
+                };
+                this.errors.push(item);
+                return item;
+            },
+            suggest: function(text, search){
+                return function( matchTo ){
+                    return new Distance(search, matchTo, text);
+                }
             },
             toString: function () {
                 return '('+ [this.source,this.row, this.col].join(':') +')';
