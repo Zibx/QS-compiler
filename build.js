@@ -79,7 +79,8 @@ module.exports = (function () {
         cTools = require('./Core/Compile/tools');
 
     var build = function build(cfg, callback){
-        var config, i, opt, _i;
+        var config, i, opt, _i,
+            errors = [];
 
         for(i in options){
             opt = options[i];
@@ -226,11 +227,12 @@ module.exports = (function () {
 
         var compiler  = new Compiler({
             ns: config.ns,
-            searchDeps: function (fileNames) {
+            searchDeps: function (dependencies) {
 
-                var i, _i, fileName, matched;
-                for(i = fileNames.length - 1; i >= 0; i--){
-                    fileName = fileNames[i];
+                var i, _i, dependency, matched = [], fileName;
+                for(i = dependencies.length - 1; i >= 0; i--){
+                    dependency = dependencies[i];
+                    fileName = dependency.toString();
                     if(libCache[fileName]){
                         matched = [libCache[fileName]];
                         matched[0].ctor = matched[0];
@@ -238,7 +240,8 @@ module.exports = (function () {
                         try {
                             matched = typeTable.search(fileName);
                         }catch(e){
-                            throw new Error('Error matching `' + fileName + '`')
+                            errorStorage.push(dependency.item.pointer.error('Can not find `'+ fileName +'`'));
+                            //throw new Error('Error matching `' + fileName + '` '+dependency.item.pointer)
                         }
                        }
 
@@ -294,8 +297,11 @@ module.exports = (function () {
 
                 ns = nsTokens.join('.');
             }
-
-            compiler.world[name].setNameSpace(ns);
+            if(!(name in compiler.world)){
+                errors.push('Building error. '+name+' was not compiled')
+            }else {
+                compiler.world[name].setNameSpace(ns);
+            }
         });
 
         if(!config.main){
@@ -309,10 +315,15 @@ module.exports = (function () {
                     config.main = filtered[0].name.data;
                 }else{
                     var err
-                    if(errorStorage.length){
-                        errorStorage.map(errorDrawer);
+                    while(errorStorage.length){
+                        errors = errors.concat(errorDrawer(errorStorage.shift()));
                     }
-                    showHelp('Please specify main object')
+                    errors.push('main object is not specified');
+                    return typeof callback === 'function' && callback({
+                        ast: {}, js: '', lex: [].concat.apply([],lexes), world: compiler.world, main: null,
+                        errorList: errors, error: errors.length ? errors.join('\n\n') : false
+                    });
+                    //showHelp('Please specify main object')
                 }
             }
         }
@@ -320,32 +331,43 @@ module.exports = (function () {
         var mainObj = config.main || 'main';
 
         var asts = {};
-        asts[mainObj] = compiler.world[mainObj];
-        var result = compiler.compile(mainObj, {sourceMap: false, newWay: config.newWay, ns: config.ns}),
-            finalSource = lexes.map(function(lex, i){
-                return '//'+ sourcePaths[i] +'\n' +lex.map(function(item) {
-                    asts[item.name.data] = compiler.world[item.name.data];
-                    return mainObj !== item.name.data ? compiler.compile(item.name.data, {sourceMap: true, newWay: config.newWay, ns: config.ns}).source : ''
-                }).join('\n\n');
-            }).join('\n\n') + result.source;
+
+        if(compiler.world[mainObj]) {
+            asts[mainObj] = compiler.world[mainObj];
+            var result = compiler.compile(mainObj, {sourceMap: false, newWay: config.newWay, ns: config.ns}),
+                finalSource = lexes.map(function (lex, i) {
+                        return '//' + sourcePaths[i] + '\n' + lex.map(function (item) {
+                                asts[item.name.data] = compiler.world[item.name.data];
+                                return mainObj !== item.name.data ? compiler.compile(item.name.data, {
+                                    sourceMap: true,
+                                    newWay: config.newWay,
+                                    ns: config.ns
+                                }).source : ''
+                            }).join('\n\n');
+                    }).join('\n\n') + result.source;
 
 
         //console.log('Compiled')
 
-        for( i in asts ){
-            var item = asts[i],
-                pointer = item.ast.name.pointer;
-            if(pointer.errors.length){
-                pointer.errors.forEach(function(err){
-                    console.error(err);
-                });
+            for( i in asts ){
+                var item = asts[i],
+                    pointer = item.ast.name.pointer;
+                if(pointer.errors.length){
+                    errors = errors.concat(pointer.errors.map(errorDrawer));
+                }
             }
         }
 
+        while(errorStorage.length){
+            errors = errors.concat(errorDrawer(errorStorage.shift()));
+        }
+
+        errors.length && console.error(errors.join('\n\n'));
         if(!config.output){
             //console.log(finalSource);
             typeof callback === 'function' && callback({
-                ast: asts, js: finalSource, lex: [].concat.apply([],lexes), world: compiler.world, main: mainObj
+                ast: asts, js: finalSource, lex: [].concat.apply([],lexes), world: compiler.world, main: mainObj,
+                errorList: errors, error: errors.length ? errors.join('\n\n') : false
             });
         }else{
             if(typeof config.output === 'string'){
@@ -395,6 +417,7 @@ module.exports = (function () {
 
                 fs.writeFileSync(mapPath, JSON.stringify(map));
                 fs.writeFileSync(qsPath, data[i]);
+
                 return {
                     outputPath: outputPath,
                     lex: lexes[i]
@@ -408,7 +431,8 @@ module.exports = (function () {
                 js: finalSource,
                 lex: [].concat.apply([],lexes),
                 world: compiler.world,
-                main: mainObj
+                main: mainObj,
+                errorList: errors, error: errors.length ? errors.join('\n\n') : false
             });
             console.log('OUTPUT: '+ buildResults.map(function(r){return r.outputPath;}))
         }
@@ -453,13 +477,12 @@ module.exports = (function () {
                 return (item.description || '%NUM%').replace(/%NUM%/g, i+1) +item.matchTo;
             } );
         }
-        throw new Error(error.description.replace(/</g,'&lt;').replace(/>/g,'&gt;') +' '+error.pointer+'\n\n'+
+        var renderedError = (error.description/*.replace(/</g,'&lt;').replace(/>/g,'&gt;')*/ +' '+error.pointer+'\n\n'+
             'Source:\n'+ cTools.indent(1,out).join('\n')+'\n\n'+
             (suggestions && suggestions.length?'Suggestions:\n'+ cTools.indent(1,suggestions).join('\n').replace(/</g,'&lt;').replace(/>/g,'&gt;') +'\n\n':'')+
-            'Stacktrace:'
+            ''//'Stacktrace:'
         );
-
-        console.error(error)
+        return renderedError;
     };
 
     if(module.parent){

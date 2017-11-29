@@ -30,6 +30,7 @@ module.exports = (function () {
                         skipValue = false;
                     var info = tools.getVarInfo.call(_self, list, cls, child, scope);
                     if(!info) {
+                        return false;
                         throw new Error('Can not resolve '+
                             list.map(function(token){return token.name}).join('.') +
                             ' at (' + fnObj.fn.pointer+')')
@@ -135,7 +136,12 @@ module.exports = (function () {
                         varParts,
 
                         info = tools.getVarInfo.call(_self, list, cls, child, scope);
-
+                    if(!info) {
+                        return false;
+                        throw new Error('Can not resolve '+
+                            list.map(function(token){return token.name}).join('.') +
+                            ' at (' + fnObj.fn.pointer+')')
+                    }
                     var firstToken = info.varParts[0],
                         who;
 

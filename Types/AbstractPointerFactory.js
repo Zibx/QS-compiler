@@ -85,17 +85,36 @@ module.exports = (function () {
 
                 return this;
             },
-            error: function(description, info, suggestions){
+            error: function(description, info, suggestions, strategy){
                 if(Array.isArray(info)){
                     suggestions = info;
                     info = this;
                 }
+                if(info === void 0)
+                    info = this;
+
+                if(info.column){
+                    var jsInfo = info;
+                    if(strategy === 'pipe'){
+                        info = {col: jsInfo.line > 2 ? jsInfo.column + 1 :this.col + 1 + jsInfo.column, row: this.row + jsInfo.line - 2, source: this.source};
+                    }else {
+                        info = {col: jsInfo.column, row: this.row + jsInfo.line - 2, source: this.source};
+                    }
+                }
+                if(info.col === void 0) {
+                    info.col = this.col;
+                }
+                if(info.row === void 0) {
+                    info.row = this.row;
+                }
+                info = new PointerFactory(info);
+
                 var item = {
-                    description: description,
-                    col: info && info.col !== void 0 ? info.col : this.col,
-                    row: info && info.row !== void 0 ? info.row : this.row,
-                    suggestions: suggestions.filter(Distance.isNear).sort(Distance.sort),
-                    pointer: this
+                    description: description.replace('%POS%', info.toString()),
+                    col: info.col,
+                    row: info.row,
+                    suggestions: suggestions && suggestions.filter(Distance.isNear).sort(Distance.sort),
+                    pointer: info
                 };
                 this.errors.push(item);
                 return item;

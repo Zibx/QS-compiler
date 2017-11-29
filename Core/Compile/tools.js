@@ -48,13 +48,16 @@ module.exports = (function () {
                 implicit = false
             ;
 
-
+            var stackList = [];
             for (i = 0, _i = stack.length; i < _i; i++){
                 node = stack[i];
                 if( node.type === 'Literal' )
                     name = node.value;
                 else
                     name = node.name;
+
+                stackList.push(name);
+
                 if( !env ){
                     if( node.type === 'ThisExpression' ){
                         name = child.getName();
@@ -104,6 +107,15 @@ module.exports = (function () {
                     if(!deeperEnv){
                         if(env.getName() === 'Variant' || env.getTag('anything')){
                             deeperEnv = this.world.Variant
+                        }else{
+                            var suggestions = [];
+                            scope.options.basePointer.error(
+                                name+ ' is not property of '+ stackList.slice(0,stackList.length-1).join('.') +'<'+ env.getName() +'>',
+                                node.loc.start,
+                                suggestions,
+                                scope.options.pipe ? 'pipe' : 'function'
+                            );
+                            return false;
                         }
                     }
                     env = deeperEnv;

@@ -32,7 +32,7 @@ module.exports = (function () {
     var craft = require('../JS/ASTtransformer').craft;
     //var buildFunction = require('./FunctionTransformer');
     var FunctionTransformer = require('./FunctionTransformer');
-
+    var WaitingDependency = require('./WaitingDependency')
     var VariableExtractor = require('../JS/VariableExtractor');
     var tools = require('./tools');
     var ClassMetadata = require('./ClassMetadata');
@@ -110,13 +110,13 @@ module.exports = (function () {
         }
         return pipeVar;
     };
-    var getVarInfoFromTree = function(tree, cls, whos){
+    var getVarInfoFromTree = function(tree, cls, whos, compileScope){
         var info,
             stack = varStackFromTree(tree);
 
-        info = getVarInfo.call(this, stack, cls, whos);
+        info = getVarInfo.call(this, stack, cls, whos, compileScope);
         if(!info) {
-            console.warn('Weird', stack)
+            //console.warn('Weird', stack)
             return false;
         }
         if (info.valueFlag)
@@ -124,8 +124,8 @@ module.exports = (function () {
 
         return info;
     };
-    var getVarAccessor = function (tree, cls, scope, whos) {
-        var info = getVarInfoFromTree.call(this, tree, cls, whos);
+    var getVarAccessor = function (tree, cls, scope, whos, compileScope) {
+        var info = getVarInfoFromTree.call(this, tree, cls, whos, compileScope);
         if(info === false)
             return false;
         var accessible;
@@ -248,7 +248,9 @@ module.exports = (function () {
 
 
 
-                    var accessor = getVarAccessor.call(this, pipeVar, obj, pipe, whos);
+                    var accessor = getVarAccessor.call(this, pipeVar, obj, pipe, whos, {options:{
+                        basePointer: pipe.pointer, pipe: true
+                    }});
                     if(accessor === false) {
                         console.log('NO ACCESSOR FOR', fullName);
                         return false;
@@ -527,7 +529,7 @@ module.exports = (function () {
                 (waitingFor[what] || (waitingFor[what] = [])).push(who);
                 typeof cb === 'function' && waitingFor[what].push(cb);
                 if(wait.indexOf(what) === -1){
-                    wait.push( what );
+                    wait.push( new WaitingDependency(what, item) );
                 }
             }else{
                 typeof cb === 'function' && cb();
@@ -720,9 +722,10 @@ module.exports = (function () {
                 var out = buildPipe.call(this, item.ast.value, obj, whos, sm);
 
                 // HAIL TAUTOLOGY!
-                if(out === false)
-                    return new Error('Can not get value '+item.ast.value[0].pointer);
-
+                if(out === false) {
+                    return false;
+                    return new Error('Can not get value ' + item.ast.value[0].pointer);
+                }
                 return out;
 
             }
@@ -924,7 +927,7 @@ module.exports = (function () {
                     if(typeof waitingItem !== 'function'){
                         waitList = this.wait[waitingItem];
                         for( j = waitList.length; j; )
-                            if( waitList[--j] === name )
+                            if( waitList[--j].toString() === name )
                                 waitList.splice( j, 1 );
                         if( waitList.length === 0 )
                             this.tryInspect( waitingItem );

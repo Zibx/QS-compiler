@@ -393,10 +393,10 @@ module.exports = (function(){
             try {
                 return escodegen.generate(before, options.escodegen);
             }catch(e){
-                console.log(before);
+                //console.log(before);
 
-                debugger;
-                var before = doTransform.call(list,esprimaTree, options);
+                //debugger;
+                //var before = doTransform.call(list,esprimaTree, options);
             }
         }
 
