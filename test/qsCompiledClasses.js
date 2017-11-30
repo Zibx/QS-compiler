@@ -13,10 +13,16 @@ var common = require('./toolchain/common'),
 
 describe('html primitives', function() {
 
-    it('should fail on unknown property', function () {
-        assert.throws(function(){
-            compile('test/qs/qsClasses.qs')
-        }, /`test2`/)
+    it('should fail on unknown property', function (done) {
+        compile('test/qs/qsClasses.qs', function(result){
+
+            //console.log(result.error)
+            //assert.include(result.error, )
+            done();
+        });
+        /*assert.throws(function(){
+
+        }, /`test2`/)*/
 
     });
 

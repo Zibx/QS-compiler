@@ -5,7 +5,7 @@ def Page main
             from.
                 lal}}
   .onload: ()->
-    console.log(slider.grr)
+    console.log(slider.grr, slider.rom)
     slider.value.d = -1
 
 

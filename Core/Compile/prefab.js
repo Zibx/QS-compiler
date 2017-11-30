@@ -79,7 +79,9 @@ module.exports = (function () {
                 var fullRequire = {}, j, requireInfo;
                 for (i in obj.require) {
                     if (!(i in this.world)) {
-                        throw new Error('Unknown class `' + i + '` ');// + obj.require[i][0].pointer)
+                        obj.require[i][0].pointer.error('Unresolved required dependency ' + i + ' ');
+                        return [];
+                        //throw new Error('Unknown class `' + i + '` ');// + obj.require[i][0].pointer)
                     }
                     requireInfo = this.world[i];
 
@@ -277,7 +279,7 @@ module.exports = (function () {
                 }
             }
             var privateVars = ['var _self = this;'];
-            console.log('privatesFlag', obj.privatesFlag)
+            //console.log('privatesFlag', obj.privatesFlag)
             if(obj.privatesFlag){
 
                 privateVars.push('var __private = this[_private] = new QObject();');

@@ -9,3 +9,4 @@ def QObject Collection
     public Array sort
 
     public Function update
+    public Variant toParent

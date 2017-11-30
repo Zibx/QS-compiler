@@ -109,6 +109,10 @@ module.exports = (function () {
                             deeperEnv = this.world.Variant
                         }else{
                             var suggestions = [];
+                            suggestions = suggestions.concat(env.listAllProperties().map(scope.options.basePointer.suggest('Maybe you mean ', name)));
+
+
+                            /*Object.keys(rule.data).map(child.pointer.suggest('It looks like you mean: ', definition.list[0].token.data))*/
                             scope.options.basePointer.error(
                                 name+ ' is not property of '+ stackList.slice(0,stackList.length-1).join('.') +'<'+ env.getName() +'>',
                                 node.loc.start,

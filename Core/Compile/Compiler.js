@@ -1004,7 +1004,7 @@ module.exports = (function () {
                     // maybe we have property with that name
 
                     if(!obj.findProperty(searchingFor) && !obj.getTag('anything')){
-                        this.addDependency(cls.getName(), searchingFor);
+                        this.addDependency(cls.getName(), item.class || item.name);
                         if(!(searchingFor in this.world)){
                             moreDependencies = true;
                         }
@@ -1024,7 +1024,10 @@ module.exports = (function () {
                 }
 
                 if (moreDependencies) {
-                    console.log('More deps for `' + obj.getName() + '` <'+obj._extendList[0]+'> in `' + cls.getName() + '`: ' + this.wait[cls.getName()].join(', '));
+                    var objClass = obj._extendList[0];
+                    if(!objClass)
+                        objClass = obj.class.getName();
+                    console.log('More deps for '+ obj.getName() + '<'+objClass+'> in `' + cls.getName() + '`: ' + this.wait[cls.getName()].join(', ')+' '+obj.ast.name.pointer);
                     obj.findProperty(searchingFor)
                     return false;
                 }
@@ -1033,8 +1036,6 @@ module.exports = (function () {
                 var objectName = obj.name;
                 if(obj === cls) {
                     objectName = '___this___';
-
-
                 }
 
                 for (var eventName in obj.ast.events) {

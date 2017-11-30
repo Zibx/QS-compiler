@@ -49,43 +49,53 @@ module.exports = (function () {
         this.search = a;
         this.matchTo = b;
         this.distance = distance(a,b);
-        console.log(a,b, this.distance);
+        //console.log(a,b, this.distance);
         this.description = text;
     };
     Distance.sort = function(a,b){
         return a.distance - b.distance;
     };
     Distance.isNear = function(item){
-        return item.distance < 5;
-    };
-    var AbstractPointerFactory = function(source, code){
-        var PointerFactory = function( cfg ){
-            if( cfg.col ){
-                this.col = cfg.col;
-                this.row = cfg.row;
-            }
-        };
-        PointerFactory.prototype = {
-            errors: [],
-            source: source,
-            code: code,
-            col: 1,
-            row: 1,
-            clone: function( i ){
-                return new PointerFactory( this ).add( i );
-            },
-            nextLine: function(){
-                this.col = 1;
-                this.row++;
-                return this;
-            },
-            add: function( i ){
-                if( i !== void 0 )
-                    this.col += i;
 
-                return this;
-            },
-            error: function(description, info, suggestions, strategy){
+        return item.distance < 3;
+    };
+    var GeneralPointer = function(){};
+    GeneralPointer.prototype = {
+        col: 1,
+        row: 1,
+        clone: function( i ){
+            return new this.PointerFactory( this ).add( i );
+        },
+        nextLine: function(){
+            this.col = 1;
+            this.row++;
+            return this;
+        },
+        add: function( i ){
+            if( i !== void 0 )
+                this.col += i;
+
+            return this;
+        },
+        error: (function(){
+            var tmp = Error.prepareStackTrace,
+                custom = function (err, stack) {
+                    var frame = stack[2];
+                    return frame.getFileName() + ':' + frame.getLineNumber() + ':' + frame.getColumnNumber();
+                },
+                custom2 = function (err, stack) { // deeper
+                    return stack.slice(1,10).map(function(frame){
+                        return frame.getFileName() + ':' + frame.getLineNumber() + ':' + frame.getColumnNumber();
+                    })
+                };
+            return function(description, info, suggestions, strategy){
+                Error.prepareStackTrace = custom2;
+
+                var err = new Error(),
+                    stack = err.stack;
+                Error.prepareStackTrace = tmp;
+
+
                 if(Array.isArray(info)){
                     suggestions = info;
                     info = this;
@@ -107,27 +117,41 @@ module.exports = (function () {
                 if(info.row === void 0) {
                     info.row = this.row;
                 }
-                info = new PointerFactory(info);
+                info = new this.PointerFactory(info);
 
                 var item = {
                     description: description.replace('%POS%', info.toString()),
                     col: info.col,
                     row: info.row,
                     suggestions: suggestions && suggestions.filter(Distance.isNear).sort(Distance.sort),
-                    pointer: info
+                    pointer: info,
+                    stack: stack
                 };
                 this.errors.push(item);
                 return item;
-            },
-            suggest: function(text, search){
-                return function( matchTo ){
-                    return new Distance(search, matchTo, text);
-                }
-            },
-            toString: function () {
-                return '('+ [this.source,this.row, this.col].join(':') +')';
+            }
+        })(),
+        suggest: function(text, search){
+            return function( matchTo ){
+                return new Distance(search, matchTo, text);
+            }
+        },
+        toString: function () {
+            return '('+ [this.source,this.row, this.col].join(':') +')';
+        }
+    };
+    var AbstractPointerFactory = function(source, code){
+        var PointerFactory = function( cfg ){
+            if( cfg.col ){
+                this.col = cfg.col;
+                this.row = cfg.row;
             }
         };
+        PointerFactory.prototype = new GeneralPointer();
+        PointerFactory.prototype.errors = [];
+        PointerFactory.prototype.source = source;
+        PointerFactory.prototype.code = code;
+        PointerFactory.prototype.PointerFactory = PointerFactory;
 
         return PointerFactory;
     };

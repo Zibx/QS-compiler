@@ -65,11 +65,13 @@ module.exports = (function () {
             {type: 'WORD', put: 'name'},
             {type: 'OR', items: [
 
-            {type: '?', items: [
-                {type: 'SEMICOLON', data: ':'},
-                {type: 'ALL', put: 'value'}]},
+                {type: '?', items: [
+                    {type: 'SEMICOLON', data: ':'},
+                    {type: 'ALL', put: 'value'}
+                ]},
                 {type: 'SEMICOLON', data: ':'}
-            ]}
+            ]
+            }
         ],
         'METADATA': [
             {type: 'DOG'},

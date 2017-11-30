@@ -240,7 +240,7 @@ module.exports = (function () {
                         try {
                             matched = typeTable.search(fileName);
                         }catch(e){
-                            errorStorage.push(dependency.item.pointer.error('Can not find `'+ fileName +'`'));
+                            errorStorage.push(dependency.item.pointer.error('Unresolved dependency '+ fileName +''));
                             //throw new Error('Error matching `' + fileName + '` '+dependency.item.pointer)
                         }
                        }
@@ -319,6 +319,7 @@ module.exports = (function () {
                         errors = errors.concat(errorDrawer(errorStorage.shift()));
                     }
                     errors.push('main object is not specified');
+                    errors.length && console.error(errors.join('\n\n'));
                     return typeof callback === 'function' && callback({
                         ast: {}, js: '', lex: [].concat.apply([],lexes), world: compiler.world, main: null,
                         errorList: errors, error: errors.length ? errors.join('\n\n') : false
@@ -445,7 +446,21 @@ module.exports = (function () {
 
     Object.assign(build, Compiler);
     function errorDrawer(error){
+        if(error.rendered)
+            return;
 
+        var meaninglessMessages = [
+            'look at this',
+            'here',
+            'I do not know what it is',
+            'bad place',
+            'check it out',
+            'how dare you are',
+            'fix it',
+            'I think it is wrong',
+            'screwed up'
+        ];
+        error.rendered = true;
 
         var pos = [error.row, error.col];
         var pointer = error.pointer;
@@ -468,7 +483,7 @@ module.exports = (function () {
             if(currentRow >= i && currentRow <= _i) {
                 out.push(currentRow + ': ' + cTools.pad(maxL - (currentRow + '').length) + lines[i]);
                 if (currentRow === row)
-                    out.push(cTools.pad(col + maxL + 1) + '^---- linker was scared here ----');
+                    out.push(cTools.pad(col + maxL + 1) + '^---- '+ meaninglessMessages[(Math.random()*meaninglessMessages.length)|0] +' ----');
             }
 
         }
@@ -480,7 +495,9 @@ module.exports = (function () {
         var renderedError = (error.description/*.replace(/</g,'&lt;').replace(/>/g,'&gt;')*/ +' '+error.pointer+'\n\n'+
             'Source:\n'+ cTools.indent(1,out).join('\n')+'\n\n'+
             (suggestions && suggestions.length?'Suggestions:\n'+ cTools.indent(1,suggestions).join('\n').replace(/</g,'&lt;').replace(/>/g,'&gt;') +'\n\n':'')+
-            ''//'Stacktrace:'
+            (error.stack && error.stack.length ? 'Stacktrace:\n'+error.stack.map(function(item){
+                return '\t'+item;
+            }).join('\n') : '')
         );
         return renderedError;
     };

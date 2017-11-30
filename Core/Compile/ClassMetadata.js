@@ -27,6 +27,16 @@ module.exports = (function () {
             subItems: {},
             events: {}
         });
+        Object.defineProperty(this.public, 'value', {
+            set: function(val){
+                this.__namespace = val;
+
+            },
+            get: function(val){
+                return this.__namespace;
+            }
+        })
+
         Object.assign(this, cfg);
 
         this.namespace = this.namespace || null;
@@ -151,6 +161,30 @@ module.exports = (function () {
             }
 
             return false;
+        },
+        _listAllProperties: function( own, collection ){
+            collection = collection || {};
+            if(!own){
+                var i, _i, val,
+                    list = this._extendList;
+
+                for(i = 0, _i = list.length; i < _i; i++){
+                    this._extend[list[i]].listAllProperties().forEach(function(name){
+                        collection[name] = true;
+                    });
+                }
+            }
+            Object.keys(this.private).forEach(function(name){
+                collection[name] = true;
+            });
+
+            Object.keys(this.public).forEach(function(name){
+                collection[name] = true;
+            });
+            return collection;
+        },
+        listAllProperties: function( own ){
+            return Object.keys(this._listAllProperties(own));
         },
         findMethod: function(method){
             var fn;

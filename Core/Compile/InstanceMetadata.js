@@ -75,6 +75,16 @@ module.exports = (function(){
 
         return method;
     };
+
+    InstanceMetadata.prototype.listAllProperties = function(own, collection){
+        collection = collection || {};
+        ClassMetadata.prototype._listAllProperties.call(this, own, collection);
+        if(this.class && !own)
+            this.class._listAllProperties(own, collection);
+
+        return Object.keys(collection);
+    };
+
     InstanceMetadata.prototype.noName = false;
     InstanceMetadata.prototype.isPublic = false;
 
