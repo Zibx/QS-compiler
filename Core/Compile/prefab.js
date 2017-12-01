@@ -298,9 +298,9 @@ module.exports = (function () {
 
 
             source.push('});');
-            if(compileCfg.newWay) {
-                source.push('});');
-            }
+
+            source.push('});');
+
 
             obj._extendList.forEach(function(name){
                 _self.tryCall(name, '__afterCompile', [source, obj.name], function(err, result){
