@@ -124,10 +124,13 @@ module.exports = (function () {
 
             return false;
         },
-        getPublic: function(name){
+        getPublic: function(name, own){
             var val = this.public[name];
             if(val)
                 return val;
+
+            if(own)
+                return false;
 
             var i, _i,
                 list = this._extendList;
@@ -143,10 +146,13 @@ module.exports = (function () {
 
             return false;
         },
-        getPrivate: function(name){
+        getPrivate: function(name, own){
             var val = this.private[name];
             if(val)
                 return val;
+
+            if(own)
+                return false;
 
             var i, _i,
                 list = this._extendList;
@@ -186,7 +192,7 @@ module.exports = (function () {
         listAllProperties: function( own ){
             return Object.keys(this._listAllProperties(own));
         },
-        findMethod: function(method){
+        findMethod: function(method, own){
             var fn;
 
             fn = this.getTag(method);
@@ -200,13 +206,39 @@ module.exports = (function () {
 
             return false;
         },
-        findProperty: function(prop){
+        findProperty: function(prop, own){
             var result;
-            result = this.getPrivate(prop);
+            result = this.getPrivate(prop, own);
             if(result) return result;
 
-            result = this.getPublic(prop);
+            result = this.getPublic(prop, own);
             if(result) return result;
+
+            return false;
+        },
+        findPropertyDefinition: function(name, own){
+            var val = this.public[name];
+            if(val)
+                return this;
+
+            var val = this.private[name];
+            if(val)
+                return this;
+
+            if(own)
+                return false;
+
+            var i, _i,
+                list = this._extendList;
+
+            if(!list.length)
+                return false;
+
+            for(i = 0, _i = list.length; i < _i; i++){
+                val = this._extend[list[i]].findPropertyDefinition(name, own);
+                if(val)
+                    return val;
+            }
 
             return false;
         },

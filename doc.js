@@ -41,8 +41,11 @@ module.exports = (function () {
         if(!items || !items.length)
             return false;
 
-        return items.map(function(tag){
-            var out = {info: tag.value.map(function(item){return item.data;}).join('')};
+        return items.filter(function(tag){
+            return tag.value;
+        }).map(function(tag){
+
+            var out = {info: typeof tag.value === 'string' ? tag.value : tag.value.map(function(item){return item.data;}).join('')};
 
             if(tag.children)
                 out.text = (
@@ -196,29 +199,37 @@ module.exports = (function () {
                 var props = collector.props = [],
                     events = collector.events = [],
                     fns = collector.fns = [];
-                for (var p in item.mixed.public) {
+
+
+                var propsList = item.listAllProperties()
+                    .map(function(name){return item.findProperty(name);})
+                    .filter(function(item){ return item.isPublic; });
+
+                for(var p = 0, _p = propsList.length; p < _p; p++){
+
                     var prop = {};
 
-                    var itemProp = item.mixed.public[p];
-                    prop.name = p;
-                    prop.type = itemProp.type;
+                    var itemProp = propsList[p];
+                    prop.name = itemProp.getName();
+                    prop.type = itemProp.class.getName();
 
-                    var own = prop.own = i === itemProp.defined;
+                    prop.defined = item.findPropertyDefinition(prop.name)
+                    var own = prop.own = prop.defined === item;
 
-                    if(itemProp.defined === void 0){
+                    if(prop.defined === void 0){
                         if(console.combine){
-                            console.combine(i+'.'+p, function(list){
+                            console.combine(i+'.'+prop.name, function(list){
                                 return 'Documentation property `defined` is not set for ['+ list.join(', ') +']';
                             });
                         }else {
-                            console.log('Documentation property `defined` is not set for ' + i + '.' + p);
+                            console.log('Documentation property `defined` is not set for ' + i + '.' + prop.name);
                         }
                         continue;
                     }
 
-                    var ast = own ? item.mixed.ast.public[p] : world[ itemProp.defined ].mixed.ast.public[p];
+                    var ast = itemProp.ast;
 
-                    info = item.mixed.ast.public[p];
+                    info = itemProp;//item.mixed.ast.public[p];
                     var infoTag = getTag(ast, 'info');
 
                     if (infoTag) {
@@ -249,8 +260,15 @@ module.exports = (function () {
                     }else{
                         props.push(prop);
                     }
-
-
+                    if(prop.defined){
+                        if(prop.defined.class){
+                            prop.defined = [prop.defined.getName(), prop.defined.class.getName()].join( '.' )
+                        }else{
+                            prop.defined = prop.defined.getName();
+                        }
+                    }else{
+                        prop.defined = 'Core';
+                    }
 
 
                 }
