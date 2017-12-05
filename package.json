@@ -1,6 +1,6 @@
 {
   "name": "quokka-script",
-  "version": "1.4.10",
+  "version": "2.0.0",
   "description": "QuokkaScript compiler.",
   "main": "index.js",
   "scripts": {
@@ -8,18 +8,19 @@
     "build": "node build -c test/config.json"
   },
   "dependencies": {
-    "escodegen": "^1.9.0",
-    "esprima": "^4.0.0",
-    "jison": "^0.4.18",
-    "marked": "*",
-    "minimist": "^1.2.0",
-    "source-map": "^0.5.7",
-    "z-lib": "*"
+    "jison": "*",
+    "source-map": "^0.5.6",
+    "escodegen": "*",
+    "esprima": "*",
+    "minimist": "*",
+    "z-lib": "*",
+    "marked": "*"
   },
   "devDependencies": {
-    "chai": "^4.1.2",
+    "chai": "*",
+    "mocha": "*",
     "istanbul": "*",
-    "mocha": "^4.0.1"
+    "mocha-junit-reporter": "*"
   },
   "author": "Quokka-labs",
   "license": "MPL-2.0"
