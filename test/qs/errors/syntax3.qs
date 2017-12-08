@@ -7,6 +7,7 @@ def Page main
   .onload: ()->
     console.log(slider.grr, slider.rom)
     slider.value.d = -1
+    this.ololo()
 
 
   .onload: function(){slider.from.ui}

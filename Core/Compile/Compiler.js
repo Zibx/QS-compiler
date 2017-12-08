@@ -1146,11 +1146,11 @@ module.exports = (function () {
                             childItem.noName = true;
                         }
 
-                        if(this.__dig(childItem, cls) === false){
+                        if(this.__dig(childItem, cls, [childItem.name]) === false){
                             return false;
                         }
 
-                        cls.addItem(typeof objectName === 'string' ? objectName : objectName.data, childItem); // TODO check if condition is needed
+                        cls.addItem((typeof objectName === 'string' ? objectName : (Array.isArray(objectName)?objectName.join('.'):objectName.data)), childItem); // TODO check if condition is needed
 
                     }
 

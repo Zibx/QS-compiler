@@ -23,7 +23,7 @@ def Page main
         });
     });
 
-  /*  compile(`
+    compile(`
 def Page main
   ComboBox c1: nk1
     items: 
@@ -34,11 +34,15 @@ def Page main
             subNk5: 2`, function (result) {
         var main = result.ast.main;
         it('should work with nested', function(){
-            assert.equal(main.values.c1.items._val, '{\n  "nk1": "ololo",\n  "nk2": 5467\n}')
+            assert.equal(main.values.c1.items.nk1._val, '"o lo lo"');
+            assert.equal(main.values.c1.items.nk2._val, '5467');
+            assert.equal(main.values.c1.items.nk3.subNk4._val, '1');
+            assert.equal(main.values.c1.items.nk3.subNk5._val, '2');
+            //'{\n  "nk1": "ololo",\n  "nk2": 5467\n}')
         });
     });
 
-    compile(`
+    /*compile(`
 def Page main
   ComboBox c1
     items: 

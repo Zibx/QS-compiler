@@ -41,3 +41,5 @@ define UIComponent FancyRB
 
     @info: A method that responds to a change in choice of radio button
     public Event onChange
+
+    public String label

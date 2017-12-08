@@ -143,7 +143,18 @@ module.exports = (function () {
                             console.warn('Avoid implicit usage of <Variant> properties ('+name+')');
                             implicit = true;
                         }else {
-                            throw new Error('Compiler does not know what is `' + name + '` and whos Property or Item it is')
+
+                            scope.options.basePointer.error(
+                                'Compiler does not know what is `' + name + '` and whos Property or Item it is',
+                                //name+ ' is not property of '+ stackList.slice(0,stackList.length-1).join('.') +'<'+ env.getName() +'>',
+                                node.loc.start,
+                                suggestions,
+                                scope.options.pipe ? 'pipe' : 'function'
+                            );
+
+                            return false;
+
+                            //throw new Error('Compiler does not know what is `' + name + '` and whos Property or Item it is')
                         }
                     }
                 }

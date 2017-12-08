@@ -26,7 +26,7 @@ module.exports = (function () {
             items: [],
             subItems: {},
             events: {}
-        });
+        });/*
         Object.defineProperty(this.public, 'value', {
             set: function(val){
                 this.__namespace = val;
@@ -35,7 +35,7 @@ module.exports = (function () {
             get: function(val){
                 return this.__namespace;
             }
-        })
+        })*/
 
         Object.assign(this, cfg);
 

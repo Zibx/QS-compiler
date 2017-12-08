@@ -212,7 +212,7 @@ module.exports = (function () {
                 obj.instances[where].forEach(function (what) {
                     if(what.type === 'child') {
 
-                        var name = what.name,
+                        var name = what.getName(),
                             info = obj.subItems[name],
                             fromQObject = _self.isInstanceOf(info.class.getName(), 'QObject'),
                             childGetter,
@@ -227,6 +227,16 @@ module.exports = (function () {
                             }
                             if(where !== '___this___'){
                                 parent = obj.subItems[where];
+                                if(!parent){
+                                    var whereParts = where.split('.');
+                                    var propInObj = obj.findProperty(whereParts[0]);
+                                    if(propInObj){
+                                        parent = propInObj;
+                                    }
+                                }
+                                if(!parent){
+                                    throw new error('Try to append '+ name +' to unknown '+ where);
+                                }
                                 parentGetter = (parent.isPublic ? 'this' : '__private') +'.get(\''+ where +'\')';
                             }else{
                                 parentGetter = 'this';

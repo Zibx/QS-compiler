@@ -21,3 +21,5 @@ define UIComponent Page
   public Button next
 
   public Button back
+  public ContainerComponent header
+  public ContainerComponent global

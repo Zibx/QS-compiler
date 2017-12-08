@@ -38,6 +38,7 @@ describe('Error messages', function() {
             assert.include(result.error, 'grr is not property of slider<Slider>');
             assert.include(result.error, 'd is not property of slider.value<Number>');
             assert.include(result.error, 'ui is not property of slider.from<Number>');
+            assert.include(result.error, 'ololo is not property of this');
             done();
         });
 
