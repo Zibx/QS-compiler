@@ -36,6 +36,11 @@ module.exports = (function () {
                     'private': 'private'
                 }, put: 'scope'}
             ]},
+            {type: '?', items: [
+                {type: 'WORD', data: {
+                    'existed': 'existed'
+                }, put: 'existed'}
+            ]},
             {type: 'WORD', put: 'class'},
 
             {type: '*', count: 'any', items: [

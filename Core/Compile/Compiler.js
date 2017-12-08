@@ -1123,7 +1123,7 @@ module.exports = (function () {
 
                             obj.addValue( searchingFor, childItem)
 
-                            this.__dig( childItem, cls, path.concat( searchingFor ) );
+                            this.__dig( childItem, cls, path.slice().concat( searchingFor ) );
 
 
                         }
@@ -1146,7 +1146,7 @@ module.exports = (function () {
                             childItem.noName = true;
                         }
 
-                        if(this.__dig(childItem, cls, [childItem.name]) === false){
+                        if(this.__dig(childItem, cls, [childItem.getName()]) === false){
                             return false;
                         }
 

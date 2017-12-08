@@ -226,16 +226,18 @@ module.exports = (function () {
                                 childGetter = '__private.get(\''+ what.name +'\')';
                             }
                             if(where !== '___this___'){
-                                parent = obj.subItems[where];
+                                var whereParts = where.split('.');
+
+                                parent = obj.subItems[whereParts[0]];
                                 if(!parent){
-                                    var whereParts = where.split('.');
+
                                     var propInObj = obj.findProperty(whereParts[0]);
                                     if(propInObj){
                                         parent = propInObj;
                                     }
                                 }
                                 if(!parent){
-                                    throw new error('Try to append '+ name +' to unknown '+ where);
+                                    throw new Error('Try to append '+ name +' to unknown '+ where);
                                 }
                                 parentGetter = (parent.isPublic ? 'this' : '__private') +'.get(\''+ where +'\')';
                             }else{

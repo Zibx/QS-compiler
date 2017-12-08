@@ -20,6 +20,13 @@ describe('Insert items into containers', function() {
                 "__private.get('c1.header').addChild(__private.get('b1'))");
             assert.include(result.js,
                 "__private.get('c1.body').addChild(__private.get('b2'))");
+
+        });
+
+        it('should insert unnamed element into unnamed element header', function(){
+
+            assert.match(result.js,
+                /__private\.get\('Collapse_[\w]{1,3}\.header'\)\.addChild\(__private\.get\('Slider_[\w]{1,3}'\)\)/);
         });
 
     });
