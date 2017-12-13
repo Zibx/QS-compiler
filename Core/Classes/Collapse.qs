@@ -5,3 +5,5 @@ def UIComponent Collapse
     public Boolean collapsed
     public Function collapse
     public Function expand
+    public String transitionTime
+    public String transitionType
