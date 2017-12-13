@@ -15,6 +15,9 @@ module.exports = (function () {
         path = require('path');
     var InstanceMetadata = require('./InstanceMetadata');
     var Property = require('./Property');
+    var ShouldNotBeSetted = function(obj){
+        this.obj = obj;
+    };
 
     //var console = new (require('../../console'))('Compile');
     var setRecursive = function(obj, vals){
@@ -472,7 +475,12 @@ module.exports = (function () {
                     }
 
                 }else if(prop instanceof InstanceMetadata){
-                    vals[propName] = this.callMethod( 'valueGatherer', prop, ctx, path.concat( propName ), true )
+                    var gatheredResult = this.callMethod( 'valueGatherer', prop, ctx, path.concat( propName ), true );
+                    if(gatheredResult instanceof ShouldNotBeSetted){
+
+                    }else{
+                        vals[propName] = gatheredResult;
+                    }
                 }
 
             }
@@ -507,24 +515,28 @@ module.exports = (function () {
             }else{
                 stringData = '';
             }
+            if(!obj.existed){
+                this.tryCall( obj.class, '__instantiate', [vals, data, stringData], function( err, result ){
+                    if( !err )
+                        stringData = result;
+                    else
+                        stringData = 'new ' + obj.class.getName() + '(' + stringData + ')';
+                } );
 
-            this.tryCall(obj.class, '__instantiate', [vals, data, stringData], function(err, result){
-                if(!err)
-                    stringData = result;
-                else
-                    stringData = 'new ' + obj.class.getName() + '('+ stringData +')';
-            });
-
-            isPublic = obj.isPublic;
-            if(deep){
-                return stringData;
-            }else{
-                if( isPublic ){
-                    return (_tinyPadLeft + 'this.set(\'' + obj.getName() + '\', ' + stringData + ')')
+                isPublic = obj.isPublic;
+                if( deep ){
+                    return stringData;
                 }else{
-                    ctx.mainCls.privatesFlag = true;
-                    return (_tinyPadLeft + '__private.set(\'' + obj.getName() + '\', ' + stringData + ')')
+                    if( isPublic ){
+                        return (_tinyPadLeft + 'this.set(\'' + obj.getName() + '\', ' + stringData + ')')
+                    }else{
+                        ctx.mainCls.privatesFlag = true;
+                        return (_tinyPadLeft + '__private.set(\'' + obj.getName() + '\', ' + stringData + ')')
+                    }
                 }
+            }else{
+                eventSubs.push((isPublic?'this': '__private')+'.setAll(\'' + obj.getName().join('.') + '\', ' + stringData + ')');
+                return new ShouldNotBeSetted(obj);
             }
 
         },

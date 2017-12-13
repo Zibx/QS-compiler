@@ -89,7 +89,8 @@ module.exports = (function () {
                 value: p('Number')
             },
             __compileValue: function(arr, value){
-                return arr.join('');
+                //tools.toString(value)
+                return tools.toString(value).data;//arr.join('');
             },
             __instantiate: primitiveInstantiate('0')
         },

@@ -1115,8 +1115,10 @@ module.exports = (function () {
                                 class: itemClass,
                                 ast: item,
                                 name: path.concat(searchingFor),
+                                defineAST: propInMeta,
                                 isPublic: item.isPublic,
-                                value: item.value
+                                value: item.value,
+                                existed: propInMeta.ast.existed
                             });
 
 

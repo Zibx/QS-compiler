@@ -29,5 +29,10 @@ describe('Insert items into containers', function() {
                 /__private\.get\('Collapse_[\w]{1,3}\.header'\)\.addChild\(__private\.get\('Slider_[\w]{1,3}'\)\)/);
         });
 
+        it('should compile inner items', function(){
+            assert.match(result.js,
+                /new Slider\(\{\s*"value":\s*50\s*,\s*/);
+        })
+
     });
 });
