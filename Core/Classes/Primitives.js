@@ -90,7 +90,7 @@ module.exports = (function () {
             },
             __compileValue: function(arr, value){
                 //tools.toString(value)
-                return tools.toString(value).data;//arr.join('');
+                return (tools.toString(value).data+'').trim();//arr.join('');
             },
             __instantiate: primitiveInstantiate('0')
         },
