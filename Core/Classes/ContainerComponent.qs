@@ -7,3 +7,4 @@ def UIComponent ContainerComponent
 	public Number childrenLength
 	public Variant selectedItem
 	public QObject itemTemplate
+	public Boolean selectable
