@@ -56,7 +56,7 @@ module.exports = (function () {
                     type: type,
                     leaf: true
                 });
-                lastCursor = cursor.clone();//.add(1);
+                lastCursor = cursor.clone();
             }
         };
 
@@ -82,14 +82,23 @@ module.exports = (function () {
                 cursor = cursor.nextLine();
             }else if(symbol === '\t') {
                 // stable magic spell
+                var increment = cursor.col-1;/*col starts from 1 */
+                increment = increment/4;/* get full count of tabs */
+                increment |=0;
+                increment++;/* add one tab */
+                increment *=4;/* count spaces */
+                increment++; /* col starts from one again */
+                increment -= cursor.col;
+                /*    (((
+                    (cursor.col-1)/!*col starts from 1 *!/
+                    /4)|0)
+                    +1) /!* add one tab *!/
+                    *4 /!* count spaces *!/
+                    +1 /!* col starts from one again *!/
+                    -cursor.col; /!* decrement current position *!/
+*/
                 cursor = cursor.add(
-                    (((
-                        (cursor.col-1) // col starts from 1
-                        /4)|0) // get full count of tabs
-                        +1) // add one tab
-                    *4 // count spaces
-                    +1 // col starts from one again
-                    -cursor.col // decrement current position
+                    increment
                 );
             }else{
                 cursor = cursor.add(1);

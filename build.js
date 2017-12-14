@@ -163,6 +163,21 @@ module.exports = (function () {
 
                     try {
                         currentFile = filePath;
+                        /*const types = require('type-inference');
+
+                        const typeData = types.inferType(
+                            types.parseSource(
+                                types.readFile(
+                                    types.boxFilename(
+                                        filePath
+                                    )
+                                )
+                            )
+                        );
+
+                        debugger*/
+
+
                         classes[filePath] = require(filePath);
                     } catch (e) {
                         showHelp('Can not load module ' + filePath, e)

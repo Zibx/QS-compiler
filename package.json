@@ -8,19 +8,21 @@
     "build": "node build -c test/config.json"
   },
   "dependencies": {
-    "jison": "*",
-    "source-map": "^0.5.6",
     "escodegen": "*",
     "esprima": "*",
+    "jison": "*",
+    "marked": "*",
     "minimist": "*",
-    "z-lib": "*",
-    "marked": "*"
+    "source-map": "^0.5.6",
+    "type-inference": "git+ssh://git@gitlab.quokka.pub:aliceklipper/type-inference.git",
+    "z-lib": "*"
   },
   "devDependencies": {
     "chai": "*",
-    "mocha": "*",
     "istanbul": "*",
-    "mocha-junit-reporter": "*"
+    "mocha": "*",
+    "mocha-junit-reporter": "*",
+    "nyc": "^11.3.0"
   },
   "author": "Quokka-labs",
   "license": "MPL-2.0"
