@@ -29,6 +29,7 @@ module.exports = (function () {
     //global.console.log(x.tral('((function(){while(1){}})(),{a:2})'))
 */
     //var console = new (require('../../console'))('Compiler');
+    var AST_Define = require('../Lexic/ast').AST_Define;
     var craft = require('../JS/ASTtransformer').craft;
     //var buildFunction = require('./FunctionTransformer');
     var FunctionTransformer = require('./FunctionTransformer');
@@ -702,12 +703,12 @@ module.exports = (function () {
                 return 'function(){'+info.data+'}';
             }
 
-
             var propName = item.getName();
 
             var property = item.class;
+            var ast = item instanceof AST_Define ? item : item.ast;
 
-            arr = item.ast.value;
+            arr =  ast.value;
             if(!Array.isArray(arr))arr = [arr];
             arr = arr.map(function (val, i, list) {
                 if(searchForPipes(val, i, list))
@@ -719,12 +720,12 @@ module.exports = (function () {
                     return val.data;
             });
             if(ohNoItSPipe){
-                var out = buildPipe.call(this, item.ast.value, obj, whos, sm);
+                var out = buildPipe.call(this, ast.value, obj, whos, sm);
 
                 // HAIL TAUTOLOGY!
                 if(out === false) {
                     return false;
-                    return new Error('Can not get value ' + item.ast.value[0].pointer);
+                    return new Error('Can not get value ' + ast.value[0].pointer);
                 }
                 return out;
 
@@ -732,7 +733,7 @@ module.exports = (function () {
 
             // typed property getter
             var error = false;
-            this.tryCall(property, '__compileValue', [arr, item.ast.value], function(err, res){
+            this.tryCall(property, '__compileValue', [arr, ast.value], function(err, res){
                 error = err;
                 if(!err)
                     result = res;

@@ -86,6 +86,9 @@ module.exports = (function(){
         },
         getValue: function(){
             return this.value;
+        },
+        getName: function(){
+            return this.name.getValue();
         }
     };
 
@@ -219,5 +222,6 @@ module.exports = (function(){
         return ast;
     };
     process.matchers = matchers;
+    process.AST_Define = AST_Define;
     return process;
 })();

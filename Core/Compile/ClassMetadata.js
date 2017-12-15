@@ -261,6 +261,9 @@ module.exports = (function () {
                 var val = this.values[name];
                 return val.getValue();
             }else{
+                if(name === void 0){
+                    return this.value;
+                }
                 return void 0;
             }
         },

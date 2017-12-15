@@ -45,7 +45,8 @@ module.exports = (function () {
                 fromWorld = false,
                 deeperEnv,
                 selfFlag = false,
-                implicit = false
+                implicit = false,
+                contextAddDelta = 0
             ;
 
             var stackList = [];
@@ -108,18 +109,30 @@ module.exports = (function () {
                         if(env.getName() === 'Variant' || env.getTag('anything')){
                             deeperEnv = this.world.Variant
                         }else{
-                            var suggestions = [];
-                            suggestions = suggestions.concat(env.listAllProperties().map(scope.options.basePointer.suggest('Maybe you mean ', name)));
+                            // last check. maybe it's values property
+                            var valEnv = env.findProperty('value');
+                            var propInVal = valEnv.findProperty(name);
+
+                            if(propInVal){
+                                deeperEnv = valEnv;
+                                name = 'value';
+                                node = ASTtransformer.craft.Literal('value');
+                                i--;
+                                contextAddDelta++;
+                            }else{
+                                var suggestions = [];
+                                suggestions = suggestions.concat( env.listAllProperties().map( scope.options.basePointer.suggest( 'Maybe you mean ', name ) ) );
 
 
-                            /*Object.keys(rule.data).map(child.pointer.suggest('It looks like you mean: ', definition.list[0].token.data))*/
-                            scope.options.basePointer.error(
-                                name+ ' is not property of '+ stackList.slice(0,stackList.length-1).join('.') +'<'+ env.getName() +'>',
-                                node.loc.start,
-                                suggestions,
-                                scope.options.pipe ? 'pipe' : 'function'
-                            );
-                            return false;
+                                /*Object.keys(rule.data).map(child.pointer.suggest('It looks like you mean: ', definition.list[0].token.data))*/
+                                scope.options.basePointer.error(
+                                    name + ' is not property of ' + stackList.slice( 0, stackList.length - 1 ).join( '.' ) + '<' + env.getName() + '>',
+                                    node.loc.start,
+                                    suggestions,
+                                    scope.options.pipe ? 'pipe' : 'function'
+                                );
+                                return false;
+                            }
                         }
                     }
                     env = deeperEnv;
@@ -161,7 +174,7 @@ module.exports = (function () {
 
                 if(env.getName() in tools.primitives){
                     if (context === false) {
-                        context = i;
+                        context = i+contextAddDelta;
                         // we need to keep context
                         if (env.getName() === 'Function')
                             context--;

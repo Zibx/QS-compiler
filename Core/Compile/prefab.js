@@ -169,14 +169,31 @@ module.exports = (function () {
                         trailingComment.push('@param {'+item.type+'} '+item.name);
                     });
                     trailingComment.push('@returns {'+what.value.returnType+'}');
+
+                    var functionBody = _self.getPropertyValue(what, obj, what, sm);
+                    if(functionBody.indexOf('__private')>-1){
+                        privateDefined = true;
+
+                        // TODO: rewrite
+                        var open = functionBody.indexOf('{') + 1;
+                        functionBody = functionBody.substr(0,open) +
+                        '\nvar __private = this[_private];\n'+functionBody.substr(open);
+                    }
+
                     inlines.push(
                         (trailingComment.length > 0 ? '\n/**\n\t * '+trailingComment.join('\n\t * ')+'\n\t */': '')+
-                        what.name +': function('+
+                        what.name +': ' + functionBody
+
+
+                        /* function('+
                         what.value.arguments.map(function(item){
                                 return item.name;
                             })
                             .join(', ')+
-                        '){'+ what.value.body.data +'}');
+                        '){'+ functionBody +'}'*/);
+
+
+
                 }
             };
 
@@ -240,9 +257,15 @@ module.exports = (function () {
                                     }
                                 }
                                 if(!parent){
-                                    throw new Error('Try to append '+ name +' to unknown '+ where);
+                                    what.ast.class.pointer.error('Try to append '+ name +' to unknown '+ where);
+                                    /*try to continue with less damage*/
+                                    return null;
+                                    /*debugger
+                                    throw new Error('Try to append '+ name +' to unknown '+ where);*/
+                                }else{
+                                    parentGetter = (parent.isPublic ? 'this' : '__private') +'.get(\''+ where +'\')';
                                 }
-                                parentGetter = (parent.isPublic ? 'this' : '__private') +'.get(\''+ where +'\')';
+
                             }else{
                                 parentGetter = 'this';
                             }

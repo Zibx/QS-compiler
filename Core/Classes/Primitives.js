@@ -51,7 +51,8 @@ module.exports = (function () {
             _description: 'String class (primitive)',
             public: {
                 length: p('Number', 'Length of string'),
-                value: p('String')
+                value: p('String'),
+                substr: p('Function')
             },
             __compileValue: function(arr, value){
                 if(Array.isArray(value) && value.length) {

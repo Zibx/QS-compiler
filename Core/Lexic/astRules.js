@@ -46,6 +46,7 @@ module.exports = (function () {
             {type: '*', count: 'any', items: [
                 {type: 'DOT', put: '*cls'},
                 {type: 'OR', items: [
+                    [{type: 'OPERATION', put: '*cls'}],
                     [{type: 'WORD', put: '*cls'}],
                     [{type: 'PIPE', put: '*cls'}]
                 ]},
