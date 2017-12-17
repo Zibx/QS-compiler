@@ -16,8 +16,13 @@ describe('setting functions as property', function() {
 
         console.log(result.js)
         var main = result.ast.main;
-        it('should compile fn call', function(){
-            assert.equal(main.values.b1.cls._val, '".aaa.bbb"');
+        it('should compile private fn call', function(){
+            assert.match(main.events.b1.click[0]._js,
+                /function\s*\(\)\{\s*__private\.add\['call'\]\(_self\);\s\}/);
+        });
+        it('should compile public fn call', function(){
+            assert.match(main.events.b3.click[0]._js,
+                /function\s*\(\)\{\s*_self\.addPublic\(\);\s\}/);
         });
     });
 });

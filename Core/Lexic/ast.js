@@ -223,5 +223,6 @@ module.exports = (function(){
     };
     process.matchers = matchers;
     process.AST_Define = AST_Define;
+    process.AST_Event = AST_Event;
     return process;
 })();

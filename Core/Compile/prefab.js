@@ -46,7 +46,7 @@ module.exports = (function () {
             var baseClassName = obj._extendList[0];
             var source = [],
                 i, ctor = [], props = [], cfg, inlines = [],
-
+                privateInlines = [],
                 ns,
                 _self = this,
                 sourceMap, sourcePath = obj.ast.name.pointer.source,
@@ -122,7 +122,12 @@ module.exports = (function () {
 
 
                 if(obj.privatesFlag){
-                    source.push('\tvar _private = Symbol();');
+                    source.push('\tvar _private = Symbol(),\n' +
+                        '\t\t_privateConstructor = QObject' +
+                        (privateInlines.length === 0 ? ';' :
+                        '.extend(\'' + ns + '\', \'_' + obj.getName() + '\', {\n\t' +
+                        privateInlines.join(',\n\t')+
+                        '\n});'));
                 }
 
                 return source;
@@ -164,10 +169,11 @@ module.exports = (function () {
                         (tag = what.ast.tags.description || what.ast.tags.info)){
                         trailingComment.push(_self.extractFirstTag(tag),'');
                     }
-
-                    what.value.arguments.forEach(function(item){
-                        trailingComment.push('@param {'+item.type+'} '+item.name);
-                    });
+                    if(what.value.arguments) {
+                        what.value.arguments.forEach(function (item) {
+                            trailingComment.push('@param {' + item.type + '} ' + item.name);
+                        });
+                    }
                     trailingComment.push('@returns {'+what.value.returnType+'}');
 
                     var functionBody = _self.getPropertyValue(what, obj, what, sm);
@@ -177,11 +183,13 @@ module.exports = (function () {
                         // TODO: rewrite
                         var open = functionBody.indexOf('{') + 1;
                         functionBody = functionBody.substr(0,open) +
-                        '\nvar __private = this[_private];\n'+functionBody.substr(open);
+                        '\nvar __private = this[_private], _self = this;\n'+functionBody.substr(open);
                     }
 
-                    inlines.push(
-                        (trailingComment.length > 0 ? '\n/**\n\t * '+trailingComment.join('\n\t * ')+'\n\t */': '')+
+                    what.value._js = functionBody;
+
+                    (what.isPublic ? inlines : privateInlines).push(
+                        (trailingComment.length > 0 ? '\n\t/**\n\t * '+trailingComment.join('\n\t * ')+'\n\t */\n': '')+
                         what.name +': ' + functionBody
 
 
@@ -320,7 +328,7 @@ module.exports = (function () {
             //console.log('privatesFlag', obj.privatesFlag)
             if(obj.privatesFlag){
 
-                privateVars.push('var __private = this[_private] = new QObject();');
+                privateVars.push('var __private = this[_private] = new _privateConstructor();');
                 this.addDependency(obj, 'QObject');
             }
 
@@ -515,8 +523,8 @@ module.exports = (function () {
                     var propValue = this.getPropertyValue(evt, ctx.mainCls, obj, sm);
                     evt._js = propValue;
 
-                    eventSubs.push((isPublic?'this': '__private')+'.get(' +
-                        JSON.stringify(path) + ').on('+ JSON.stringify(evtName) +','+
+                    eventSubs.push((isPublic?'_self': '__private')+'.get(' +
+                        JSON.stringify(path) + ').on('+ JSON.stringify(evtName) +', '+
                             propValue +
                         ')');
                 }

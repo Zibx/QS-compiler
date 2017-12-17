@@ -23,6 +23,7 @@ module.exports = (function () {
             var _self = this;
             var transformFnGet =
                 function (node, stack, scope, parent) {
+                    var isPrivate = false;
                     var c0 = cls;
                     var list = stack.slice().reverse(),
                         varParts;
@@ -65,6 +66,7 @@ module.exports = (function () {
                             skipFirst = true;
                             skipValue = true;
                         }else{
+                            isPrivate = true;
                             who = ASTtransformer.craft.Identifier('__private');
                         }
                     }
@@ -126,6 +128,10 @@ module.exports = (function () {
 
                     for (i = 0, _i = afterContext.length; i < _i; i++)
                         out = c.MemberExpression(out, afterContext[i]);
+                    if(beforeContext.length === 0 && afterContext.length === 1 &&  isPrivate && item.class.getName() === 'Function') {
+                        out = c.MemberExpression(out, c.Literal('call'));
+                        out.isPrivate = isPrivate;
+                    }
 
                     return out;
 

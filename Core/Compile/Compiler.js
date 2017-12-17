@@ -30,6 +30,7 @@ module.exports = (function () {
 */
     //var console = new (require('../../console'))('Compiler');
     var AST_Define = require('../Lexic/ast').AST_Define;
+    var AST_Event = require('../Lexic/ast').AST_Event;
     var craft = require('../JS/ASTtransformer').craft;
     //var buildFunction = require('./FunctionTransformer');
     var FunctionTransformer = require('./FunctionTransformer');
@@ -753,10 +754,14 @@ module.exports = (function () {
             if(className !== 'Variant'){
                 var name = arr[0];
                 if(arr.length === 1){
-                    if(name in obj.private){
-                        return '__private.ref('+JSON.stringify(name)+')';
-                    }else if(name in obj.public){
-                        return 'this.ref('+JSON.stringify(name)+')';
+                    if(item instanceof AST_Event){
+                        if (name in obj.private || name in obj.public) {
+                            return (name in obj.private ? '__private' : '_self') + '.get(' + JSON.stringify(name) + ')';
+                        }
+                    }else {
+                        if (name in obj.private || name in obj.public) {
+                            return (name in obj.private ? '__private' : '_self') + '.ref(' + JSON.stringify(name) + ')';
+                        }
                     }
                 }
                 if(name in this.world){
