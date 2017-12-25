@@ -118,7 +118,7 @@ describe('JS transformations', function() {
         compile('test/qs/functions.qs', function (result) {
             assert.equal(
                 compact(result.ast.Property.public.f2.value._js),
-                'var f;_self.set(["key"],_self.get(["key"])+1);if(_self.get(["key"])){_self.get(["key"])}for(var i=0;i<1;i=i+1)_self.get(["key"]);if(_self.get(["key"]))_self.get(["key"]);for(var i=0;i<1;i=i+1){_self.get(["key"])?_self.get(["key"]):_self.get(["key"])}'
+                'var _self=this;var f;_self.set(["key"],_self.get(["key"])+1);if(_self.get(["key"])){_self.get(["key"])}for(var i=0;i<1;i=i+1)_self.get(["key"]);if(_self.get(["key"]))_self.get(["key"]);for(var i=0;i<1;i=i+1){_self.get(["key"])?_self.get(["key"]):_self.get(["key"])}'
             );
             done();
         });
@@ -127,7 +127,7 @@ describe('JS transformations', function() {
         compile('test/qs/functions.qs', function (result) {
             assert.equal(
                 compact(result.ast.Property.private.f3.value._js),
-                'var f;_self.set(["key"],_self.get(["key"])+1);if(_self.get(["key"])){_self.get(["key"])}for(var i=0;i<1;i=i+1)_self.get(["key"]);if(_self.get(["key"]))_self.get(["key"]);for(var i=0;i<1;i=i+1){_self.get(["key"])?_self.get(["key"]):_self.get(["key"])}'
+                'var _self=this;var f;_self.set(["key"],_self.get(["key"])+1);if(_self.get(["key"])){_self.get(["key"])}for(var i=0;i<1;i=i+1)_self.get(["key"]);if(_self.get(["key"]))_self.get(["key"]);for(var i=0;i<1;i=i+1){_self.get(["key"])?_self.get(["key"]):_self.get(["key"])}'
             );
             done();
         });
@@ -152,6 +152,7 @@ describe('JS transformations', function() {
     });
     it('compile mix of private/public unary add and binary add operations in all directions in public fn', function (done) {
         compile('test/qs/functions.qs', function (result) {
+            console.log(result.js)
             assert.equal(
                 compact(result.ast.Property.private.f6.value._js),
                 'var __private=this[_private],_self=this;var f;_self.set(["key"],f+_self.get(["key"]));_self.set(["key"],_self.get(["key"])+f);_self.set(["key"],f);_self.set(["key"],_self.get(["key"]));_self.set(["key"],__private.get(["count"]));_self.set(["key"],f+__private.get(["count"]));_self.set(["key"],__private.get(["count"])+f);_self.set(["key"],__private.get(["count"])+_self.get(["key"]));_self.set(["key"],_self.get(["key"])+__private.get(["count"]));_self.set(["key"],_self.get(["key"])+f);_self.set(["key"],_self.get(["key"])+_self.get(["key"]));__private.set(["count"],f+_self.get(["key"]));__private.set(["count"],_self.get(["key"])+f);__private.set(["count"],f);__private.set(["count"],_self.get(["key"]));__private.set(["count"],__private.get(["count"]));__private.set(["count"],f+__private.get(["count"]));__private.set(["count"],__private.get(["count"])+f);__private.set(["count"],__private.get(["count"])+_self.get(["key"]));__private.set(["count"],__private.get(["count"])+__private.get(["count"]));__private.set(["count"],__private.get(["count"])+f);__private.set(["count"],__private.get(["count"])+_self.get(["key"]))'

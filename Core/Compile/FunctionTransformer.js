@@ -31,6 +31,7 @@ module.exports = (function () {
                         skipValue = false;
                     var info = tools.getVarInfo.call(_self, list, cls, child, scope);
                     if(!info) {
+                        var info = tools.getVarInfo.call(_self, list, cls, child, scope);
                         return false;
                         throw new Error('Can not resolve '+
                             list.map(function(token){return token.name}).join('.') +
@@ -264,8 +265,18 @@ module.exports = (function () {
                 transformer = new ASTtransformer(),
                 fn = fnObj.fn;
 
-            fn = transformer.transform(fn.ast, fn.vars, options);
-            return 'function(' + fnObj.args.map(getName).join(',') + '){\n' + fn + '\n}';
+
+            return new FunctionCode(fnObj.args, transformer.transform(fn.ast, fn.vars, options), fn);
+        }
+    };
+    var FunctionCode = function(args, body, fn){
+        this.args = args;
+        this.body = body;
+        this.fn = fn;
+    };
+    FunctionCode.prototype = {
+        toString: function(){
+            return 'function(' + this.args.map(getName).join(',') + '){\n' + this.body + '\n}'
         }
     };
     var functionTransformer = function(item, obj, whos, sm){

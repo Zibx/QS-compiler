@@ -169,37 +169,39 @@ module.exports = (function () {
                         (tag = what.ast.tags.description || what.ast.tags.info)){
                         trailingComment.push(_self.extractFirstTag(tag),'');
                     }
-                    if(what.value.arguments) {
-                        what.value.arguments.forEach(function (item) {
-                            trailingComment.push('@param {' + item.type + '} ' + item.name);
-                        });
+                    if(what.value){
+                        if( what.value.arguments ){
+                            what.value.arguments.forEach( function( item ){
+                                trailingComment.push( '@param {' + item.type + '} ' + item.name );
+                            } );
+                        }
+                        trailingComment.push( '@returns {' + what.value.returnType + '}' );
+
+                        var functionBody = _self.getPropertyValue( what, obj, (where === '___this___' ? obj : what), sm );
+                        if( functionBody.body ){
+                            if( functionBody.body.indexOf( '__private' ) > -1 ){ // not good. TODO: go to ast
+                                privateDefined = true;
+                                functionBody.body = 'var __private = this[_private], _self = this;\n' + functionBody.body;
+                            }else{
+                                functionBody.body = 'var _self = this;\n' + functionBody.body;
+                            }
+                        }else{
+                            debugger
+                        }
+                        what.value._js = functionBody.toString();
+
+                        (what.isPublic ? inlines : privateInlines).push(
+                            (trailingComment.length > 0 ? '\n\t/**\n\t * ' + trailingComment.join( '\n\t * ' ) + '\n\t */\n' : '') +
+                            what.name + ': ' + functionBody.toString()
+
+
+                            /* function('+
+                            what.value.arguments.map(function(item){
+                                    return item.name;
+                                })
+                                .join(', ')+
+                            '){'+ functionBody +'}'*/ );
                     }
-                    trailingComment.push('@returns {'+what.value.returnType+'}');
-
-                    var functionBody = _self.getPropertyValue(what, obj, what, sm);
-                    if(functionBody.indexOf('__private')>-1){
-                        privateDefined = true;
-
-                        // TODO: rewrite
-                        var open = functionBody.indexOf('{') + 1;
-                        functionBody = functionBody.substr(0,open) +
-                        '\nvar __private = this[_private], _self = this;\n'+functionBody.substr(open);
-                    }
-
-                    what.value._js = functionBody;
-
-                    (what.isPublic ? inlines : privateInlines).push(
-                        (trailingComment.length > 0 ? '\n\t/**\n\t * '+trailingComment.join('\n\t * ')+'\n\t */\n': '')+
-                        what.name +': ' + functionBody
-
-
-                        /* function('+
-                        what.value.arguments.map(function(item){
-                                return item.name;
-                            })
-                            .join(', ')+
-                        '){'+ functionBody +'}'*/);
-
 
 
                 }

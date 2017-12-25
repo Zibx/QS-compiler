@@ -8,29 +8,24 @@
 
 'use strict';
 var assert = require('chai').assert;
-var tokenizer = require('../Core/Tokenizer'),
-    lexer = require('../Core/Preprocess'),
-    Compiler = require('../Core/Compile/Compiler'),
+var common = require('./toolchain/common'),
+    compile = common.compile, compact = common.compactFn;
     fs = require('fs');
 
 describe('Compile', function() {
 
     it('extract', function () {
-        var data = fs.readFileSync('test/qs/AbstractComponent.qs') + '',
-            tokens = tokenizer(data, 'AbstractComponent.qs'),
-            lex = lexer(tokens);
+        var data = fs.readFileSync('test/qs/AbstractComponent.qs') + '';
 
-        var compiler  = new Compiler();
 
-        lex.forEach(function(item){
-            compiler.add(item);
-            //item.metadata = metadata.extract(item);
-        });
+        compile(data, {main: 'AbstractComponent'},function(res){
+            //var out = compiler.compile('AbstractComponent', {sourceMap: true});
+            console.log(res.js);
+            fs.writeFileSync('test/generate/AbstractComponent.js', res.js);
+        })
 
         //console.log(lex[0])
-        var out = compiler.compile('AbstractComponent', {sourceMap: true});
-        console.log(out);
-        fs.writeFileSync('test/generate/AbstractComponent.js', out);
+
         //console.log(compiler.world.main)
 
         //console.log(JSON.stringify(compiler.world.main.require,null,2))

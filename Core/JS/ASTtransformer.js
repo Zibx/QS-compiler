@@ -404,7 +404,7 @@ module.exports = (function(){
             try {
                 return escodegen.generate(before, options.escodegen);
             }catch(e){
-                //console.log(before);
+                console.log(e);
 
                 //debugger;
                 //var before = doTransform.call(list,esprimaTree, options);
