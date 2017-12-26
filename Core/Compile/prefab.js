@@ -162,7 +162,10 @@ module.exports = (function () {
                     var gathererCtx = {
                         piped: piped, mainCls: obj, sm: sm, base: what, eventSubs: eventSubs, create: create, valueGatherer: valueGatherer
                     };
-                    ctor.push(_self.callMethod('valueGatherer', what, gathererCtx))
+                    var res = _self.callMethod('valueGatherer', what, gathererCtx);
+                    if(typeof res === 'string'){
+                        ctor.push( res );
+                    }
                 }else if(what.type === 'inline'){
                     var trailingComment = [], tag;
                     if(what.ast.tags &&
@@ -212,6 +215,10 @@ module.exports = (function () {
             for(var where in obj.instances) {
                 obj.instances[where].forEach(valueGatherer);
             }
+
+
+            valueGatherer(Object.assign(Object.create(obj),{type: 'child', propsOnly: true, existed: true, isMain: true, isPublic: true}));
+
 
             obj.state = 'inlineCreate';
             ctor = parts.precreate;
@@ -507,7 +514,7 @@ module.exports = (function () {
                         throw propValue;
                     }
 
-                }else if(prop instanceof InstanceMetadata){
+                }else if(prop instanceof InstanceMetadata && !obj.propsOnly){
                     var gatheredResult = this.callMethod( 'valueGatherer', prop, ctx, path.concat( propName ), true );
                     if(gatheredResult instanceof ShouldNotBeSetted){
 
@@ -517,21 +524,21 @@ module.exports = (function () {
                 }
 
             }
+            if(!obj.propsOnly){
+                for( var evtName in obj.events ){
+                    var events = obj.events[evtName];
+                    for( i = 0, _i = events.length; i < _i; i++ ){
+                        var evt = events[i];
+                        var propValue = this.getPropertyValue( evt, ctx.mainCls, obj, sm );
+                        evt._js = propValue;
 
-            for(var evtName in obj.events){
-                var events = obj.events[evtName];
-                for(i = 0, _i = events.length; i < _i; i++){
-                    var evt = events[i];
-                    var propValue = this.getPropertyValue(evt, ctx.mainCls, obj, sm);
-                    evt._js = propValue;
-
-                    eventSubs.push((isPublic?'_self': '__private')+'.get(' +
-                        JSON.stringify(path) + ').on('+ JSON.stringify(evtName) +', '+
+                        eventSubs.push( (isPublic ? '_self' : '__private') + '.get(' +
+                            JSON.stringify( path ) + ').on(' + JSON.stringify( evtName ) + ', ' +
                             propValue +
-                        ')');
+                            ')' );
+                    }
                 }
             }
-
             var _padLeft = new Array(path.length+2).join('\t'),
                 _smallPadLeft = new Array(path.length+1).join('\t'),
                 _tinyPadLeft = path.length > 1 ? '' : '\t';
@@ -548,6 +555,8 @@ module.exports = (function () {
             }else{
                 stringData = '';
             }
+
+
             if(!obj.existed){
                 this.tryCall( obj.class, '__instantiate', [vals, data, stringData], function( err, result ){
                     if( !err )
@@ -568,7 +577,8 @@ module.exports = (function () {
                     }
                 }
             }else{
-                eventSubs.push((isPublic?'this': '__private')+'.setAll(\'' + obj.getName().join('.') + '\', ' + stringData + ')');
+                eventSubs.push((isPublic?'this': '__private')+'.setAll('+
+                    (obj.isMain?'':'\'' + obj.getName().join('.') + '\', ') + stringData + ')');
                 return new ShouldNotBeSetted(obj);
             }
 
