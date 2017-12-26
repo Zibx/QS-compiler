@@ -213,6 +213,10 @@ module.exports = (function () {
                 obj.instances[where].forEach(valueGatherer);
             }
 
+            for (var p in obj.values){
+                valueGatherer()
+            };
+
             obj.state = 'inlineCreate';
             ctor = parts.precreate;
             create.forEach(valueGatherer);
