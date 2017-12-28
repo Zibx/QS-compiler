@@ -192,7 +192,20 @@ module.exports = (function(){
                 //console.log(JSON.stringify(node,null,2));
                 var ending = [], pointer = node, stack = [];
                 //console.log(pointer, pointer.object)
+                if(pointer.object.type === 'ArrayExpression'){
+                    return node;
+                }
+                if(pointer.object.type === 'NewExpression'){
+                    var newNode = Object.create(node);
+                    newNode.object = doTransform.call(_self, node.object, options, node);
+                    newNode.object.arguments = newNode.object.arguments.map(function(item){
+                        return doTransform.call(_self, item, options, node);
+                    })
+                    return newNode;
+                }
+
                 while(
+                    pointer.object.type !== 'NewExpression' &&
                     pointer.object.type !== 'Identifier' &&
                     //pointer.object.type !== 'AssignmentExpression' &&
                     pointer.object.type !== 'ThisExpression'
