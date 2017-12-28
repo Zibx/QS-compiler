@@ -18,8 +18,8 @@ describe('compile page props', function() {
 
         it('should create property', function(){
             console.log(result.js)
-            assert.equal(compactCode(main.values.l1.value._val),
-                'new Pipe(__private.ref(\'animal.value\'), function(animal_value){ return (animal_value ); })')
+            assert.equal(compactCode(main.values.background._val),
+                '"#000"')
         });
     });
 });

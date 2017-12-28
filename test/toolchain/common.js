@@ -88,7 +88,7 @@ module.exports = (function () {
                 for( i in subAST.subItems ){
                     Object.assign( out, collect( subAST.subItems[i], i ) );
                 }
-                subAST.values = out;
+                subAST.values = Object.assign(out, subAST.values);
 
                 var out = {};
                 var subAST = result.ast[astName];
