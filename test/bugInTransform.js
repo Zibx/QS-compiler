@@ -16,7 +16,10 @@ describe('transformation bug fix', function() {
         var main = result.ast.main;
         console.log(result.js)
         it('should functions with new Arrays', function(){
-            assert.equal(compact(main.events.s1.change[0]._js), '__private.get(["t1"]).start()')
+            assert.equal(compact(main.events.s1.change[0]._js),
+                '[__private.get(["s1","value"]),__private.get(["s1","value"])].join(".");' +
+                'var h=new Array(__private.get(["s1","value"])).join("1");' +
+                'var x=[__private.get(["s1","value"])]')
         });
     });
 });

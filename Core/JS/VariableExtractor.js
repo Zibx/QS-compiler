@@ -97,8 +97,12 @@ module.exports = (function () {
                 wasList = !!list,
                 scope, key;
 
-            if (!needList || list === void 0)
-                getVars.call(this, node.object, false, true);
+            if (!needList || list === void 0) {
+                if(node.object.type !== 'ArrayExpression' && node.object.type !== 'NewExpression')
+                    getVars.call(this, node.object, false, true);
+                else
+                    getVars.call(this, node.object);
+            }
 
             node.property.computed = node.computed;
             if (node.computed !== false)

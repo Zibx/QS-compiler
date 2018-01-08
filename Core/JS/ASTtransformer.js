@@ -188,7 +188,7 @@ module.exports = (function(){
         'MemberExpression': function(node, options, parent){
             var _self = this;
 
-            if( '_id' in node && node._id in this && node._id !== null ){
+            if( '_id' in node && node._id in this && node._id !== null && node.object.type !== 'ArrayExpression'){
                 //console.log(JSON.stringify(node,null,2));
                 var ending = [], pointer = node, stack = [];
                 //console.log(pointer, pointer.object)
