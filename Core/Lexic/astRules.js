@@ -31,6 +31,11 @@ module.exports = (function () {
         'PROPERTY': [
             {type: '?', items: [
                 {type: 'WORD', data: {
+                    'pure': 'pure'
+                }, put: 'unobservable'}
+            ]},
+            {type: '?', items: [
+                {type: 'WORD', data: {
                     'pub': 'public',
                     'public': 'public',
                     'private': 'private'

@@ -84,7 +84,7 @@ module.exports = (function () {
 
                     if(!env){
                         env = obj.findProperty( name );
-                        !!env && console.log(name, '<'+ env.class.getName() +'>', 'is in scope');
+                        !!env && console.log(name, '<'+ env.class.getName() +'>'+ (env.ast.unobservable ? ' (unobservable)':''), 'is in scope');
                     }
 
                     if(!env){

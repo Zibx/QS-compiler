@@ -1124,7 +1124,8 @@ module.exports = (function () {
                                 defineAST: propInMeta,
                                 isPublic: item.isPublic,
                                 value: item.value,
-                                existed: propInMeta.ast.existed
+                                existed: propInMeta.ast.existed,
+                                unobservable: propInMeta.ast.unobservable
                             });
 
 

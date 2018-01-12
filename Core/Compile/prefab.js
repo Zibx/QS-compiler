@@ -423,6 +423,9 @@ module.exports = (function () {
                 sm = ctx.sm;
             if(!path)
                 path = [obj.getName()];
+            var _padLeft = new Array(path.length+2).join('\t'),
+                _smallPadLeft = new Array(path.length+1).join('\t'),
+                _tinyPadLeft = path.length > 1 ? '' : '\t';
 
             for(propName in values){
                 prop = values[propName];
@@ -502,7 +505,7 @@ module.exports = (function () {
                             if(!isPublic){
                                 ctx.mainCls.privatesFlag = true;
                             }
-                            piped.push(
+                            piped.push(_tinyPadLeft +
                                 (isPublic?'this': '__private')+'.set(' +
                                 sm(prop.ast.class) +
                                     JSON.stringify(pipePath.join('.')) + ', ' +
@@ -532,16 +535,14 @@ module.exports = (function () {
                         var propValue = this.getPropertyValue( evt, ctx.mainCls, obj, sm );
                         evt._js = propValue;
 
-                        eventSubs.push( (isPublic ? '_self' : '__private') + '.get(' +
+                        eventSubs.push( _tinyPadLeft +(isPublic ? '_self' : '__private') + '.get(' +
                             JSON.stringify( path ) + ').on(' + JSON.stringify( evtName ) + ', ' +
                             propValue +
                             ')' );
                     }
                 }
             }
-            var _padLeft = new Array(path.length+2).join('\t'),
-                _smallPadLeft = new Array(path.length+1).join('\t'),
-                _tinyPadLeft = path.length > 1 ? '' : '\t';
+
 
             for( i in vals){
                 data.push( _padLeft+ JSON.stringify(i) + ': '+ vals[i] );
@@ -570,14 +571,23 @@ module.exports = (function () {
                     return stringData;
                 }else{
                     if( isPublic ){
-                        return (_tinyPadLeft + 'this.set(\'' + obj.getName() + '\', ' + stringData + ')')
+                        if(obj.ast.unobservable){
+                            return (_tinyPadLeft + '_self[\'' + obj.getName() + '\'] = ' + stringData)
+                        }else{
+                            return (_tinyPadLeft + '_self.set(\'' + obj.getName() + '\', ' + stringData + ')')
+                        }
+
                     }else{
                         ctx.mainCls.privatesFlag = true;
-                        return (_tinyPadLeft + '__private.set(\'' + obj.getName() + '\', ' + stringData + ')')
+                        if(obj.ast.unobservable){
+                            return (_tinyPadLeft + '__private[\'' + obj.getName() + '\'] = ' + stringData + '')
+                        }else{
+                            return (_tinyPadLeft + '__private.set(\'' + obj.getName() + '\', ' + stringData + ')')
+                        }
                     }
                 }
             }else{
-                eventSubs.push((isPublic?'this': '__private')+'.setAll('+
+                eventSubs.push(_tinyPadLeft +(isPublic?'this': '__private')+'.setAll('+
                     (obj.isMain?'':'\'' + obj.getName().join('.') + '\', ') + stringData + ')');
                 return new ShouldNotBeSetted(obj);
             }
