@@ -1088,13 +1088,15 @@ module.exports = (function () {
                     if (propInMeta) {
                         // is property
                         var val;
-
-                        obj.addValue( searchingFor , new Property( {
-                            name: [ 'value' ],
-                            ast: item, //was item
-                            class: propInMeta,
-                            value: item.value
-                        } ) );
+                        if(!propInMeta.ast.existed || item.items.length){
+                            obj.addValue( searchingFor, new Property( {
+                                name: ['value'],
+                                ast: item, //was item
+                                class: propInMeta,
+                                value: item.value,
+                                existed: propInMeta.ast.existed
+                            } ) );
+                        }
                         //cls.addItem(objectName, val); // join path?
 
                         var childObjectName = objectName;
@@ -1107,7 +1109,7 @@ module.exports = (function () {
                                 value: item.cls.value
                             } ) );
                         }
-                        if(item.items.length){
+                        if(item.items.length || propInMeta.ast.existed){
                             var itemClass;
                             if(propInMeta instanceof InstanceMetadata){
                                 itemClass = propInMeta.class;
