@@ -1033,8 +1033,10 @@ module.exports = (function () {
                     var objClass = obj._extendList[0];
                     if(!objClass)
                         objClass = obj.class.getName();
-                    console.log('More deps for '+ obj.getName() + '<'+objClass+'> in `' + cls.getName() + '`: ' + this.wait[cls.getName()].join(', ')+' '+obj.ast.name.pointer);
-                    obj.findProperty(searchingFor)
+
+                    console.log(this.wait[cls.getName()])
+                    console.log('More deps for '+ obj.getName() + '<'+objClass+'> in `' + cls.getName() + '`: ' + this.wait[cls.getName()].join(', ')+' '+cls.ast.name.pointer);
+                    ///obj.findProperty(searchingFor)
                     return false;
                 }
 
@@ -1132,7 +1134,10 @@ module.exports = (function () {
 
                             obj.addValue( searchingFor, childItem)
 
-                            this.__dig( childItem, cls, path.slice().concat( searchingFor ) );
+                            if(this.__dig( childItem, cls, path.slice().concat( searchingFor ) ) === false){
+                                // more deps in nested node
+                                return false;
+                            }
 
 
                         }

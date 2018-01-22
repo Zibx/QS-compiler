@@ -460,7 +460,11 @@ module.exports = (function () {
                                     values: prop.values,
                                     inlineCreate: true
                                 });
-                                delete prop.values.value
+
+                                if(prop.values && prop.values.value) {
+                                    delete prop.values.value;
+                                }
+
                                 ctx.mainCls.addItem( '___this___', instance );
                                 ctx.create.push(instance);
 
