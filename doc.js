@@ -6,8 +6,63 @@
 ;// QUOKKA 2017
 // By zibx on 5/2/17.
 
+/*
+eslint
+no-undef: error,
+max-statements: off,
+global-require: off,
+no-sync: off,
+notice/notice: off,
+prefer-destructuring: off,
+sort-keys: off,
+no-multi-assign: off,
+no-console: off,
+no-param-reassign: off,
+max-lines: off,
+no-magic-numbers: off,
+max-params: off,
+security/detect-non-literal-regexp: off,
+security/detect-non-literal-fs-filename: off,
+security/detect-object-injection: off,
+flowtype-errors/show-errors: off,
+flowtype/require-valid-file-annotation: off,
+fp/no-mutating-methods: off,
+fp/no-delete: off,
+react/destructuring-assignment: off,
+prettier/prettier: off,
+line-comment-position: off,
+padding-line-between-statements: off,
+strict: off,
+no-var: off,
+one-var: off,
+curly: off,
+vars-on-top: off,
+spaced-comment: off,
+no-unused-vars: off,
+prefer-arrow-callback: off,
+no-void: off,
+max-statements-per-line: off,
+prefer-template: off,
+no-implicit-coercion: off,
+sort-vars: off,
+flowtype/no-unused-expressions: off,
+block-scoped-var: off,
+object-shorthand: off,
+operator-assignment: off,
+guard-for-in: off,
+no-loop-func: off,
+no-shadow: off,
+max-depth: off,
+no-continue: off,
+no-empty: off,
+no-prototype-builtins: off,
+*/
+
 module.exports = (function () {
     'use strict';
+
+    // var stringify = require('json-stable-stringify');
+
     var Fs = require('fs'),
         Path = require('path')
     function readDirRecursive(path, base) {
@@ -216,6 +271,10 @@ module.exports = (function () {
                     prop.defined = item.findPropertyDefinition(prop.name)
                     var own = prop.own = prop.defined === item;
 
+                    if (!prop.own) {
+                        prop.owner = prop.defined.namespace + '.' + prop.defined.name.data;
+                    }
+
                     if(prop.defined === void 0){
                         if(console.combine){
                             console.combine(i+'.'+prop.name, function(list){
@@ -239,7 +298,7 @@ module.exports = (function () {
                     }
 
                     if(info) {
-                        prop.examples = extractTags(info, 'example');
+                        prop.examples = extractTags(info.ast, 'example');
                         if (prop.examples) {
 
                             prop.info += prop.examples.map(function (example) {
@@ -309,7 +368,10 @@ module.exports = (function () {
     if(module.parent){
 
     }else{
+        // const r =
         doDoc();
+
+        // Fs.writeFileSync('../../aliceklipper/akb/doc.old.json', stringify(r, { space: 4 }));
     }
     return doDoc;
 })();
