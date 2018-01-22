@@ -1034,7 +1034,7 @@ module.exports = (function () {
                     if(!objClass)
                         objClass = obj.class.getName();
 
-                    console.log(this.wait[cls.getName()])
+                    //console.log(this.wait[cls.getName()])
                     console.log('More deps for '+ obj.getName() + '<'+objClass+'> in `' + cls.getName() + '`: ' + this.wait[cls.getName()].join(', ')+' '+cls.ast.name.pointer);
                     ///obj.findProperty(searchingFor)
                     return false;

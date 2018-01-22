@@ -32,3 +32,5 @@ define AbstractComponent UIComponent
 
   @info: show element is not ready animation
   public Boolean busy: false
+
+  public Function getSize
