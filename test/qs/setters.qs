@@ -1,4 +1,5 @@
 def Page main
+
     Slider mySlider: {{num}}
       from: 5
       to: 20
@@ -22,3 +23,6 @@ def Page main
       a: '1'
       b: "2"
       c: """3"""
+
+    TextBox i
+      value: """val0"""

@@ -109,6 +109,9 @@ module.exports = (function () {
                     line = lines[insertInLine];
 
                     var dataToInsert = '_data' in token ? token._data : token.data;
+                    if(token.type === 'Quote' && _i === 1){
+                        dataToInsert = token.data;//JSON.stringify(token.data);
+                    }
                     if(token.type==='PIPE'){
                         dataToInsert = '{{'+ dataToInsert +'}}';
                     }

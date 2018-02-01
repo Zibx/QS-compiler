@@ -23,5 +23,5 @@ def QObject Printer
     A template may have no line break in the end: the `print` operation automatically appends one during the printing.
   public String template
 
-  @info: Leght of papeer (cm) available before virtual paper end
+  @info: Lenght of papeer (cm) available before virtual paper end
   public String paperLength

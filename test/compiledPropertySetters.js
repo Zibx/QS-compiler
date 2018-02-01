@@ -45,6 +45,10 @@ describe('Setters', function() {
             assert.equal(main.values.d0.value._val, '"x"');
         });
 
+        it('tripple quotes in prop value', function () {
+            assert.equal(main.values.i.value._val, '"val0"');
+        });
+
         //console.log(result.js)
     });
 });
