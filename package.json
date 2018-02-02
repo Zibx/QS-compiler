@@ -15,7 +15,8 @@
     "minimist": "*",
     "source-map": "^0.5.6",
     "type-inference": "git+ssh://git@gitlab.quokka.pub:aliceklipper/type-inference.git",
-    "z-lib": "*"
+    "z-lib": "*",
+    "ast-replace": "*"
   },
   "devDependencies": {
     "chai": "*",

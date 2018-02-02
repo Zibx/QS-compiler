@@ -369,7 +369,47 @@ module.exports = (function () {
         return undef;
 
     };
+    var replace = require('ast-replace');
+    var ReplaceMatcher = function(data){
+        this.data = data;
+        this.test = this.test.bind(this);
+        this.replace = this.replace.bind(this);
+    };
+    ReplaceMatcher.prototype = {
+        test: function(node){
+            var search = this.data.fromList.indexOf(node);
+            if(search === -1)
+                return false;
+
+            this.lastMatch = search;
+            return true;
+        },
+        replace: function(){
+            return this.data.toList[this.lastMatch];
+        }
+    };
+    var Replacer = function(ast){
+        this.ast = ast;
+        this.hash = {};
+    };
+
+    Replacer.prototype = {
+        add: function(from, to){
+            (this.hash[from.type] || (this.hash[from.type] = {fromList: [], toList: []}));
+            this.hash[from.type].fromList.push(from);
+            this.hash[from.type].toList.push(to);
+        },
+        proceed: function(){
+            var rules = {};
+            for(var i in this.hash)
+                rules[i] = new ReplaceMatcher(this.hash[i]);
+            return replace(this.ast, rules);
+        }
+    };
     var extractor = {
+        replacer: function(ast){
+            return new Replacer(ast);
+        },
         parse: function (sourceCode) {
             esprima = esprima || require('esprima');
             try {

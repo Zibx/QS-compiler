@@ -153,7 +153,10 @@ module.exports = (function () {
     var bodyParser = function(body){
         var vars = {};
         try {
-            vars = VariableExtractor.parse(body.data).getFullUnDefined();
+            var parsed = VariableExtractor.parse(body.data);
+
+            vars = parsed.getFullUnDefined();
+            body.ast = parsed.getAST();
         }catch(e){
             body.pointer.error(e.description, {
                 col: e.column,
@@ -234,12 +237,18 @@ module.exports = (function () {
             postProduction = {},
             replaceFn = function(what, position, str){
                 var shouldReplace = str.substr(position-magicLength, magicLength) !== magicPrefix;
+                shouldReplace = shouldReplace && position === pipeVar.loc.start
                 if(shouldReplace) {
                     postProduction[newVarName] = true;
                     return magicPrefix + newVarName;
                 }else
                     return what;
             };
+
+
+        var replacer = VariableExtractor.replacer(pipe.ast);
+
+
         for (var cName in pipe.vars) {
             for (var fullName in pipe.vars[cName]) {
 
@@ -261,8 +270,8 @@ module.exports = (function () {
 
                     var mArg = accessor.name,
                         newVarAST = varDeepCap(pipeVar, accessor.accessible);
-                    var newVarName = escodegen.generate(newVarAST),
-                        oldVarName = escodegen.generate(pipeVar);
+                    /*var newVarName = escodegen.generate(newVarAST),
+                        oldVarName = escodegen.generate(pipeVar);*/
                     var needReplace = !cache[accessor.name] || cache[accessor.name][0] !== pipeVar._id;
                     if (!cache[accessor.name]) {
                         cache[accessor.name] = [pipeVar._id];
@@ -270,26 +279,27 @@ module.exports = (function () {
                         mutatorArgs.push(mArg);
                     }
                     if(needReplace ) {
-                        var goodRegexName = oldVarName.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+                        replacer.add(pipeVar, newVarAST);
+                        /*var goodRegexName = oldVarName.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
                         fn = fn.replace(
                             new RegExp(goodRegexName, 'g'),
                             replaceFn
-                        );
+                        );*/
                     }
                 }
             }
         }
 
-        for( i in postProduction ){
+        /*for( i in postProduction ){
             fn = fn.replace(new RegExp((magicPrefix+i).replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"), 'g'), i)
-        }
-        pipe.fn = fn;
+        }*/
+        pipe.fn = escodegen.generate(replacer.proceed());//fn;
         var parts = [];
         pipeSources.forEach(function (item) {
             parts.push(item)
         });
         parts.push('function('+mutatorArgs.join(',')+'){\n' +
-            '\t'+sm(pipe)+'return '+ pipe.fn +';\n' +
+            '\t'+sm(pipe)+'return '+ pipe.fn +'\n' +
             '}');
         if(pipeSources.length) {
             return 'new Pipe(' + parts.join(', ') + ')';
