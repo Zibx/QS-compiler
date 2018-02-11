@@ -23,3 +23,6 @@ define UIComponent Page
   public Button back
   public ContainerComponent header
   public ContainerComponent global
+
+  public Function showKeyboard
+  public Function hideKeyboard
