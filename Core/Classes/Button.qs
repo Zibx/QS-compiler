@@ -10,7 +10,8 @@
       this.value = 'You pressed me!'
 
 
-@info: Push button with a caption, capable of firing `click` events. The default button size (unless set explicitly) is 100px by 30px.
+@info: Push button with a caption, capable of firing `click` events.
+  The default button size (unless set explicitly) is 100px by 30px.
 @ns: UI.Controls
 def UIComponent Button
     @example: Set the direction of arrow button
@@ -53,12 +54,10 @@ def UIComponent Button
     public Event click
 
 
-    @info: Flag making the button filled
-
     @example: Set filled property
-        Button: "here's btn"
+        Button: "here's the button"
             filled: true
-    @info: flag that make the button filled
+    @info: Flag making the button filled
     public Boolean filled
 
     @info: flag that make the button shown but not accessible(clickable)
