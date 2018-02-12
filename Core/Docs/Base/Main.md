@@ -1,60 +1,61 @@
-# QuokkaScript documentation root
+# QuokkaScript Crash Course
+Raw time estimate - 45 minutes.
 
-## Introduction
-&nbsp;
+This tutorial was designed specifically for developers, who are completely new to QuokkaScript and prefer a quick tour to get started with a new library and a runtime framework.
 
-QuokkaScript (QS) is a programming language created by a team of experienced enthusiasts seeking to facilitate the application development process for the widest possible audience of developers - including those who are not very experienced but are willing to create modern adaptive and flexible apps.
-&nbsp;
+## Step 1 - Why QuokkaScript?
+QuokkaScript is a [Domain-Specific Language](https://en.wikipedia.org/wiki/Domain-specific_language) that is addressed to both technical and non-technical people helping them in the creation of modern adaptive and flexible applications. In contrast to most general purpose languages (like JavaScript), QuokkaScript is best suited to streamline the development of user-oriented applications working with various software and hardware components and external services like databases or APIs.
 
-QuokkaScript is not just a language but also a runtime framework and a library of ready-to-use components, which make up a full SDK.
-&nbsp;
+Typical tasks best fit with QuokkaScript:
+- Creating software for embedded systems (ATMs, digital kiosks, self-service terminals, etc).
+- Quick prototyping of applications with complicated GUI.
+- Creating Electron-like Desktop apps for multiple platforms.
+- Creating interactive presentations with advanced scripts requiring interaction with external hardware or software.
 
-This document is a manual of the QS language and library. Referring to this manual should be sufficient to be able to write QuokkaScript applications. Knowledge of JavaScript will significantly help the reader understand the language and this manual.
-&nbsp;
+In these conditions, QuokkaScript is **not well-suited** for creating such things as complicated games, native mobile apps and complex backend solutions. You will not be able to build an ERP system with only QuokkaScript, however, QuokkaScript is a reasonable tool to sketch a sophisticated workflow with hundreds of screens and multiway branching.
 
-## QuokkaScript language
-&nbsp;
+## Step 2 - Install QuokkaScript
 
-### Main concepts
-&nbsp;
+## Step 3 - Overview the Basics
+QuokkaScript simplifies many of typical JavaScript complexities through the using of [declarative programming](https://en.wikipedia.org/wiki/Declarative_programming) approach. Around of 95% of code lines of an ordinary QuokkaScript application are declarations that describe objects properties or visual markup. At the same time, all tasks related to application behaviour logic can be implemented using JavaScript code snippets.
 
-The QuokkaScript programming language -- which is further referred to as QS -- is intended to streamline the development of user-oriented **applications** and services. It enables the development of desktop, web, and mobile applications, including distributed applications and those enhanced with a server backend.
-&nbsp;
+For example, a simple mortgage calculating widget can be implemented in pure QuokkaScript using declarative style. In all other cases, QuokkaScript syntax allows one inserting JavaScript everywhere.
 
-The accelerated application development is provided by the following features:
-  - Clear, intuitive, and extensible model of encapsulated **components**
-  - Simple minimalistic syntax with a weak type system
-  - Native support for **reactive** references of properties to other properties, i.e. automatic changing of referring values whenever the referred values change
-  - Native support for **event** subscription, triggering, and catching
-&nbsp;
+```
+def Page myFirstPage
+    Button: Next
+        .click: () -> {
+            next()
+        }
 
-QS is a cross-platform script language that is similar to YAML, JavaScript, and Python. In the same time it is conceived to ultimately facilitate writing of code and training of the developer’s skills while using this programming language. Therefore, it is expected that programming in QS will not require as much skill and/or time as the recognized industry standard programming languages.
-&nbsp;
+// Explaination:
+// =============
+// On the button’s click event, myFirstPage.next() method is called.
+// A button itself does not have the ‘next()’ method.
+```
 
-A QS application mainly consists of declarations of **elements**, which are analogous to objects. Elements are instances of **components**, which are analogous to classes. Components serve as **types** along with basic **data types** such as string, boolean, number, etc. A component must inherit from one of the basic QS components to take full advantage of the above-mentioned features of the language.
-&nbsp;
+A QuokkaScript application mainly consists of **elements**, which are equivalent to objects. **Elements** are instances of **components**, which are equivalent to classes. Components serve as **types** along with basic **data types** such as string, boolean, number, etc. A **component** must be inherited from one of the basic QuokkaScript **components** to take full advantage of the language.
 
-Basically, each component has **properties** and **functions**. A property is a named variable. Changing of a property value in an element can make the system perform a number of predefined actions such as function execution, reactive changing of other properties, activation of subscribed objects, etc. A function is analogous to a class method and resembles a JavaScript function. **Event handlers** are declared as functions in elements.
-&nbsp;
+Basically, each **component** has **properties** and **functions**. A **property** is a **named variable**. Changing of a **property value** in an **element**, one can make the system perform a number of predefined actions such as function execution, reactive change of other properties, activation of subscribed objects, etc. A **function** is equivalent to a class method and resembles a JavaScript function. **Event handlers** are declared as **functions** in **elements**.
 
-### Syntax and data model
-&nbsp;
+Other special aspects of QuokkaScript syntax:
+- All names in QuokkaScript are case sensitive.
+- All elements are declared in a parent-child hierarchy.
+- Nested declarations are marked up with line indents. Event handlers code snippets are not.
+- No semicolons required at the end of lines. No curly braces to define a block (except for event handlers).
 
-The QS syntax is similar to that of YAML.
-&nbsp;
+## Step 4 - Element declarations
+The most frequent expressions of QuokkaScript are the **element declarations**. Properties, event handlers, and child elements can be declared inside each **element**.
 
-Typically, a QS script consists of element declarations. Inside elements, its properties, event handlers, and child elements can be declared.
-&nbsp;
-QS does not require curly braces to delimit the content of elements: indentation defines the nesting level of statements and operators, like in YAML and Python. Nonetheless, curly braces are used in the syntax:
+QuokkaScript syntax does not require curly braces to delimit the content of **elements**: indentation defines the nesting level of statements and operators, like in YAML and Python. Nonetheless, curly braces are used in the syntax:
   - Around procedural blocks in event handlers (optionally)
   - Around JSON-like data declarations (mandatory)
   - Around reactive property reference expressions (double curly braces are mandatory)
-  &nbsp;
 
-A declaration, a statement, or an operator can only occupy one line. The end of the line serves as the end of the operator or statement, thus eliminating the need of a semicolon ';'.
-&nbsp;
+A declaration, a statement, or an operator can occupy only one line. The end of the line serves as the end of the operator or statement, thus eliminating the need for a semicolon ‘;’.
 
-An example of a QS code is presented below. It defines a page with colored background and places an interactive map object inside, which will occupy 50% of the page height and width. The map is centered at a predefined geographical point, has a predefined zoom, and automatically sets a pin mark in the point indicated by `list.selectedItem` (when the user selects one in the `list` element which is omitted in this example).
+An example of a QuokkaScript code is presented below. It defines a page with coloured background and places an interactive map object inside, which will occupy 50% of the page height and width. The map is centred at a predefined geographical point, has a predefined zoom, and automatically sets a pin mark in the point indicated by `list.selectedItem` (when the user selects one in the `list` element which is omitted in this example).
+
 ```
 def Page main
    title: Tourist map
@@ -66,203 +67,171 @@ def Page main
       pins: {{[list.selectedItem]}}
       height: 50%
       width: 50%
-......
+……
 ```
 
-#### Components
-&nbsp;
+## Step 5 - Components and Data Types
+**Components** are equivalent to classes, meanwhile **component instances** are equivalent to **elements**.
 
-Components are the analog of classes. In the example above, an element `main` representing the component [Page](UI.Page) is declared, which serves as a container for other elements: in particular, `gm` of the component [GeoMap](UI.GeoMap). Other declarations shown in the example are variable declarations. Indentation clearly indicates the hierarchy of nested elements and variables.
-&nbsp;
+In the example above, an element `main` representing the component [Page](UI.Page) is declared; it serves as a container for other elements: in particular, `gm` of the component [GeoMap](UI.Controls.GeoMap). Other declarations shown in the example are **variable declarations**. Indentation clearly indicates the hierarchy of nested elements and variables.
 
-From the syntax point of view, components serve as data types. Thus, an element of any component is a variable of the data type represented by that component. Just as classes in most programming languages, components are organized in a hierarchical system linked by inheritance. When you define your own QS component you must derive it from another existing component.
-&nbsp;
+Syntactically, components serve as data types. Thus, an **element** of any **component** is a variable of the data type represented by that **component**. Just as classes in most programming languages, **components** are organized in a hierarchical system linked by inheritance. When you define your own QuokkaScript **component** you must derive it from another existing component.
 
-#### Data types
-QuokkaScript has also predefined primitive data types, which are not components:
-&nbsp;
+QuokkaScript also includes predefined primitive **data types**, which are other than **components**:
 
-| |
-| ---------  | ---------
-| **String**   | String value. Uses the Javascript syntax for String
-| **Number**	 | Number value. Uses the Javascript syntax for numbers, including integer and fixed point numbers
-| **Boolean**  | Boolean value, can be either true or false. Uses the Javascript syntax for Boolean
-| **Variant**  | Value that can contain multiple values of different types. Uses JSON syntax
-| **Function** | Function. Uses the Javascript syntax for functions
-| **Array**    | Array of values. Uses the Javascript syntax for arrays
-&nbsp;
+| **Data type** | **Description** | **Sample** |
+|---|---|---|
+| **String** | String value. Uses the JavaScript syntax for String. | `Example string` |
+| **Number** | Number value. Uses the JavaScript syntax for numbers, including integer and fixed-point numbers. | `42` or `-4.20` |
+| **Boolean** | Boolean value can be either true or false. Uses the JavaScript syntax for Boolean. | `True` or `False` |
+| **Variant** | Value that can contain multiple values of different types. Uses JSON syntax. | `{a: 1, b: 2}` |
+| **Array** | Array of values. Uses the JavaScript syntax for arrays. | `[‘foo’, 123]` |
+| **Function** | Function. Uses the JavaScript syntax for functions. | `(args)->body` or `(a)->{ b;c}` or `function(args){ body }` |
 
-### Basic constructions
-&nbsp;
+**NB** Data types are not components. However, QuokkaScript Syntax treats components and data types in the same way.
 
-#### Element declaration
-&nbsp;
+## Step 6 - Hello World!
+Enough theory. Nothing creates the illusion of understanding as an example, so let's have a look at the obligatory Hello World in QuokkaScript to illustrate some of the basic concepts introduced above.
 
-The basic syntax to declare an element (i.e. an instance of a component) is as follows:
 ```
-Component elementName
-```
-
-However, first level elements are declared with an additional `def` keyword, for example:
-```
-def LogicalComponent myLogic
+def Page main                            // root Page element named ‘main’
+    public String foo                    // a public string variable
+    TextInput i1: type your text here    // a text field initialised with a String value
+    HBox                                 // an Hbox with no name (not to be referenced)
+    width: 100%                          // redefinition of a prototype property value
+    Image img:                           // an element, which values follow below:
+        stretch: none                    //
+        source: 'https://my_url/'        //
+    Button myButton: 'Say Hello World!'  // a button with a caption (default property)
 ```
 
-You must mind the appropriate indentation so that the child element declaration has a greater indent than its parent element declaration. For example:
-```
-def Page main //the main page is the root container
-  ContainerComponent foo //foo is a child of main
-  ... //possible declarations of foo properties
-    UIComponent bar //bar is a child of foo
-    ... //possible declarations of bar properties
-```
-
-#### CSS class definition
-&nbsp;
-
-Behaving in a similar way as HTML elements, QuokkaScript elements can also be styled with CSS classes. If the CSS library deployed with your current SDK contains stylesheet classes, you can specify them as part of element declarations, for example:
-```
-  CardForm.card-form myCardForm
-```
-In the example above, a [CardForm](UI.CardForm) element named `myCardForm` has the class `card-form`. This class defines the visual appearance and behavior of `myCardForm`.
-Class specifications allow the developer to avoid redundant definitions of style attributes, especially on complex components, such as [CardForm](UI.CardForm) in the above example.
-&nbsp;
-
-#### Property declaration
-&nbsp;
-
-The property declaration syntax is basically the same as the component declaration syntax. However, it has extensions allowing properties to be initialized or making them publicly visible from other elements.
-&nbsp;
-
-A property declaration generally includes:
-  - Optional scope specifier `public`
-  - Data type name or component name
-  - Property name
-  - Optionally, the initialization token ':' followed by an initialization expression
-  &nbsp;
-
-For example:
-```
-public Boolean flagged: false
-```
-
-Properties are declared as part of their components declarations, in the nested block of code, for example:
-```
-def LogicalComponent myLogic
-  public Boolean flagged: false
-  //other declarations being part of this element
-```
-
-Having the above declaration, `myLogic` element will have a publicly referrable boolean property `flagged`, which will initially have the `false` value.
-&nbsp;
-
-#### Function declaration
-&nbsp;
-
-Like properties, functions are members of elements and must be declared on the same nesting level as part of an element's declaration.
-&nbsp;
-
-Functions are declared and defined as follows:
-```
-Function foo(param1, param2, ...) {
-	//function code
-	}
-```
-
-> Note: **Function** is a data type, and `foo` in the above example is an instance (a variable) of the **Function** data type, and therefore `foo` is a function. The curly braces play the same role as in JavaScript and define the function body. A colon ':' is not required in function definitions.
-&nbsp;
-
-It is unlikely that you will have to define functions in the way described above. More likely will be event handlers declaration.
-&nbsp;
-
-#### Event handler declaration
-&nbsp;
-
-An event handler is a function that is bound to a specific known event which can be caught by the component. A event handler specifies the name of the event and defines the handler function code. Its syntax is illustrated in the example:
-```
-//”click” is the name of the event to handle
-
-.click:()-> 1st line of the handler code
-  2nd line of the handler code
-  ... etc.
-```
-
-The handler function code must have the JavaScript syntax.
-&nbsp;
-
-You can optionally embrace the function code with curly braces:
-```
-.click:()-> {... // handler code
-  ... //handler code
-  }
-```
-
-#### Redefinition of a function
-&nbsp;
-
-Once defined, a function can be redefined in child components. The syntax of redefinition is the same as of event handlers For example, if some function `foo` was previously declared, the function redefinition can be as follows:
-```
-.foo:()->{
-  // new function body for foo
-  }
-```
-
-Redefinition of parameters is not allowed in function redefinitions, so the parentheses ( ) must be empty in this case.
-&nbsp;
-
-#### Reactive property reference
-&nbsp;
-
-A property can be assigned with another property not by value but by reference, using the *reactive property reference* syntax, which uses double curly braces:
-```
-public MyControl ctrl: {{other_ctrl.value}}
-```
-
-Reactive reference means that when the value of the referenced property changes, so automatically does the value of the referencing property. Such a behavior is very helpful from the viewpoint of delivering interactivity to your application, since it does not require any extra coding to make visual components react to each other.
-&nbsp;
-
-In the example below, the main page shows an input field `input` and a slider `slide` which has the integer range from *0* to *100*. The initial slider value is *10*. As the user moves the slider and changes its value, the value of `input` will be maintained by the system always equal to the current value of `slide` (due to the reactive reference) and will be automatically updated on the screen.
+**Elements hierarchy**
+All elements should be declared in a parent-child hierarchy. Declare parents then nest children inside:
 ```
 def Page main
-	TextBox input: {{slide.value}}
-	Slider slide: 10
-		from: 0
-		to: 100
+    vbox Layout
+```
+**Only indent that matters**
+```
+ComponentX elementX
+    ComponentY elementY
+        propertyA: valueA
+    propertyB: valueB
 ```
 
-#### Reacting to events
-&nbsp;
+- Nested declarations (but not event handlers code) are marked up with line indents. In the example above, `propertyA` belongs to `ComponentY` and `propertyB` belongs to `ComponentY`
 
-Elements can react to events that are related with them. For example, all visual elements (descendants of [UIComponent](Core.UIComponent)) can react to `click`, `mouseenter`, and `mouseleave` events, as well as some other ones. Events that a component is sensible to are listed in the corresponding component description section in the QuokkaScript components reference.
-&nbsp;
+## Step 7 - Basic Constructions
+Overview:
+- Element declaration
+- CSS class definition
+- Property declaration
+- Function declaration
+- Event handler declaration
+- Redefinition of a function
+- Reactive property reference
+- Reacting to events
+- Subscription to property modification
 
-To define the reaction of an element to an event, you must declare the event handler function as described in Event handler declaration above. For example, you should declare reaction to the click event as follows:
+
+**Elements Hierarchy**
+
+All elements should be declared in a parent-child hierarchy. Declare parents then nest children inside:
 ```
-MyComponent myElement
-  .click:()->
-    this.value = calculateValue()
+def Page main
+    vbox Layout
+```
+**Only indent that matters**
+
+```qs
+ComponentX elementX
+    ComponentY elementY
+        propertyA: valueA
+    propertyB: valueB
 ```
 
-For more information, please refer to the chapter Event handler declaration.
-&nbsp;
+- Nested declarations (but not event handlers code) are marked up with line indents. In the example above, `propertyA` belongs to `ComponentY` and `propertyB` belongs to `ComponentY`.
 
-#### Subscription to property modifications
-&nbsp;
-
-A component instance can be subscribed to an event of property changing. To enable subscribing of a component instance to the `_onPropertyChanged` event, the subscriber component must provide a callback function that accepts parameters:
-  - The instance whose property has changed
-  - The name of the changed property
-  - The new value
-  - The old value
-  &nbsp;
-
-It is the event initiating component that subscribes other components and their callback functions to changes of its properties. The initiating component must inherit from [AbstractComponent](Core.AbstractComponent). If it does, it can use the following function call to subscribe a callback function to `this._onPropertyChanged` event:
+**Common Declaration Syntax** (not including events)
 ```
-subscribe(callback)
+[def | public ] [Type] [name [: [value]]]
 ```
 
-Every modification of this component’s properties will invoke the subscribed callback function with the four parameters listed above.
-&nbsp;
+- In an element declaration, `Type` stands for the component name, and `value` is the value of the default property, which is always named `value`.
+- In a property declaration, `Type` stands for the data type, and `value` is the property value.
+- The `public` modifier has to be added to make an element or property unusable in other elements.
 
-## QuokkaScript components
-&nbsp;
+**Property Reference**
+- As the value of `prop_name`  changes, the referencing element and the corresponding appearance changes automatically.
+
+```qs
+Video video1
+    time: {{progresSlider}}
+Slider progresSlider
+    from: 0
+    to {{video1.duration}}
+```
+
+- `[element_name.]prop_name` is a property reference (copying the value)
+- `element_name` is a reference to default value
+- `{{[element_name.]prop_name}}` is a reactive property reference (watching the value)
+
+**Event Handler Declaration**
+```
+.event: ()-> {/* handler body for event 'event'*/}
+```
+- It's where the procedures are defined
+- The event handler body has to be written in javaScript and can take multiple lines. Curly braces and semicolons must be used in this case.
+
+```
+def Page myFirstPage
+    Button: Next
+        .click: () -> {
+            next()
+        }
+```
+
+**Property Reference From Procedures**
+- Use JavaScript-style getters and setters inside procedures.
+
+```
+myInput.get('text')           // get the text value
+myInput.set('time', 15.46)    // set the time value
+```
+
+## Step 8 - QuokkaScript Built-In Components
+
+**Layout Components**
+
+| **Component** | **Description** |
+|---|---|
+| `Page` | Page containing all other GUI elements |
+| `Hbox`, `Vbox` | Horizontally and vertically oriented stacks |
+| `Image` | Graphical image |
+| `Button` | Push button |
+| `Grid` | Grid with addressable rows and columns |
+
+**Item Selection Components**
+
+| **Component** | **Description** |
+|---|---|
+| `ListBox` | Vertical or horizontal list of selectable items |
+| `WrapPanel` | Ordered set of selectable items |
+| `Checkbox` | Binary attribute |
+| `RadioButton` | Selectable option, child of a `RadioButtonGroup` |
+
+**Value Input Components**
+
+| **Component** | **Description** |
+|---|---|
+| `TextBox` | Text input with the corresponding keyboard |
+| `NumberBox` | Number input with the corresponding keyboard |
+| `Slider` | Draggable slider |
+
+**Gadget Components**
+
+| **Component** | **Description** |
+|---|---|
+| `Video` | Plays video and audio |
+| `Audio` | Plays audio without a visualization |
+| `GeoMap` | Displays a Google or Yandex interactive map  |

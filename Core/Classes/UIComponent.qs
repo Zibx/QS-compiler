@@ -9,28 +9,45 @@ define AbstractComponent UIComponent
   @info: Background color of the element
   public String background
 
+  @info: Should content be scrollable? Enum. Values: horizontal, vertical, both, disabled
   public String scroll
 
+  @info: css padding
   public String padding
+
+  @info: css margin
   public String margin
+
+  @info: css fontSize
   public String fontSize
 
-  @info: Height of the element. For example: //100%//, //30px//, //200//, //200*//
+  @info: Height of the element. For example: 100%, 30px, 200, 200*
   public String height
 
-  @info: Width of the element. For example: //100%//, //30px//, //200//, //200*//
+  @info: Width of the element. For example: 100%, 30px, 200, 200*
   public String width
 
+  @info: Elements top. Can be used in position based layouts
   public String top
+
+  @info: Elements left. Can be used in position based layouts
   public String left
 
+  @info: css classes
   public String cls
 
+  @info: Element display style. Enum:
+      - [visible] - default
+      - flex
+      - hidden - do not show,
+      - collapsed - hide and collapse space
   public String visibility
 
+  @info: Hack making property. Inline native css style. Danger. Try to avoid.
   public String pureCss
 
   @info: show element is not ready animation
   public Boolean busy: false
 
+  @info: Return actual dimensions in pixels in format: {width: x, height: y}
   public Function getSize
