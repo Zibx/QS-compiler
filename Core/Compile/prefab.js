@@ -11,9 +11,15 @@ module.exports = (function () {
     var esprima = require('esprima'),
         escodegen = require('escodegen'),
         SourceMap = require('source-map'),
-        path = require('path');
 
-    var console = new (require('../../console'))('Compile');
+        path = require('path');
+    var InstanceMetadata = require('./InstanceMetadata');
+    var Property = require('./Property');
+    var ShouldNotBeSetted = function(obj){
+        this.obj = obj;
+    };
+
+    //var console = new (require('../../console'))('Compile');
     var setRecursive = function(obj, vals){
         for(var key in vals){
             var val = vals[key],
@@ -37,15 +43,15 @@ module.exports = (function () {
     };
     return {
         __compile: function(obj, compileCfg){
-            var baseClassName = obj.extend[0];
+            var baseClassName = obj._extendList[0];
             var source = [],
                 i, ctor = [], props = [], cfg, inlines = [],
-
+                privateInlines = [],
                 ns,
                 _self = this,
                 sourceMap, sourcePath = obj.ast.name.pointer.source,
                 itemsInfo = obj.itemsInfo = {
-                    this: {ast: obj.ast, class:obj.extend[0], type:'def', isPublic: true}
+                    this: {ast: obj.ast, class:obj._extendList[0], type:'def', isPublic: true}
                 };
 
             if(compileCfg.sourceMap) {
@@ -62,68 +68,81 @@ module.exports = (function () {
                         return '';
                     return '/*%$@'+ pos +'@$%*/';
                 }
+            }else{
+                sm = function(){return '';};
             }
             var fileInfo = path.parse(obj.ast.name.pointer.source);
 
-            var nsName = this.getTag(obj, 'ns');
+            var ns = obj.getTag('ns', true);
 
-            ns = compileCfg.ns || fileInfo.name+ (nsName?'.'+ nsName : '');
-            
             /** REQUIRES */
-            if(compileCfg.newWay){
-                
-                var names = ['Core.Pipe'],
-                    varNames = ['Pipe'];
-                
+            var formRequires = function() {
+
+                var source = [];
+                var fullRequire = {}, j, requireInfo;
                 for (i in obj.require) {
                     if (!(i in this.world)) {
-                        throw new Error('Unknown class `' + i + '` ' + obj.require[i][0].pointer)
+                        obj.require[i][0].pointer.error('Unresolved required dependency ' + i + ' ');
+                        return [];
+                        //throw new Error('Unknown class `' + i + '` ');// + obj.require[i][0].pointer)
                     }
-                    if (this.world[i].namespace) {
-                        names.push(this.world[i].namespace +'.'+ i)
+                    requireInfo = this.world[i];
+
+                    if (this.world[i].namespace !== null) {
+                        fullRequire[i] = this.world[i];
+                    }
+
+                    for (j in requireInfo.require) {
+                        if (!(j in this.world)) {
+                            throw new Error('Unknown class `' + j + '`, used in class `' + i + '`' + obj.require[i][0].pointer)
+                        }
+                        if (this.world[j].namespace !== null) {
+                            fullRequire[j] = this.world[j];
+                        }
+                    }
+                }
+
+
+                var names = ['Core.Pipe'],
+                    varNames = ['Pipe'];
+
+                for (i in fullRequire) {
+                    if (fullRequire[i]) {
+                        names.push(fullRequire[i].namespace + '.' + i)
                         varNames.push(i);
                     }
                 }
-                source.push('var _AppNamespace = '+JSON.stringify(ns || fileInfo.name)+';');
-                source.push('QRequire('+names.map(function(name){return JSON.stringify(name)}).join(', ') +', function(');
+                source.push('var _AppNamespace = ' + JSON.stringify(ns || fileInfo.name) + ';');
+                source.push((compileCfg.ns === false ? 'module.exports = ' : '') + 'QRequire(' + names.map(function (name) {
+                        return JSON.stringify(name)
+                    }).join(', ') + ', function(');
 
-                source.push('\t'+varNames.join(',\t\n')+'\n){');
+                source.push('\t' + varNames.join(',\n\t') + '\n){');
                 source.push('"use strict";');
-                
-            }else {
-                for (i in obj.require) {
-                    if (!(i in this.world)) {
-                        throw new Error('Unknown class `' + i + '` ' + obj.require[i][0].pointer)
-                    }
-                    if (this.world[i].namespace) {
-                        var nsString = ['Q'].concat(this.world[i].namespace);
-                        nsString.push(i);
-                        source.push('var ' + i + ' = ' + nsString.join('.') + ';');
-                    }
+
+
+                if(obj.privatesFlag){
+                    source.push('\tvar _private = Symbol(),\n' +
+                        '\t\t_privateConstructor = QObject' +
+                        (privateInlines.length === 0 ? ';' :
+                        '.extend(\'' + ns + '\', \'_' + obj.getName() + '\', {\n\t' +
+                        privateInlines.join(',\n\t')+
+                        '\n});'));
                 }
 
-                source.push('var Pipe = Q.Core.Pipe;');
-                source.push('var _AppNamespace = '+JSON.stringify(ns || fileInfo.name)+';');
-            }
+                return source;
+            };
 
-            //sm(obj.ast.definition)+ + sm(obj.ast.name, obj.name)
-            /*source.push('var ' + obj.name +' = ' + baseClassName +
-                //'.extend(\''+ sm(obj.ast.extend[0], ns) + ns +'\', '+sm(obj.ast.name, obj.name)+'\'' + obj.name+'\', {');
-                '.extend(\''+ ns +'\', '+'\'' + obj.name+'\', {');
-*/
-            if(compileCfg.newWay) {
-                source.push('return ' + baseClassName +
-                    '.extend(\'' + ns + '\', \'' + obj.name + '\', {');
-            }else{
-                source.push('var ' + sm(obj.ast.name, obj.name) + obj.name + ' = ' + baseClassName +
-                    '.extend(\'' + ns + '\', \'' + obj.name + '\', {');
-            }
+
+            source.push('return ' + baseClassName +
+                '.extend(\'' + ns + '\', \'' + obj.getName() + '\', {');
+
 
 
             //console.log('REQUIRES: '+requires.join('\n'));
 
             ctor.push('ctor: function(){');
-            ctor.push('var _self = this;');
+            ctor.push('%PRIVATEVARS%');
             var privateDefined = false;
             var checkDefinePrivates = function(){
                 if(!privateDefined){
@@ -131,149 +150,82 @@ module.exports = (function () {
                     privateDefined = true;
                 }
             };
-            for(var where in obj.instances) {
-                obj.instances[where].forEach(function (what) {
-                    if (what.type === 'child') {
-                        itemsInfo[what.name] = what;
-                    }
-                });
-            }
+
             var piped = [];
+            var eventSubs = [];
             var valuesCollector = {};
-            for(var where in obj.values){
-                var properties = obj.values[where];
-                var iInfo = itemsInfo[where];
-                for(var propName in properties){
-                    var prop = properties[propName];
-                    var whos = (where === '___this___' ? 'this' : where );
-                    var propValue = this.getPropertyValue(prop, obj, whos, sm),
-                        isPipe;
+            var create = [];
 
-                    if(propValue !== void 0) {
-                        isPipe = propValue.indexOf('new Pipe') === 0;
-                    }else{
-                        this.getPropertyValue(prop, obj, whos, sm)
+
+            var valueGatherer = function (what) {
+                if (what.type === 'child') {
+                    var gathererCtx = {
+                        piped: piped, mainCls: obj, sm: sm, base: what, eventSubs: eventSubs, create: create, valueGatherer: valueGatherer
+                    };
+                    var res = _self.callMethod('valueGatherer', what, gathererCtx);
+                    if(typeof res === 'string'){
+                        ctor.push( res );
                     }
-                    if(!(propValue instanceof Error)) {
-                        prop._val = propValue;
-                        var scope = prop.item.scope && prop.item.scope.data;
-                        var isPublic = scope === 'public' || whos === 'this' || iInfo.isPublic;// && propName in obj.public);
+                }else if(what.type === 'inline'){
+                    var trailingComment = [], tag;
+                    if(what.ast.tags &&
+                        (tag = what.ast.tags.description || what.ast.tags.info)){
+                        trailingComment.push(_self.extractFirstTag(tag),'');
+                    }
+                    if(what.value){
+                        if( what.value.arguments ){
+                            what.value.arguments.forEach( function( item ){
+                                trailingComment.push( '@param {' + item.type + '} ' + item.name );
+                            } );
+                        }
+                        trailingComment.push( '@returns {' + what.value.returnType + '}' );
 
-                        if(!valuesCollector[whos])
-                            valuesCollector[whos] = {};
-
-                        if( isPublic ){
-
-                            if(whos === 'this') {
-                                if(isPipe) {
-                                    piped.push(
-                                        'this.set(\'' + sm(prop.item.semiToken) + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');
-                                }else{
-                                    valuesCollector['this'][prop.name] = propValue;
-                                }
-                                /*ctor.push(
-                                    'this.set(\'' + sm(prop.item.semiToken) + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');*/
+                        var functionBody = _self.getPropertyValue( what, obj, (where === '___this___' ? obj : what), sm );
+                        if( functionBody.body ){
+                            if( functionBody.body.indexOf( '__private' ) > -1 ){ // not good. TODO: go to ast
+                                privateDefined = true;
+                                functionBody.body = 'var __private = this[_private], _self = this;\n' + functionBody.body;
                             }else{
-                                if(prop.name === 'value' && ((prop.item.class && prop.item.class.data) in this._primitives)){
-                                    if(!isPipe) {
-                                        valuesCollector[whos].value = propValue;// + sm(prop.item.semiToken);
-                                    }else {
-                                        piped.push(
-                                            'this.set(\'' + sm(prop.item.class) + whos + '\', ' + propValue + sm(prop.item.semiToken) + ');');
-                                    }
-                                }else {
-                                    if(!isPipe) {
-                                        valuesCollector[whos][prop.name] = propValue;
-                                    }else {
-                                        piped.push(
-                                            'this.set(\'' + sm(prop.item.class) + whos + '.' + sm(prop.item.semiToken) + prop.name + '\', ' + propValue + sm(prop.item.semiToken) + ');');
-                                    }
-                                }
+                                functionBody.body = 'var _self = this;\n' + functionBody.body;
                             }
-
-                        } else {
-                            checkDefinePrivates();
-                            if(prop.name === 'value' && ((prop.item.class && prop.item.class.data) in this._primitives)){
-                                if(!isPipe) {
-                                    valuesCollector[whos].value = propValue;
-                                } else {
-                                    piped.push(
-                                        '__private.set(\'' + sm(prop.item.class) + whos + '\', ' + propValue + sm(prop.item.semiToken) + ');');
-                                }
-                            }else {
-                                if(!isPipe) {
-                                    valuesCollector[whos][prop.name] = propValue;
-                                }else {
-                                    piped.push(
-                                        '__private.set(\'' + sm(prop.item.class) + whos + (prop.name !== 'value' || true ? '.' + sm(prop.item.semiToken) + prop.name : '') + '\', ' + propValue + sm(prop.item.semiToken) + ');');
-                                }
-                            }
-                        }
-                    }else{
-                        throw propValue;
-                    }
-                }
-            }
-
-                        //ctor.push('var ' + what.name + ' = new ' + what.class + '(); '+sm(what.ast.name || what.ast.class)+'var '+sm(what.ast.name || what.ast.class, what.name||what.class)+'DATA_'+what.name+''+(what.ast.semiToken?sm(what.ast.semiToken):'')+'='+what.name+'._data;');
-            for(var where in obj.instances) {
-                obj.instances[where].forEach(function (what) {
-                    if (what.type === 'child') {
-                        var scope = what.ast.scope && what.ast.scope.data;
-                        var isPublic = scope === 'public';
-                        what.isPublic = isPublic;
-                        var vals = valuesCollector[what.name],
-                            data = [],
-                            stringData;
-                        for( i in vals){
-                            data.push( '\t'+JSON.stringify(i) + ':'+ vals[i] );
-                        }
-                        data.push('\t"#": '+JSON.stringify(what.name));
-                        if(data.length) {
-                            stringData = '{\n' + data.join(',\n') + '}';
                         }else{
-                            stringData = '';
+                            debugger
                         }
+                        what.value._js = functionBody.toString();
 
-                        _self.tryCall(what.class, '__instantiate', [vals, data, stringData], function(err, result){
-                            if(!err)
-                                stringData = result;
-                            else
-                                stringData = 'new ' + what.class + '('+ stringData +')';
-                        });
+                        (what.isPublic ? inlines : privateInlines).push(
+                            (trailingComment.length > 0 ? '\n\t/**\n\t * ' + trailingComment.join( '\n\t * ' ) + '\n\t */\n' : '') +
+                            what.name + ': ' + functionBody.toString()
 
-                        if(isPublic) {
-                            ctor.push('this.set(\'' + what.name + '\', '+ stringData +');')
-                        } else {
-                            checkDefinePrivates();
 
-                            ctor.push('__private.set(\'' + what.name + '\', '+ stringData +');')
-                        }
-                        //console.log(isPublic, what);
-
-                    }else if(what.type === 'inline'){
-                        var trailingComment = [], tag;
-                        if(what.ast.tags &&
-                            (tag = what.ast.tags.description || what.ast.tags.info)){
-                            trailingComment.push(_self.extractFirstTag(tag),'');
-                        }
-
-                        what.value.arguments.forEach(function(item){
-                            trailingComment.push('@param {'+item.type+'} '+item.name);
-                        });
-                        trailingComment.push('@returns {'+what.value.returnType+'}');
-                        inlines.push(
-                            (trailingComment.length > 0 ? '\n/**\n\t * '+trailingComment.join('\n\t * ')+'\n\t */': '')+
-                            what.name +': function('+
+                            /* function('+
                             what.value.arguments.map(function(item){
-                                return item.name;
-                            })
+                                    return item.name;
+                                })
                                 .join(', ')+
-                            '){'+what.value.body.data+'}');
+                            '){'+ functionBody +'}'*/ );
                     }
-                });
 
+
+                }
+            };
+
+            var parts = {gathered: [], precreate: []}, tmpCtor = ctor;
+            ctor = parts.gathered;
+            for(var where in obj.instances) {
+                obj.instances[where].forEach(valueGatherer);
             }
+
+
+            valueGatherer(Object.assign(Object.create(obj),{type: 'child', propsOnly: true, existed: true, isMain: true, isPublic: true}));
+
+
+            obj.state = 'inlineCreate';
+            ctor = parts.precreate;
+            create.forEach(valueGatherer);
+            ctor = tmpCtor.concat(parts.precreate).concat(parts.gathered);
+
+
             if(valuesCollector['this']){
                 var vals = valuesCollector['this'],
                     data = [],
@@ -292,18 +244,18 @@ module.exports = (function () {
             ctor = ctor.concat(piped);
 
 
-
+            var appendList = [];
             for(var where in obj.instances) {
                 obj.instances[where].forEach(function (what) {
                     if(what.type === 'child') {
 
-                        var name = what.name,
-                            info = itemsInfo[name],
-                            fromQObject = _self.isInstanceOf(info.class, 'QObject'),
+                        var name = what.getName(),
+                            info = obj.subItems[name],
+                            fromQObject = _self.isInstanceOf(info.class.getName(), 'QObject'),
                             childGetter,
                             parent,
                             parentGetter;
-                        console.log(info.class +' is '+(fromQObject?'':'not ')+'instance of QObject ');
+                        console.log(info.getName() +' <'+info.class.getName() +'> is '+(fromQObject?'':'not ')+'instance of QObject ');
                         if(fromQObject) {
                             if(what.isPublic){
                                 childGetter = 'this.get(\''+ what.name +'\')';
@@ -311,52 +263,85 @@ module.exports = (function () {
                                 childGetter = '__private.get(\''+ what.name +'\')';
                             }
                             if(where !== '___this___'){
-                                parent = itemsInfo[where];
-                                parentGetter = (parent.isPublic ? 'this' : '__private') +'.get(\''+ where +'\')';
+                                var whereParts = where.split('.');
+
+                                parent = obj.subItems[whereParts[0]];
+                                if(!parent){
+
+                                    var propInObj = obj.findProperty(whereParts[0]);
+                                    if(propInObj){
+                                        parent = propInObj;
+                                    }
+                                }
+                                if(!parent){
+                                    what.ast.class.pointer.error('Try to append '+ name +' to unknown '+ where);
+                                    /*try to continue with less damage*/
+                                    return null;
+                                    /*debugger
+                                    throw new Error('Try to append '+ name +' to unknown '+ where);*/
+                                }else{
+                                    parentGetter = (parent.isPublic ? 'this' : '__private') +'.get(\''+ where +'\')';
+                                }
+
                             }else{
                                 parentGetter = 'this';
                             }
 
-                            ctor.push(sm(what.ast.name || what.ast.class) + parentGetter + '.addChild(' + childGetter + ');');
+                            appendList.push(sm(what.ast.name || what.ast.class) + parentGetter + '.addChild(' + childGetter + ');');
 
                         }
                     }
                 });
             }
 
-            for(var who in obj.events) {
-                for(var whatHappens in obj.events[who]) {
-                    obj.events[who][whatHappens].forEach(function(evt){
-                        var getter,
-                            what = itemsInfo[who];
-                        if(who === '___this___') {
-                            getter = 'this';
-                        }else if(what.isPublic){
+            ctor = ctor.concat(eventSubs);
+            for(var evtName in obj.events) {
+                //for(var whatHappens in obj.events[who]) {
+                    obj.events[evtName].forEach(function(evt){
+                        var getter = 'this';//,
+                            //what = obj.subItems[who];
+                        //if(who === '___this___') {
+                            //getter = 'this';
+                        /*}else if(what.isPublic){
                             getter = 'this.get(\''+ what.name +'\')';
                         }else{
                             getter = '__private.get(\''+ what.name +'\')';
-                        }
+                        }*/
 
-                        var whos = (who === '___this___' ? 'this' : who );
-                        var propValue = _self.getPropertyValue(evt, obj, whos, sm);
+                        //var whos = (who === '___this___' ? 'this' : who );
+                        var propValue = _self.getPropertyValue(evt, obj, obj, sm);
                         evt._js = propValue;
+
                         if(!(propValue instanceof Error)) {
-                            ctor.push(getter + '.on(\'' + whatHappens + '\', ' + propValue + ');');
+                            ctor.push(getter + '.on(\'' + evtName + '\', ' + propValue + ');');
                         }else{
                             console.log('Error getting event handler', evt);
                         }
                     });
-                }
+                //}
             }
             //obj.public
-            
+
+            ctor = ctor.concat(appendList);
+
             ctor.push('}');
             for(i in obj.public){
-                if(obj.name === obj.public[i].defined) {
-                    props.push(i + ': {}');
+                if(i === 'value') {
+                    props.push('value: "__value__"');
+                }else{
+
+                    props.push( i + ': {}' );
                 }
             }
-            ctor = ctor.join('\n');
+            var privateVars = ['var _self = this;'];
+            //console.log('privatesFlag', obj.privatesFlag)
+            if(obj.privatesFlag){
+
+                privateVars.push('var __private = this[_private] = new _privateConstructor();');
+                this.addDependency(obj, 'QObject');
+            }
+
+            ctor = ctor.join('\n').replace('%PRIVATEVARS%', privateVars.join('\n')+'\n');
             props = '_prop: {\n'+ props.join(',\n') +'\n}\n';
 
 //console.log('/////', inlines)
@@ -368,18 +353,18 @@ module.exports = (function () {
 
 
             source.push('});');
-            if(compileCfg.newWay) {
-                source.push('});');
-            }
 
-            obj.extend.forEach(function(name){
+            source.push('});');
+
+
+            obj._extendList.forEach(function(name){
                 _self.tryCall(name, '__afterCompile', [source, obj.name], function(err, result){
                     if(!err)
                         source = result;
                 });
             });
 
-            var code = source.join('\n'),
+            var code = formRequires.call(this).join('\n')+'\n'+source.join('\n'),
                 rowDecrements = {};
             var ccode = code.replace(/\/\*%\$@([0-9]*,[0-9]*,[^@]*)@\$%\*\//g, function(a,b,c){
                 var poses = b.split(','),
@@ -418,10 +403,199 @@ module.exports = (function () {
             }else{
                 source = ccode;
             }
-            var map = sourceMap.toString();
+            if(cfg.sourceMap) {
+                var map = sourceMap.toString();
+            }
             var result = {source: source, map: map};
-            console.log(result)
+            //console.log(result)
             return result;
+        },
+        valueGatherer: function(obj, ctx, path, deep){
+            if(obj.inlineCreate && ctx.mainCls.state !== 'inlineCreate')
+                return;
+            var piped = ctx.piped,
+                eventSubs = ctx.eventSubs;
+            var propName, values = obj.values, prop;
+            var data = [],
+                vals = {}, i, _i,
+                isPublic,
+                stringData, isPipe,
+                sm = ctx.sm;
+            if(!path)
+                path = [obj.getName()];
+            var _padLeft = new Array(path.length+2).join('\t'),
+                _smallPadLeft = new Array(path.length+1).join('\t'),
+                _tinyPadLeft = path.length > 1 ? '' : '\t';
+
+            for(propName in values){
+                prop = values[propName];
+
+
+                // get information about property from class where it is defined
+                var propInObject = obj.findProperty(propName);
+
+                if(propInObject){
+                    if( propInObject.getTag( 'create' ) ){
+                        if(prop instanceof Property){
+                            propValue = prop.getValue();
+                        }else{
+                            propValue = prop.getValue('value');// values.value.getValue();
+                        }
+                        if(propValue && propValue.length && propValue[0] && propValue[0].data){
+                            var propValueRaw = propValue[0].data;
+
+
+                            //propValue = prop.values.value this.getPropertyValue(prop.values.value, ctx.mainCls, obj, sm);
+
+
+                            if( !ctx.mainCls.findProperty( propValueRaw ) ){
+                                var createClsName = propInObject.class.getName();
+                                this.addDependency(ctx.mainCls, createClsName)
+                                var instance = new InstanceMetadata({
+                                    class: this.world[createClsName],
+                                    ast: prop.ast,
+                                    isPublic: false,
+                                    //value: item.value,
+                                    name: propValueRaw,
+                                    values: prop.values,
+                                    inlineCreate: true
+                                });
+
+                                if(prop.values && prop.values.value) {
+                                    delete prop.values.value;
+                                }
+
+                                ctx.mainCls.addItem( '___this___', instance );
+                                ctx.create.push(instance);
+
+
+                            }
+                            prop = new Property( {
+                                name: [propName],
+                                ast: prop.ast,
+                                class: obj.findProperty( propName ),
+                                value: propValue
+                            } );
+                        }else{
+                            console.log('no value in property that is marked as creating inline')
+                        }
+                    }
+                }
+
+                if(prop instanceof Property){
+                    var resultString;
+
+                    var propValue = prop.getValue();
+                    var propValue = this.getPropertyValue(prop, ctx.mainCls, obj, sm);
+
+
+
+                    if(propValue !== void 0) {
+                        if(typeof propValue.indexOf !== 'function'){
+                            console.log(propValue)
+                        }else
+                            isPipe = propValue.indexOf('new Pipe') === 0;
+                    }else{
+                        this.getPropertyValue(prop, obj, whosMeta, sm)
+                    }
+
+                    if(!(propValue instanceof Error)) {
+                        prop._val = propValue;
+                        isPublic = ctx.base.isPublic;
+                        if(!isPipe) {
+                            vals[propName] = propValue;// + sm(prop.item.semiToken);
+                        }else {
+                            var pipePath = path.concat(propName);
+                            if(!isPublic){
+                                ctx.mainCls.privatesFlag = true;
+                            }
+                            piped.push(_tinyPadLeft +
+                                (isPublic?'this': '__private')+'.set(' +
+                                sm(prop.ast.class) +
+                                    JSON.stringify(pipePath.join('.')) + ', ' +
+                                    propValue +
+                                sm(prop.ast.semiToken) + ')');
+
+                        }
+                    }else{
+                        throw propValue;
+                    }
+
+                }else if(prop instanceof InstanceMetadata && !obj.propsOnly){
+                    var gatheredResult = this.callMethod( 'valueGatherer', prop, ctx, path.concat( propName ), true );
+                    if(gatheredResult instanceof ShouldNotBeSetted){
+
+                    }else{
+                        vals[propName] = gatheredResult;
+                    }
+                }
+
+            }
+            if(!obj.propsOnly){
+                for( var evtName in obj.events ){
+                    var events = obj.events[evtName];
+                    for( i = 0, _i = events.length; i < _i; i++ ){
+                        var evt = events[i];
+                        var propValue = this.getPropertyValue( evt, ctx.mainCls, obj, sm );
+                        evt._js = propValue;
+
+                        eventSubs.push( _tinyPadLeft +(isPublic ? '_self' : '__private') + '.get(' +
+                            JSON.stringify( path ) + ').on(' + JSON.stringify( evtName ) + ', ' +
+                            propValue +
+                            ')' );
+                    }
+                }
+            }
+
+
+            for( i in vals){
+                data.push( _padLeft+ JSON.stringify(i) + ': '+ vals[i] );
+            }
+            !deep && data.push( _padLeft+ '"#": '+JSON.stringify(path.join('.')));
+
+
+
+            if(data.length) {
+                stringData = '{\n' + data.join(',\n') + '\n'+_smallPadLeft+'}';
+            }else{
+                stringData = '';
+            }
+
+
+            if(!obj.existed){
+                this.tryCall( obj.class, '__instantiate', [vals, data, stringData], function( err, result ){
+                    if( !err )
+                        stringData = result;
+                    else
+                        stringData = 'new ' + obj.class.getName() + '(' + stringData + ')';
+                } );
+
+                isPublic = obj.isPublic;
+                if( deep ){
+                    return stringData;
+                }else{
+                    if( isPublic ){
+                        if(obj.ast.unobservable){
+                            return (_tinyPadLeft + '_self[\'' + obj.getName() + '\'] = ' + stringData)
+                        }else{
+                            return (_tinyPadLeft + '_self.set(\'' + obj.getName() + '\', ' + stringData + ')')
+                        }
+
+                    }else{
+                        ctx.mainCls.privatesFlag = true;
+                        if(obj.ast.unobservable){
+                            return (_tinyPadLeft + '__private[\'' + obj.getName() + '\'] = ' + stringData + '')
+                        }else{
+                            return (_tinyPadLeft + '__private.set(\'' + obj.getName() + '\', ' + stringData + ')')
+                        }
+                    }
+                }
+            }else{
+                eventSubs.push(_tinyPadLeft +(isPublic?'this': '__private')+'.setAll('+
+                    (obj.isMain?'':'\'' + obj.getName().join('.') + '\', ') + stringData + ')');
+                return new ShouldNotBeSetted(obj);
+            }
+
         },
         __isProperty: function (cls, prop) {
             var info = this.world[cls.class ? cls.class || cls.class.data : cls.name],
@@ -441,266 +615,6 @@ module.exports = (function () {
 
             return false;
             //debugger;
-        },
-        __dig: function(obj, cls) {
-            var item = obj.ast,
-                data, itemName, i, _i, items,
-                moreDependencies = false,
-
-                prop;
-
-            if(item.type === 'DEFINE'){
-
-                data = {
-                    class: obj === cls ? item.name.data : item.class.data
-                };
-                if(!item.name){
-                    item.name = {data: this.getUID(item.class.name || item.class.data)};
-                }
-                data.name = item.name.data;
-                cls.variables[item.name.data] = data;
-
-                items = obj.ast.items;
-                for (i = 0, _i = items.length; i < _i; i++) {
-                    item = items[i];
-
-
-                    itemName = (item.class && item.class.data) || (item.name && item.name.data);
-                    prop = this.callMethod('__isProperty', obj, itemName);
-                    if (prop) {
-
-                    } else if (itemName in this.world) {
-                        this.addDependency(cls.name, item);
-                    } else {
-                        moreDependencies = true;
-                        this.addDependency(cls.name, item.class);
-                    }
-                    //obj.values[itemName] = item.value;
-                }
-                /*
-                 1) create named with not piped properties or inline pipes to properties that are already defined
-                 2) create unnamed with inline pipes
-                 3) create other pipes
-                 4) add items as children
-                 */
-
-                if (moreDependencies) {
-                    console.log('More deps for `' + obj.name + '` <'+obj.class+'> in `' + cls.name + '`: ' + this.wait[cls.name].join(', '))
-                    return false;
-                }
-
-                var internals = [];
-                var objectName = obj.name;
-                if(obj === cls) {
-                    objectName = '___this___';
-
-
-                    for (var eventName in obj.ast.events) {
-                        obj.ast.events[eventName].forEach(function (event) {
-
-                            if (!('events' in cls)) {
-                                cls.events = {};
-                            }
-                            if (!(objectName in cls.events))
-                                cls.events[objectName] = {};
-
-                            var name = event.name.data;
-
-                            (cls.events[objectName][name] ||
-                            (cls.events[objectName][name] = []))
-                                .push(event.value);
-
-                        });
-                    }
-                }
-                for (i = 0, _i = items.length; i < _i; i++) {
-                    item = items[i];
-                    itemName = (item.class && item.class.data) || (item.name && item.name.data);
-
-                    prop = this.callMethod('__isProperty', obj, itemName);
-
-                    if (prop) {
-
-                        var value = {
-                            type: 'property',
-                            name: itemName,
-                            item: item,
-                            info: prop
-                        };
-                        internals.push(value);
-
-                        if(!(objectName in cls.values))
-                            cls.values[objectName] = {};
-
-                        cls.values[objectName][itemName] = value;
-
-                        var childObjectName = objectName;
-                        if(item.cls && item.cls.length){
-
-                            if(!(childObjectName in cls.values))
-                                cls.values[childObjectName] = {};
-
-                            prop = this.callMethod('__isProperty', prop, 'cls');
-
-                            var value = {
-                                type: 'property',
-                                name: itemName+'.cls',
-                                item: Object.assign(Object.create(item),{value: item.cls}),
-                                info: prop
-                            };
-
-
-                            cls.values[childObjectName][itemName+'.cls'] = value;
-                        }
-
-                        var childItem = {
-                            type: 'property',
-                            class: 'Variant',
-                            ast: item,
-                            name: itemName,
-                            values: {}
-                        };
-                        if(childItem.class === 'Function'){
-                            childItem.type = 'inline';
-                        }
-                        childItem.name = itemName;
-
-                        var fake = Object.create(cls);
-                        fake.values = {};
-                        this.callMethod('__dig', childItem, fake);
-                        var fakes = fake.values[itemName];
-                        if(prop.type === 'Variant' && fakes){
-                            var currentVal = cls.values[childObjectName][itemName];
-                            setRecursive(childItem.values, fakes);
-                            var inText = JSON.stringify(childItem.values);
-                            value.item.value = {
-                                data: inText,
-                                type: 'DEEP'
-                            };
-
-                        }else if(fakes) {
-
-                            for (var x in fakes) {
-                                fakes[x].name = itemName+'.'+fakes[x].name;
-                                cls.values[childObjectName][itemName + '.' + x] = fakes[x];
-                                var j = fake;
-                            }
-                        }
-
-                    }else if (itemName in this.world) {
-                        //console.log(itemName, item.name)
-                        var childItem = {
-                            type: 'child',
-                            class: item.class.data,
-                            ast: item,
-                            name: itemName,
-                            values: {}
-                        };
-                        if(childItem.class === 'Function'){
-                            childItem.type = 'inline';
-                        }
-                        if (item.name){
-                            childItem.name = item.name.data;
-                        }else{
-                            childItem.name = this.getUID(childItem.class);
-                        }
-                        if(this.callMethod('__dig', childItem, cls) === false){
-                            return false;
-                        }
-
-                        internals.push(childItem);
-
-                        if(!('instances' in cls))
-                            cls.instances = {};
-
-                        (cls.instances[objectName] = cls.instances[objectName] || []).push(childItem);
-
-                        if(item.value && item.value.length){
-
-                            var childObjectName = childItem.name;
-
-                            if(!(childObjectName in cls.values))
-                                cls.values[childObjectName] = {};
-
-                            prop = this.callMethod('__isProperty', item, 'value');
-
-                            var value = {
-                                type: 'property',
-                                name: 'value',
-                                item: item,
-                                info: prop
-                            };
-
-
-                            cls.values[childObjectName].value = value;
-                        }else if(item.value){
-                            childItem.value = item.value;
-                        }
-
-                        if(item.cls && item.cls.length){
-                            var childObjectName = childItem.name;
-
-                            if(!(childObjectName in cls.values))
-                                cls.values[childObjectName] = {};
-
-                            prop = this.callMethod('__isProperty', item, 'cls');
-
-                            var value = {
-                                type: 'property',
-                                name: 'cls',
-                                item: Object.assign(Object.create(item),{value: item.cls}),
-                                info: prop
-                            };
-
-
-                            cls.values[childObjectName].cls = value;
-                        }
-
-
-                        if(item.private){
-                            for(var propName in item.private){
-                                cls.private[propName] = item.private[propName];
-                            }
-                        }
-                        if(item.public){
-                            for(var propName in item.public){
-                                cls.public[propName] = item.public[propName];
-                            }
-                        }
-
-                        if(item.events){
-
-                            for(var eventName in item.events){
-
-                                item.events[eventName].forEach(function (event) {
-
-                                    if(!('events' in cls)){
-                                        cls.events = {};
-                                    }
-                                    if(!(childItem.name in cls.events))
-                                        cls.events[childItem.name] = {};
-
-                                    var name = event.name.data;
-
-                                    (cls.events[childItem.name][name] ||
-                                    (cls.events[childItem.name][name] = []))
-                                        .push(event.value);
-
-                                });
-
-
-                            }
-
-                        }
-
-
-                    }
-
-
-                }
-                obj.items = internals;
-
-            }
         }
     };
 })();

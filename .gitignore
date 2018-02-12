@@ -3,3 +3,6 @@ node_modules/*
 test/generate/*
 test/lib/*
 coverage/*
+npm-debug.log
+package-lock.json
+test-results.xml

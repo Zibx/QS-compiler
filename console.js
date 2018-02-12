@@ -19,6 +19,7 @@ module.exports = (function () {
             (function(name){
                 Logger.prototype[name] = function () {
                     this.logs.push({type: name, ns: this.ns, data: [].slice.call(arguments)});
+                    global.console[name].apply(global.console, arguments)
                 };
             })(i);
 

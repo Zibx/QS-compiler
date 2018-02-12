@@ -12,65 +12,27 @@ module.exports = (function () {
     var VariableExtractor = require('../JS/VariableExtractor'),
         ASTtransformer = require('../JS/ASTtransformer'),
         tools = require('./tools');
+
+
     var getName = function (el) {
         return el.name;
     };
     var transformer = {
-        _functionTransform: function (fn, definedVars) {
-            var vars = VariableExtractor.parse(fn),
-                counter = 1,
-                _self = this, i,
-                undefinedVars = vars.getFullUnDefined(),
-
-                intermediateVars = {},
-                wereTransforms = false;
-
-            definedVars = definedVars || {};
-
-            for (i in definedVars)
-                undefinedVars[i] = null;
-
-            fn = new ASTtransformer().transform(vars.getAST(), undefinedVars, {
-                escodegen: { format: { compact: true } },
-                variableTransformer: function (node, stack) {
-                    wereTransforms = true;
-
-                    var crafted = ASTtransformer.craft.js(node),
-                        sub, id = 'var' + (counter++);
-
-                    //console.log('! ', crafted, node.type)
-                    if (node.type === 'MemberExpression') {
-                        var subDefinedVars = Object.create(definedVars),
-                            deepestVar = stack[stack.length - 1].name;
-                        subDefinedVars[deepestVar] = true;
-
-
-                        //console.log('^^$ ')
-                        sub = _self._functionTransform(ASTtransformer.craft.js(node), subDefinedVars, true);
-                        //console.log('^^ '+sub)
-                        intermediateVars[id] = sub;
-                        typeof sub !== 'string' && (sub[deepestVar] = deepestVar);
-                    } else {
-                        intermediateVars[id] = ASTtransformer.craft.js(node);
-                    }
-
-                    return ASTtransformer.craft.Identifier(id);
-                }
-            });
-            intermediateVars[' fn '] = fn;
-            //console.log(intermediateVars);
-            return intermediateVars;//wereTransforms?intermediateVars:fn;
-        },
         functionTransform: function (fnObj, cls, child) {
             var meta = cls.metadata;
             var _self = this;
-            var transformFnGet = function (node, stack, scope, parent) {
+            var transformFnGet =
+                function (node, stack, scope, parent) {
+                    var isPrivate = false;
                     var c0 = cls;
                     var list = stack.slice().reverse(),
                         varParts;
-
+                    var skipFirst = false,
+                        skipValue = false;
                     var info = tools.getVarInfo.call(_self, list, cls, child, scope);
                     if(!info) {
+                        var info = tools.getVarInfo.call(_self, list, cls, child, scope);
+                        return false;
                         throw new Error('Can not resolve '+
                             list.map(function(token){return token.name}).join('.') +
                             ' at (' + fnObj.fn.pointer+')')
@@ -84,12 +46,30 @@ module.exports = (function () {
                             info.varParts[0].name = info.varParts[0].name.name;
                         info.varParts[0].node.computed = true;
                     }
-                    var what = cls.itemsInfo[info.varParts[0].name];
+                    var what = cls.subItems[info.varParts[0].name];
 
-                    if ((what === void 0 && info.self) || what.isPublic) {
+                    if (
+                        (
+                            (what === void 0 && info.selfFlag) ||
+                            (what !== void 0 && what.isPublic)
+                        ) && !info.fromWorldFlag
+                    ) {
                         who = ASTtransformer.craft.Identifier('_self');
+                        if(!info.implicitFlag){
+                            skipFirst = true;
+                        }
                     } else {
-                        who = ASTtransformer.craft.Identifier('__private');
+                        if(what === void 0) {
+                            who = ASTtransformer.craft.Identifier(firstToken.name);
+                            _self.addDependency(cls, firstToken.name);
+                            // TODO: add dependency firstToken.class
+
+                            skipFirst = true;
+                            skipValue = true;
+                        }else{
+                            isPrivate = true;
+                            who = ASTtransformer.craft.Identifier('__private');
+                        }
                     }
                     /*
                         info.context--;
@@ -106,10 +86,10 @@ module.exports = (function () {
                     if (info.context === false)
                         info.context = info.varParts.length - 1;
 
-                    for (i = 0, _i = varParts.length; i < _i; i++) {
+                    for (i = skipFirst ? 1 : 0, _i = varParts.length; i < _i; i++) {
 
                         item = varParts[i];
-                        if(i===0 && item.name === 'this')
+                        if(i===0 && info.selfFlag)
                             if(item.node.computed === false)
                                 continue;
                         if (item.node.computed) {
@@ -132,7 +112,7 @@ module.exports = (function () {
 
                     var c = ASTtransformer.craft, // craft short link
                         out;//
-                    if (info.valueFlag)
+                    if (info.valueFlag && !skipValue)
                         if (!afterContext.length) {
                             beforeContext.push(c.Literal('value'));
                         } else {
@@ -149,22 +129,35 @@ module.exports = (function () {
 
                     for (i = 0, _i = afterContext.length; i < _i; i++)
                         out = c.MemberExpression(out, afterContext[i]);
+                    if(beforeContext.length === 0 && afterContext.length === 1 &&  isPrivate && item.class.getName() === 'Function') {
+                        out = c.MemberExpression(out, c.Literal('call'));
+                        out.isPrivate = isPrivate;
+                    }
 
                     return out;
 
                 },
                 transformFnSet = function (node, stack, scope) {
-                    var c0 = cls;
+                    var c0 = cls, i, _i;
                     var list = stack.slice().reverse(),
                         varParts,
 
                         info = tools.getVarInfo.call(_self, list, cls, child, scope);
+                    if(!info) {
+                        return false;
+                        throw new Error('Can not resolve '+
+                            list.map(function(token){return token.name}).join('.') +
+                            ' at (' + fnObj.fn.pointer+')')
+                    }
                     var firstToken = info.varParts[0],
                         who;
 
                     //    first = list[0];
                     // var env = tools.isNameOfEnv(first.name, meta),
                     //     who;
+
+                    var skipFirst = false,
+                        skipValue = false;
 
                     if(info.thisFlag){
                         info.varParts[0].name = info.varParts[0].e;
@@ -177,15 +170,29 @@ module.exports = (function () {
                         info.varParts[0].name = info.varParts[0].e;
                         info.varParts[0].node.computed = true;
                     }*/
-                    var what = cls.itemsInfo[info.varParts[0].name];
-                    if(what === void 0){
-                        what = {isPublic: true};
-                    }
-                    if ( what.isPublic) {
+
+                    var what = cls.subItems[info.varParts[0].name];
+                    if ((what === void 0 && info.selfFlag) || (what !== void 0 && what.isPublic)) {
                         who = ASTtransformer.craft.Identifier('_self');
-                    } else {
-                        who = ASTtransformer.craft.Identifier('__private');
+
+                        if(!info.implicitFlag){
+                            skipFirst = true;
+                        }
+                    }else {
+                        if(what === void 0) {
+                            who = ASTtransformer.craft.Identifier(firstToken.name);
+                            skipFirst = true;
+                            skipValue = true;
+                        }else {
+                            if (what.isPublic) {
+                                who = ASTtransformer.craft.Identifier('_self');
+                            } else {
+                                who = ASTtransformer.craft.Identifier('__private');
+                            }
+                        }
                     }
+
+
 
                     /*if (info.self) {
                         who = ASTtransformer.craft.Identifier('self');
@@ -198,6 +205,35 @@ module.exports = (function () {
                         info.varParts.push({name: 'value'});
 
                     var val = scope.doTransform.call(scope.me, node.right, scope.options);
+                    var argumentsList = [],
+                        varItem;
+
+                    varParts = info.varParts;
+
+                    for (i = skipFirst ? 1 : 0, _i = varParts.length; i < _i; i++) {
+                        var item = varParts[i]
+                        if(i===0 && info.selfFlag){
+                            if(item.node.computed === false) {
+                                continue;
+                            }
+                        }
+
+                        if (item.node && item.node.computed) {
+                            varItem = scope.doTransform.call(scope.me, item.node, scope.options);
+                        } else {
+                            var varItem = {
+                                'type': 'Literal',
+                                'value': item.name,
+                                'raw': '\'' + item.name + '\''
+                            };
+                            if ('_id' in item)
+                                varItem._id = item._id;
+
+                        }
+                        argumentsList.push(varItem);
+                    }
+
+
 
                     return {
                         'type': 'CallExpression',
@@ -213,22 +249,7 @@ module.exports = (function () {
                         'arguments': [
                             {
                                 'type': 'ArrayExpression',
-                                'elements':
-                                    (info.varParts[0].name === 'this' ? info.varParts.slice(1) : info.varParts).map(function (item) {
-                                        if (item.node && item.node.computed) {
-                                            return scope.doTransform.call(scope.me, item.node, scope.options);
-                                        } else {
-                                            var out = {
-                                                'type': 'Literal',
-                                                'value': item.name,
-                                                'raw': '\'' + item.name + '\''
-                                            };
-                                            if ('_id' in item)
-                                                out._id = item._id;
-
-                                            return out;
-                                        }
-                                    })
+                                'elements': argumentsList
                             },
                             val
                         ]
@@ -244,14 +265,39 @@ module.exports = (function () {
                 transformer = new ASTtransformer(),
                 fn = fnObj.fn;
 
-            fn = transformer.transform(fn.ast, fn.vars, options);
-            return 'function(' + fnObj.args.map(getName).join(',') + '){\n' + fn + '\n}';
+
+            return new FunctionCode(fnObj.args, transformer.transform(fn.ast, fn.vars, options), fn);
+        }
+    };
+    var FunctionCode = function(args, body, fn){
+        this.args = args;
+        this.body = body;
+        this.fn = fn;
+    };
+    FunctionCode.prototype = {
+        toString: function(){
+            return 'function(' + this.args.map(getName).join(',') + '){\n' + this.body + '\n}'
         }
     };
     var functionTransformer = function(item, obj, whos, sm){
-        var body = transformer.functionTransform.call(this, {fn: item.body, args: item.arguments}, obj, whos)
+        var body = transformer.functionTransform.call(this, {fn: item.value.body, args: item.value.arguments}, obj, whos)
         return body;
         
     };
-    return functionTransformer;
+    var FunctionTransformer = function(fn, cls, instance, compiler){
+        this.fn = fn;
+        this.cls = cls;
+        this.instance = instance;
+        this.compiler = compiler;
+
+    };
+    FunctionTransformer.prototype = {
+        transform: function(){
+            var fn = this.fn;
+            var body = transformer.functionTransform.call(
+                this.compiler, {fn: fn.value.body, args: fn.value.arguments}, this.cls, this.instance);
+            return body;
+        }
+    };
+    return FunctionTransformer;//FunctionTransformer;//functionTransformer;
 })();

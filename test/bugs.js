@@ -8,33 +8,8 @@
 
 
 var assert = require('chai').assert;
-var build = require('../build'),
-    esprima = require('esprima'),
-    escodegen = require('escodegen'),
-    fs = require('fs');
-var compact = function(code){
-    var f = escodegen.generate(esprima.parse('('+code+')'), {format: {
-        renumber: true,
-        hexadecimal: true,
-        quotes: 'double',
-        escapeless: true,
-        compact: true,
-        parentheses: false,
-        semicolons: false
-    }});
-    var start = f.indexOf('{')+1;
-    return f.substr(start, f.length - 2-start);
-};
-var compile = function(data, cb){
-    var crafted = build({
-        lib: 'test/lib/QComponent4/src',
-        typeTable: 'Core/TypeTable.js',
-        source: data + ''
-    }, function(res){
-        console.log(res.js)
-        cb(res)
-    });
-};
+var common = require('./toolchain/common'),
+    compile = common.compile, compact = common.compact;
 
 describe('CORE-118', function() {
     compile(`
@@ -59,11 +34,15 @@ def Page main
             subNk5: 2`, function (result) {
         var main = result.ast.main;
         it('should work with nested', function(){
-            assert.equal(main.values.c1.items._val, '{\n  "nk1": "ololo",\n  "nk2": 5467\n}')
+            assert.equal(main.values.c1.items.nk1._val, '"o lo lo"');
+            assert.equal(main.values.c1.items.nk2._val, '5467');
+            assert.equal(main.values.c1.items.nk3.subNk4._val, '1');
+            assert.equal(main.values.c1.items.nk3.subNk5._val, '2');
+            //'{\n  "nk1": "ololo",\n  "nk2": 5467\n}')
         });
     });
 
-    compile(`
+    /*compile(`
 def Page main
   ComboBox c1
     items: 
@@ -73,5 +52,5 @@ def Page main
         it('should work with nested without quotes', function(){
             assert.equal(main.values.c1.items._val, '{\n  "nk1": "ololo",\n  "nk2": 5467\n}')
         });
-    });
+    });*/
 });

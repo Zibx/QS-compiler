@@ -76,3 +76,6 @@ def UIComponent TextBox
             length: 3
     @info: length of data in text box
     public Number length: 0
+
+    @info: Make this input active
+    public Function focus

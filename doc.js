@@ -6,8 +6,63 @@
 ;// QUOKKA 2017
 // By zibx on 5/2/17.
 
+/*
+eslint
+no-undef: error,
+max-statements: off,
+global-require: off,
+no-sync: off,
+notice/notice: off,
+prefer-destructuring: off,
+sort-keys: off,
+no-multi-assign: off,
+no-console: off,
+no-param-reassign: off,
+max-lines: off,
+no-magic-numbers: off,
+max-params: off,
+security/detect-non-literal-regexp: off,
+security/detect-non-literal-fs-filename: off,
+security/detect-object-injection: off,
+flowtype-errors/show-errors: off,
+flowtype/require-valid-file-annotation: off,
+fp/no-mutating-methods: off,
+fp/no-delete: off,
+react/destructuring-assignment: off,
+prettier/prettier: off,
+line-comment-position: off,
+padding-line-between-statements: off,
+strict: off,
+no-var: off,
+one-var: off,
+curly: off,
+vars-on-top: off,
+spaced-comment: off,
+no-unused-vars: off,
+prefer-arrow-callback: off,
+no-void: off,
+max-statements-per-line: off,
+prefer-template: off,
+no-implicit-coercion: off,
+sort-vars: off,
+flowtype/no-unused-expressions: off,
+block-scoped-var: off,
+object-shorthand: off,
+operator-assignment: off,
+guard-for-in: off,
+no-loop-func: off,
+no-shadow: off,
+max-depth: off,
+no-continue: off,
+no-empty: off,
+no-prototype-builtins: off,
+*/
+
 module.exports = (function () {
     'use strict';
+
+    // var stringify = require('json-stable-stringify');
+
     var Fs = require('fs'),
         Path = require('path')
     function readDirRecursive(path, base) {
@@ -41,8 +96,11 @@ module.exports = (function () {
         if(!items || !items.length)
             return false;
 
-        return items.map(function(tag){
-            var out = {info: tag.value.map(function(item){return item.data;}).join('')};
+        return items.filter(function(tag){
+            return tag.value;
+        }).map(function(tag){
+
+            var out = {info: typeof tag.value === 'string' ? tag.value : tag.value.map(function(item){return item.data;}).join('')};
 
             if(tag.children)
                 out.text = (
@@ -196,23 +254,41 @@ module.exports = (function () {
                 var props = collector.props = [],
                     events = collector.events = [],
                     fns = collector.fns = [];
-                for (var p in item.mixed.public) {
+
+
+                var propsList = item.listAllProperties()
+                    .map(function(name){return item.findProperty(name);})
+                    .filter(function(item){ return item.isPublic; });
+
+                for(var p = 0, _p = propsList.length; p < _p; p++){
+
                     var prop = {};
 
-                    var itemProp = item.mixed.public[p];
-                    prop.name = p;
-                    prop.type = itemProp.type;
+                    var itemProp = propsList[p];
+                    prop.name = itemProp.getName();
+                    prop.type = itemProp.class.getName();
 
-                    var own = prop.own = i === itemProp.defined;
+                    prop.defined = item.findPropertyDefinition(prop.name)
+                    var own = prop.own = prop.defined === item;
 
-                    if(itemProp.defined === void 0){
-                        console.log('Documentation property `defined` is not set for '+i+'.'+p);
+                    if (!prop.own) {
+                        prop.owner = prop.defined.namespace + '.' + prop.defined.name.data;
+                    }
+
+                    if(prop.defined === void 0){
+                        if(console.combine){
+                            console.combine(i+'.'+prop.name, function(list){
+                                return 'Documentation property `defined` is not set for ['+ list.join(', ') +']';
+                            });
+                        }else {
+                            console.log('Documentation property `defined` is not set for ' + i + '.' + prop.name);
+                        }
                         continue;
                     }
 
-                    var ast = own ? item.mixed.ast.public[p] : world[ itemProp.defined ].mixed.ast.public[p];
+                    var ast = itemProp.ast;
 
-                    info = item.mixed.ast.public[p];
+                    info = itemProp;//item.mixed.ast.public[p];
                     var infoTag = getTag(ast, 'info');
 
                     if (infoTag) {
@@ -222,7 +298,7 @@ module.exports = (function () {
                     }
 
                     if(info) {
-                        prop.examples = extractTags(info, 'example');
+                        prop.examples = extractTags(info.ast, 'example');
                         if (prop.examples) {
 
                             prop.info += prop.examples.map(function (example) {
@@ -243,8 +319,15 @@ module.exports = (function () {
                     }else{
                         props.push(prop);
                     }
-
-
+                    if(prop.defined){
+                        if(prop.defined.class){
+                            prop.defined = [prop.defined.getName(), prop.defined.class.getName()].join( '.' )
+                        }else{
+                            prop.defined = prop.defined.getName();
+                        }
+                    }else{
+                        prop.defined = 'Core';
+                    }
 
 
                 }
@@ -285,7 +368,10 @@ module.exports = (function () {
     if(module.parent){
 
     }else{
+        // const r =
         doDoc();
+
+        // Fs.writeFileSync('../../aliceklipper/akb/doc.old.json', stringify(r, { space: 4 }));
     }
     return doDoc;
 })();

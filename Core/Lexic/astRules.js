@@ -31,16 +31,27 @@ module.exports = (function () {
         'PROPERTY': [
             {type: '?', items: [
                 {type: 'WORD', data: {
+                    'pure': 'pure'
+                }, put: 'unobservable'}
+            ]},
+            {type: '?', items: [
+                {type: 'WORD', data: {
                     'pub': 'public',
                     'public': 'public',
                     'private': 'private'
                 }, put: 'scope'}
+            ]},
+            {type: '?', items: [
+                {type: 'WORD', data: {
+                    'existed': 'existed'
+                }, put: 'existed'}
             ]},
             {type: 'WORD', put: 'class'},
 
             {type: '*', count: 'any', items: [
                 {type: 'DOT', put: '*cls'},
                 {type: 'OR', items: [
+                    [{type: 'OPERATION', put: '*cls'}],
                     [{type: 'WORD', put: '*cls'}],
                     [{type: 'PIPE', put: '*cls'}]
                 ]},
@@ -63,17 +74,25 @@ module.exports = (function () {
             //{type: '*', items: [
             {type: 'DOT'},
             {type: 'WORD', put: 'name'},
-            {type: '?', items: [
-                {type: 'SEMICOLON', data: ':'},
-                {type: 'ALL', put: 'value'}
-            ]}
+            {type: 'OR', items: [
+
+                {type: '?', items: [
+                    {type: 'SEMICOLON', data: ':'},
+                    {type: 'ALL', put: 'value'}
+                ]},
+                {type: 'SEMICOLON', data: ':'}
+            ]
+            }
         ],
         'METADATA': [
             {type: 'DOG'},
             {type: 'WORD', put: 'name'},
+            {type: 'OR', items: [
+
             {type: '?', items: [
                 {type: 'SEMICOLON', data: ':'},
-                {type: 'ALL', put: 'value'}
+                {type: 'ALL', put: 'value'}]},
+                {type: 'SEMICOLON', data: ':'}
             ]}
         ],
         'FUNCTION': [

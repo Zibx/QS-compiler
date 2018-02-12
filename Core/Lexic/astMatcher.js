@@ -96,17 +96,41 @@ module.exports = function (matchers) {
             return items instanceof Array ? items[a.value] : items.items[a.value];
         }, ruleHolder.items);
     };
+    var MatchError = function(rules, token){
+        this.rules = rules;
+        this.token = token;
+    };
+    MatchError.prototype = {
+        isNotError: function(){
+            return false;
+        }
+    };
+
+    var MatchErrors = function(list){
+        this.list = list;
+    };
+    MatchErrors.prototype = {
+        isNotError: function(){
+            return false;
+        }
+    };
+    MatchErrors.prototype.__proto__ = Array.prototype;
+
+
 
     var match = function(type, child, debug){
         var should = matchers[type],
 
-            i, _i, tokens = child.tokens, token,
+            i, _i, tokens = child.tokens, token, lastToken,
         //rule, rulePointer = 0,
             rules = [],//[{items: should, pointer: [0], store: {}}],
             rule, ruleHolder, nextRules,
+            lastRules,
             j,
             suit,
             putKey, multiple, store, whatever = false;
+
+
 
         // if first rule is complex - we need to get into it,
         // so I add invisible first rule 'START' and use mechanics
@@ -135,7 +159,7 @@ module.exports = function (matchers) {
                 }
                 nextRules = [];
                 if(!rules.length)
-                    return false;
+                    return new MatchError(lastRules, lastToken);//new MatchError(lastRules, lastToken);
 
                 for(j = rules.length; j;){
                     ruleHolder = rules[--j];
@@ -222,7 +246,8 @@ module.exports = function (matchers) {
                         //console.log('NO', rule, token)
                     }
                 }
-
+                lastRules = rules;
+                lastToken = token;
                 rules = nextRules;
                 if(debug) {
                     console.log('--- STEP ---');
@@ -232,6 +257,7 @@ module.exports = function (matchers) {
                     console.log(list)
 
                 }
+
                 if(whatever)
                     break;
             }
@@ -249,17 +275,44 @@ module.exports = function (matchers) {
                 var out = {},
                     store = item.store, i;
                 for( i in store ){
-                    out[i] = store[i];
+                    out[i] = new Match(i, store[i]);
                 }
                 out._matchType = type;
                 return out;
             });
 
             if(out.length)
-                return out[0];
+                return new Match(type, out[0]);
+            else
+                return new MatchError(lastRules, lastToken);
         }else
-            return false;
+            return new MatchError(lastRules, lastToken);//new MatchError(lastRules, lastToken);
 
+    };
+    match.MatchError = MatchError;
+    match.MatchErrors = MatchErrors;
+    match.getRule = getRule;
+    var MatchCollection = function(name, data){
+        return data;
+        this._name = name;
+        this.splice.apply(this, [0,0].concat(data));
+    };
+    MatchCollection.prototype = new Array();
+
+    var Match = function(name, data){
+        if(Array.isArray(data))
+            return new MatchCollection(name, data);
+        this._name = name;
+        Object.assign(this, data);
+
+    };
+    Match.prototype = {
+        getValue: function(){
+            return this.data;
+        },
+        isNotError: function(){
+            return true;
+        }
     };
     return match;
 };

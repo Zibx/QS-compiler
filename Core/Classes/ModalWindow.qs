@@ -31,3 +31,9 @@ define UIComponent ModalWindow
 
     @info: Toggle visibility of a modal window
     public Function toggle
+
+    @info: Hide modal dialog
+    public Function hide
+    @info: Show modal dialog
+    public Function show
+

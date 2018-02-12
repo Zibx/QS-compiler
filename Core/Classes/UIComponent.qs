@@ -29,3 +29,8 @@ define AbstractComponent UIComponent
   public String visibility
 
   public String pureCss
+
+  @info: show element is not ready animation
+  public Boolean busy: false
+
+  public Function getSize

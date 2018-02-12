@@ -8,3 +8,7 @@ Example:
   look at the example of config in test/config.json
 
   it is important to specify a Type Table path. Compiler would use it to get the knowledge about namespaces
+
+
+Changelog
+    12/05/2017 - resolve properties of implicit value

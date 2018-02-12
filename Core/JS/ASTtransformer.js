@@ -102,6 +102,7 @@ module.exports = (function(){
                     node.left._id === null
                 ) {
                     node.left = doTransform.call(this, node.left, options, node);
+                    node.right = doTransform.call(this, node.right, options, node);
                     return node;
                 }
             }
@@ -187,11 +188,24 @@ module.exports = (function(){
         'MemberExpression': function(node, options, parent){
             var _self = this;
 
-            if( '_id' in node && node._id in this && node._id !== null ){
+            if( '_id' in node && node._id in this && node._id !== null && node.object.type !== 'ArrayExpression'){
                 //console.log(JSON.stringify(node,null,2));
                 var ending = [], pointer = node, stack = [];
                 //console.log(pointer, pointer.object)
+                if(pointer.object.type === 'ArrayExpression'){
+                    return node;
+                }
+                if(pointer.object.type === 'NewExpression'){
+                    var newNode = Object.create(node);
+                    newNode.object = doTransform.call(_self, node.object, options, node);
+                    newNode.object.arguments = newNode.object.arguments.map(function(item){
+                        return doTransform.call(_self, item, options, node);
+                    })
+                    return newNode;
+                }
+
                 while(
+                    pointer.object.type !== 'NewExpression' &&
                     pointer.object.type !== 'Identifier' &&
                     //pointer.object.type !== 'AssignmentExpression' &&
                     pointer.object.type !== 'ThisExpression'
@@ -268,23 +282,33 @@ module.exports = (function(){
             return node; // TODO unshit
         },
         'CallExpression': function(node, options){
+            var callee = doTransform.call(this, node.callee, options, node),
+                args = node.arguments.map(mapWrapper(this, options, node));
+
+            if(callee.isPrivate){
+                args.unshift(craft.Identifier('_self'));
+            }
+
             if(node.callee.type === 'MemberExpression') {
                 return {
                     "type": "CallExpression",
-                    "callee": doTransform.call(this, node.callee, options, node)/*{
+                    "callee": callee//
+                    // doTransform.call(this, node.callee, options, node)
+                    /*{
                         "type": "MemberExpression",
                         "computed": node.callee.computed,
                         "object": doTransform.call(this, node.callee.object, options),
                         "property": node.callee.computed ? // IF property is dynamic - try to get deeper
                             doTransform.call(this, node.callee.property, options) : node.callee.property
                     }*/,
-                    "arguments": node.arguments.map(mapWrapper(this, options, node))
+                    "arguments": args
                 };
             }else{
+
                 return {
                     "type": "CallExpression",
-                    "callee": doTransform.call(this, node.callee, options, node),
-                    "arguments": node.arguments.map(mapWrapper(this, options, node))
+                    "callee": callee,
+                    "arguments": args//node.arguments.map(mapWrapper(this, options, node))
                 };
             }
 
@@ -393,10 +417,10 @@ module.exports = (function(){
             try {
                 return escodegen.generate(before, options.escodegen);
             }catch(e){
-                console.log(before);
+                console.log(e);
 
-                debugger;
-                var before = doTransform.call(list,esprimaTree, options);
+                //debugger;
+                //var before = doTransform.call(list,esprimaTree, options);
             }
         }
 

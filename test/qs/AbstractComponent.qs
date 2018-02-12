@@ -1,33 +1,42 @@
 @ns: Core
+def QObject ObservableSequence
+    public Function push
+    public Function on
+
+@ns: Core
+def QObject DQIndex
+    public Function on
+
+@ns: Core
 def QObject AbstractComponent
+    public String id
+    public ObservableSequence _children
+    public ObservableSequence _ownComponents
+
     Function addChild: function(component){
-        this._children.push(component);
+        _children.push(component);
         return this;
     }
-
-    @description: Bind to this._children.on('add'...)
+    @description: "Bind to this._children.on('add'...)"
     Function _onChildAdd: function (AbstractComponent child) {
         child.parent = this;
     }
 
-    @description: Bind to this._children.on('remove'...)
+    @description: "Bind to this._children.on('remove'...)"
     Function _onChildRemove: function (AbstractComponent child) {
         child.parent = null;
     }
 
-    @description: Bind to this._ownComponents.on('add'...)
+    @description: "Bind to this._ownComponents.on('add'...)"
     Function _onOwnComponentAdd: function (AbstractComponent child) {
         child.parent = this;
     }
 
-    @description: Bind to this._ownComponents.on('remove'...)
+    @description: "Bind to this._ownComponents.on('remove'...)"
     Function _onOwnComponentRemove: function (AbstractComponent child) {
         child.parent = null;
     }
-
-    public String id
-
-    Function ctor: function () {
+    Function ctor: function(){
         /**
          * Own Components
          *
@@ -51,3 +60,4 @@ def QObject AbstractComponent
 
         this.parent = null;
     }
+

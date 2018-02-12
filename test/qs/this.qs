@@ -1,5 +1,5 @@
 def Page main
-  Button: Knopa
+  Button Button_I1: Knopa
     .click: ()->
       this++;
     .click: ()->
@@ -12,6 +12,10 @@ def Page main
       this.value++;
     .click: ()->
       this.someVal++;
+    .click: ()->
+      title += 'ttl';
+    .click: ()->
+      mur += 'ttl';
 
   Timer
     .tick: ()->
@@ -23,9 +27,9 @@ def Page main
 
   title: t1
   .onload: ()->
-    this.title = 't3'
+    this.title += 't3'
   .onload: ()->
-    title = 't2'
+    title += 't2'
 
   .onload: ()->
     s1 = 8
@@ -37,3 +41,9 @@ def Page main
   Slider s2: 15
     from: {{this.value}}
     to: 200
+
+  Label l3: {{s3}}
+
+  Slider s3: 30
+  Label l4: {{JSON(JSON(s3).l).h}}
+  Label l5: {{s3+s3}}

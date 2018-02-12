@@ -108,9 +108,17 @@ module.exports = (function () {
 
                     line = lines[insertInLine];
 
-                    lines[insertInLine] = insertIntoString(line,'_data' in token ? token._data : token.data, tokenCol);
+                    var dataToInsert = '_data' in token ? token._data : token.data;
+                    if(token.type === 'Quote' && _i === 1){
+                        dataToInsert = token.data;//JSON.stringify(token.data);
+                    }
+                    if(token.type==='PIPE'){
+                        dataToInsert = '{{'+ dataToInsert +'}}';
+                    }
 
-                }else{
+                    lines[insertInLine] = insertIntoString(line,dataToInsert, tokenCol);
+
+                }else if(cfg.comments || token.type !== 'Comment'){
 
                     tools.toString(token.tokens, lines, firstLine, cfg);
                     if(token.children)

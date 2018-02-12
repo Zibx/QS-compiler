@@ -1,6 +1,6 @@
 {
   "name": "quokka-script",
-  "version": "1.2.2",
+  "version": "2.0.12",
   "description": "QuokkaScript compiler.",
   "main": "index.js",
   "scripts": {
@@ -8,18 +8,21 @@
     "build": "node build -c test/config.json"
   },
   "dependencies": {
-    "jison": "*",
-    "source-map": "^0.5.6",
     "escodegen": "*",
     "esprima": "*",
+    "jison": "*",
+    "marked": "*",
     "minimist": "*",
-    "z-lib": "*",
-    "marked": "*"
+    "source-map": "^0.5.6",
+    "type-inference": "git+ssh://git@gitlab.quokka.pub:aliceklipper/type-inference.git",
+    "z-lib": "*"
   },
   "devDependencies": {
     "chai": "*",
+    "istanbul": "*",
     "mocha": "*",
-    "istanbul": "*"
+    "mocha-junit-reporter": "*",
+    "nyc": "^11.3.0"
   },
   "author": "Quokka-labs",
   "license": "MPL-2.0"

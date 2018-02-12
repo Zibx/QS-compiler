@@ -6,36 +6,16 @@
 ;// Copyright by Ivan Kubota. 1/8/2017
 module.exports = (function () {
     'use strict';
-    var Tokens = require('./Tokens');
-    var Iterator = require('./Iterator');
-    var lineSplitter = function (tokens) {
-        var lines = new Tokens.Body(),
-            line = new Tokens.Line(),
-            i, _i, token;
-
-        for( i = 0, _i = tokens.length; i < _i; i++ ){
-            token = tokens[i];
-            if(token.data === '\n'){
-                lines.push(line);
-                line = new Tokens.Line();
-            }else{
-                line.push(token);
-            }
-        }
-        lines.push(line);
-        return lines;
-    },
+    var Tokens = require('./Tokens'),
         quotesAndLongComments = require('./Lexic/quotesAndLongComments'),
         shortCommentsAndURLs  = require('./Lexic/shortCommentsAndURLs'),
         braces  = require('./Lexic/braces'),
         indentation  = require('./Lexic/indentation'),
         ast = require('./Lexic/ast');
 
-    var getData2 = function(item){
-        return item.data+'|'+item.type;
-    };
+    var preprocess = function (tokens, noAST, errorStorage) {
 
-    var preprocess = function (tokens, noAST) {
+        errorStorage = errorStorage || [];
 
         //var AST = lineSplitter(tokens);
         tokens = quotesAndLongComments(tokens);//* +
@@ -49,11 +29,11 @@ module.exports = (function () {
         tokens = indentation(tokens);
 
         if(!noAST)
-            tokens = ast(tokens);
+            tokens = ast(tokens, errorStorage);
 
         return tokens;
 
-    };
+        };
 
     preprocess.quotesAndLongComments = quotesAndLongComments;
     preprocess.shortCommentsAndURLs = shortCommentsAndURLs;

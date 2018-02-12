@@ -31,7 +31,7 @@ def UIComponent GeoMap
             coordinates: [55.764293, 37.567474]
             }
         ]
-    @info: Current pin markers on the map. An **Array** containing **Array**-s of two **Number** coordinates each: [latitude, longitude]
+    @info: Current pin markers on the map. An **Array** containing **Object**-s with String `name` and [latitude, longitude] `coordinates`
     public Array pins
 
     @example: Zoom level

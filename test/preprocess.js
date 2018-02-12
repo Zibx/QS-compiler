@@ -22,7 +22,7 @@ module.exports = (function () {
 
 
 
-            console.log(lex)
+//            console.log(lex)
         });
         it('quotes', function () {
             var getTokens = function(text){

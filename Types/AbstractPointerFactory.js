@@ -8,43 +8,150 @@
 
 module.exports = (function () {
     'use strict';
-    var AbstractPointerFactory = function(source){
+    var distance = function(a, b) {
+        var i, aLength = a.length, bLength = b.length, row, prev, val;
+        if(aLength === 0) return bLength;
+        if(bLength === 0) return aLength;
+
+        // swap to save some memory O(min(a,b)) instead of O(a)
+        if(a.length > b.length) {
+            var tmp = a;
+            a = b;
+            b = tmp;
+        }
+
+        row = [];
+        // init the row
+        for(i = 0; i <= aLength; i++){
+            row[i] = i;
+        }
+
+        // fill in the rest
+        for(i = 1; i <= b.length; i++){
+            prev = i;
+            for(var j = 1; j <= aLength; j++){
+                if(b.charAt(i-1) === a.charAt(j-1)){
+                    val = row[j-1]; // match
+                } else {
+                    val = Math.min(row[j-1] + 1, // substitution
+                        prev + 1,     // insertion
+                        row[j] + 1);  // deletion
+                }
+                row[j - 1] = prev;
+                prev = val;
+            }
+            row[a.length] = prev;
+        }
+
+        return row[a.length];
+    };
+    var Distance = function(a, b, text){
+        this.search = a;
+        this.matchTo = b;
+        this.distance = distance(a,b);
+        //console.log(a,b, this.distance);
+        this.description = text;
+    };
+    Distance.sort = function(a,b){
+        return a.distance - b.distance;
+    };
+    Distance.isNear = function(item){
+
+        return item.distance < 3;
+    };
+    var GeneralPointer = function(){};
+    GeneralPointer.prototype = {
+        col: 1,
+        row: 1,
+        clone: function( i ){
+            return new this.PointerFactory( this ).add( i );
+        },
+        nextLine: function(){
+            this.col = 1;
+            this.row++;
+            return this;
+        },
+        add: function( i ){
+            if( i !== void 0 )
+                this.col += i;
+
+            return this;
+        },
+        error: (function(){
+            var tmp = Error.prepareStackTrace,
+                custom = function (err, stack) {
+                    var frame = stack[2];
+                    return frame.getFileName() + ':' + frame.getLineNumber() + ':' + frame.getColumnNumber();
+                },
+                custom2 = function (err, stack) { // deeper
+                    return stack.slice(1,10).map(function(frame){
+                        return frame.getFileName() + ':' + frame.getLineNumber() + ':' + frame.getColumnNumber();
+                    })
+                };
+            return function(description, info, suggestions, strategy){
+                Error.prepareStackTrace = custom2;
+
+                var err = new Error(),
+                    stack = err.stack;
+                Error.prepareStackTrace = tmp;
+
+
+                if(Array.isArray(info)){
+                    suggestions = info;
+                    info = this;
+                }
+                if(info === void 0)
+                    info = this;
+
+                if(info.column){
+                    var jsInfo = info;
+                    if(strategy === 'pipe'){
+                        info = {col: jsInfo.line > 2 ? jsInfo.column + 1 :this.col + 1 + jsInfo.column, row: this.row + jsInfo.line - 2, source: this.source};
+                    }else {
+                        info = {col: jsInfo.column, row: this.row + jsInfo.line - 2, source: this.source};
+                    }
+                }
+                if(info.col === void 0) {
+                    info.col = this.col;
+                }
+                if(info.row === void 0) {
+                    info.row = this.row;
+                }
+                info = new this.PointerFactory(info);
+
+                var item = {
+                    description: description.replace('%POS%', info.toString()),
+                    col: info.col,
+                    row: info.row,
+                    suggestions: suggestions && suggestions.filter(Distance.isNear).sort(Distance.sort),
+                    pointer: info,
+                    stack: stack
+                };
+                this.errors.push(item);
+                return item;
+            }
+        })(),
+        suggest: function(text, search){
+            return function( matchTo ){
+                return new Distance(search, matchTo, text);
+            }
+        },
+        toString: function () {
+            return '('+ [this.source,this.row, this.col].join(':') +')';
+        }
+    };
+    var AbstractPointerFactory = function(source, code){
         var PointerFactory = function( cfg ){
             if( cfg.col ){
                 this.col = cfg.col;
                 this.row = cfg.row;
             }
         };
-        PointerFactory.prototype = {
-            errors: [],
-            source: source,
-            col: 1,
-            row: 1,
-            clone: function( i ){
-                return new PointerFactory( this ).add( i );
-            },
-            nextLine: function(){
-                this.col = 1;
-                this.row++;
-                return this;
-            },
-            add: function( i ){
-                if( i !== void 0 )
-                    this.col += i;
-
-                return this;
-            },
-            error: function(description, info){
-                this.errors.push({
-                    description: description,
-                    col: info && info.col !== void 0 ? info.col : this.col,
-                    row: info && info.row !== void 0 ? info.row : this.row
-                });
-            },
-            toString: function () {
-                return '('+ [this.source,this.row, this.col].join(':') +')';
-            }
-        };
+        PointerFactory.prototype = new GeneralPointer();
+        PointerFactory.prototype.errors = [];
+        PointerFactory.prototype.source = source;
+        PointerFactory.prototype.code = code;
+        PointerFactory.prototype.PointerFactory = PointerFactory;
 
         return PointerFactory;
     };

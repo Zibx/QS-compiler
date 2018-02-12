@@ -28,12 +28,18 @@ module.exports = (function () {
 
     //global.console.log(x.tral('((function(){while(1){}})(),{a:2})'))
 */
-    var console = new (require('../../console'))('Compiler');
+    //var console = new (require('../../console'))('Compiler');
+    var AST_Define = require('../Lexic/ast').AST_Define;
+    var AST_Event = require('../Lexic/ast').AST_Event;
     var craft = require('../JS/ASTtransformer').craft;
-    var buildFunction = require('./FunctionTransformer');
-
+    //var buildFunction = require('./FunctionTransformer');
+    var FunctionTransformer = require('./FunctionTransformer');
+    var WaitingDependency = require('./WaitingDependency')
     var VariableExtractor = require('../JS/VariableExtractor');
     var tools = require('./tools');
+    var ClassMetadata = require('./ClassMetadata');
+    var InstanceMetadata = require('./InstanceMetadata');
+    var Property = require('./Property');
     var primitives = tools.primitives,
         escodegen = require('escodegen');
 
@@ -71,8 +77,9 @@ module.exports = (function () {
         return stack;
     };
 
-    var varDeepCap = function(pipeVar, accessible, collector){
-        var collector = collector || [];
+    var varDeepCap = function(pipeVar, accessible, collector, notFirstTime){
+        collector = collector || [];
+        notFirstTime = notFirstTime || false;
         if(!accessible.length)
             return pipeVar;
         //if(accessible.length < 2) // corner case
@@ -81,16 +88,19 @@ module.exports = (function () {
 
         if(!('object' in pipeVar)){
             //if(pipeVar.name === accessible[0].name){
-                collector.push(accessible.shift());
+            collector.push(accessible.shift());
             //}
-            if(accessible.length === 0){
+            if(accessible.length === 0 || !notFirstTime){
+                while(accessible.length){
+                    collector.push(accessible.shift());
+                }
                 return craft.Identifier(collector.map(function(el){return el.name}).join('_'));
             }
         }else{
             var clone = Object.create(pipeVar);
-            clone.object = varDeepCap(pipeVar.object, accessible, collector);
+            clone.object = varDeepCap(pipeVar.object, accessible, collector, true);
             if(accessible.length > 0) {
-                clone.property = varDeepCap(pipeVar.property, accessible, collector);
+                clone.property = varDeepCap(pipeVar.property, accessible, collector, true);
                 if(accessible.length === 0)
                     return clone.property;
             }
@@ -102,13 +112,13 @@ module.exports = (function () {
         }
         return pipeVar;
     };
-    var getVarInfoFromTree = function(tree, cls, whos){
+    var getVarInfoFromTree = function(tree, cls, whos, compileScope){
         var info,
             stack = varStackFromTree(tree);
 
-        info = getVarInfo.call(this, stack, cls, whos);
+        info = getVarInfo.call(this, stack, cls, whos, compileScope);
         if(!info) {
-            console.warn('Weird', stack)
+            //console.warn('Weird', stack)
             return false;
         }
         if (info.valueFlag)
@@ -116,8 +126,8 @@ module.exports = (function () {
 
         return info;
     };
-    var getVarAccessor = function (tree, cls, scope, whos) {
-        var info = getVarInfoFromTree.call(this, tree, cls, whos);
+    var getVarAccessor = function (tree, cls, scope, whos, compileScope) {
+        var info = getVarInfoFromTree.call(this, tree, cls, whos, compileScope);
         if(info === false)
             return false;
         var accessible;
@@ -218,7 +228,18 @@ module.exports = (function () {
         /*fn = this._functionTransform(fn);
          fn = {"var1":"cf.cardData.name"," fn ":"JSON.stringify(var1);"};*/
         //console.log(this.functionWaterfall(fn))
-        var env, cache = {};
+        var env, cache = {},
+            magicPrefix = '@~#',
+            magicLength = magicPrefix.length,
+            postProduction = {},
+            replaceFn = function(what, position, str){
+                var shouldReplace = str.substr(position-magicLength, magicLength) !== magicPrefix;
+                if(shouldReplace) {
+                    postProduction[newVarName] = true;
+                    return magicPrefix + newVarName;
+                }else
+                    return what;
+            };
         for (var cName in pipe.vars) {
             for (var fullName in pipe.vars[cName]) {
 
@@ -229,7 +250,9 @@ module.exports = (function () {
 
 
 
-                    var accessor = getVarAccessor.call(this, pipeVar, obj, pipe, whos);
+                    var accessor = getVarAccessor.call(this, pipeVar, obj, pipe, whos, {options:{
+                        basePointer: pipe.pointer, pipe: true
+                    }});
                     if(accessor === false) {
                         console.log('NO ACCESSOR FOR', fullName);
                         return false;
@@ -240,22 +263,26 @@ module.exports = (function () {
                         newVarAST = varDeepCap(pipeVar, accessor.accessible);
                     var newVarName = escodegen.generate(newVarAST),
                         oldVarName = escodegen.generate(pipeVar);
-
+                    var needReplace = !cache[accessor.name] || cache[accessor.name][0] !== pipeVar._id;
                     if (!cache[accessor.name]) {
-                        cache[accessor.name] = true;
+                        cache[accessor.name] = [pipeVar._id];
                         pipeSources.push(accessor.ref);
                         mutatorArgs.push(mArg);
                     }
-
-                    var goodRegexName = oldVarName.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-                    fn = fn.replace(
-                        new RegExp(goodRegexName, 'g'),
-                        newVarName);
-
+                    if(needReplace ) {
+                        var goodRegexName = oldVarName.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+                        fn = fn.replace(
+                            new RegExp(goodRegexName, 'g'),
+                            replaceFn
+                        );
+                    }
                 }
             }
         }
 
+        for( i in postProduction ){
+            fn = fn.replace(new RegExp((magicPrefix+i).replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"), 'g'), i)
+        }
         pipe.fn = fn;
         var parts = [];
         pipeSources.forEach(function (item) {
@@ -312,70 +339,7 @@ module.exports = (function () {
                 return true;
         return false;
     };
-    /*
-    var get = function(){
 
-    };
-    var extract = function(ast){
-        //debugger;
-        var i, prop, propClass, item, itemClass;
-
-        var metadata = {};
-
-        var info = {
-            require: {},
-            exports: {}
-        };
-
-        for(i in ast.public) {
-            prop = ast.public[i];
-            propClass = prop.class;
-            info.exports[i] = prop;
-            //(info.require[propClass.data] || (info.require[propClass.data] = [])).push(prop);
-        }
-
-        info.exports[ast.name.data] = ast.name;
-        var localVars = {};
-        for(i in ast.items) {
-            item = ast.items[i];
-            itemClass = item.class;
-            //info.exports[i] = prop;
-            (info.require[itemClass.data] || (info.require[itemClass.data] = [])).push(item);
-            // TODO items public props to exports
-            if(item.name)
-                localVars[item.name.data] = item.name;
-        }
-        ast.extend.forEach(function(item){
-            (info.require[item.data] || (info.require[item.data] = [])).push(item);
-        });
-
-
-
-        for( i in ast.events ){
-            ast.events[i].forEach(function(event){
-                if(event.value.type === 'FUNCTION'){
-                    var vars = event.value.body.vars;
-
-                    for(var j in vars) {
-                        !localVars[j] && (info.require[j] || (info.require[j] = [])).push(vars[j]);
-                    }
-                }
-
-
-                // TODO substract event body variables from locals.
-                // otherwise - store as unknown required
-            });
-        }
-
-        if(info.exports.value === void 0){
-            info.exports.value = {};
-        }
-        //console.log(ast.unclassified[0].tokens);
-        //console.log(ast.events.endEvt[0].value);
-        return info;
-    };
-    //return {extract: extract, get: get};
-*/
     var tokenizer = require('../Tokenizer'),
         lexer = require('../Preprocess'),
         fs = require('fs'),
@@ -389,45 +353,45 @@ module.exports = (function () {
         systemJS = function(name, multiple){
             var obj = require('../Classes/'+name),
                 i, j, out, item, cfg, prop;
-            if(multiple){
-
-                out = [];
-                for( i in obj ){
-                    cfg = obj[i];
-
-                    item = {
-                        ready: true,
-                        js: true,
-                        name: {data: i},
-                        public: {},
-                        private: {},
-                        tags: {}
-                    };
-
-                    if(cfg.public)
-                        item.public = cfg.public;
-
-                    for( j in cfg ){
-                        prop = cfg[j];
-                        if(j.indexOf('_')===0){
-                            if(j.indexOf('__')!=0)
-                                j = j.substr(1);
-
-                            (item.tags[j] || (item.tags[j] = []))
-                                .push({
-                                    value: prop
-                                });
-                        }
-                    }
-                    item.ast = item;
-                    out.push(item);
-                }
-            }else{
-                obj.ready = true;
-                obj.js = true;
-                obj.name = {data: name};//'Classes/'+name+'.js'};
-                out = [obj];
+            if(!multiple){
+                var newOne = {};
+                newOne[name] = obj;
+                obj = newOne;
             }
+
+            out = [];
+            for( i in obj ){
+                cfg = Object.create(obj[i]);
+
+                item = new ClassMetadata({
+                    //ready: true,
+                    js: true,
+                    name: {data: i},
+                    namespace: cfg.namespace
+                });
+
+                if(cfg.public)
+                    item.public = Object.create(cfg.public);
+
+                for( j in cfg ){
+                    prop = cfg[j];
+                    if(j.indexOf('_')===0){
+                        if(j.indexOf('__')!==0)
+                            j = j.substr(1);
+
+                        (item.tags[j] || (item.tags[j] = []))
+                            .push({
+                                value: prop
+                            });
+                    }
+                }
+                item.ast = item;
+                if(cfg.ready){
+                    item.ready = true;
+                }
+                out.push(item);
+            }
+
 
             return out;
         };
@@ -462,9 +426,6 @@ module.exports = (function () {
             var fullPath = path.join(dirPath, entry);
             var stat = fs.statSync(fullPath);
             if (stat.isFile()) {
-                /*if (entry == "TypeTable.js")
-                 ret.push("module.exports.TypeTable=require('../" + fullPath.replace(/\\/g, "/") + "')");
-                 else*/
                 ret.push(path.join(base,entry).replace(/\\/g, "/"));
             }
             if (stat.isDirectory()) {
@@ -478,23 +439,9 @@ module.exports = (function () {
     var files = readDirRecursive(path.join(__dirname,'../Classes'));
 
     var system = [
-        systemJS('Class'),
+        //systemJS('Class'),
         systemJS('QObject'),
-        systemJS('Primitives', true),
-
-        /*systemQS('Page'),
-        systemQS('UIComponent'),
-        systemQS('VBox'),
-        systemQS('Timer'),
-        systemQS('Slider'),
-        systemQS('Button'),
-        systemQS('CheckBox'),
-        systemQS('TextBox'),
-        systemQS('GeoMap'),
-        systemQS('Video'),
-        systemQS('Image'),
-        systemQS('Grid'),
-        systemQS('Label')*/
+        systemJS('Primitives', true)
 
     ];
     files.forEach(function(file){
@@ -513,17 +460,28 @@ module.exports = (function () {
         this.wait = {};
         this.waitingFor = {};
         var _self = this;
-        system.forEach(function(clses){
+        if(cfg && cfg.searchDeps){
+            this.searchDeps = function(){
+
+            };
+        }
+
+        system.forEach(function(clses, i){
             clses.forEach(function(cls){
                 _self.add(cls);
             });
         });
 
+        if(cfg && cfg.searchDeps){
+            this.searchDeps = cfg.searchDeps;
+        }
+
     };
+
     Compiler.prototype = {
         _primitives: primitives,
         world: {},// known metadata
-        _world: {},// known metadata with garbage
+        _world: {},// known metadata with not full loaded
         waitingFor: { // key - waiting for class, value - Array of waiting classes
 
         },
@@ -547,22 +505,36 @@ module.exports = (function () {
                 return tagVal[0].value;
         },
 
-        addDependency: function(who, item){
-
+        addDependency: function(who, item, cb){
+            if(who instanceof ClassMetadata){
+                who = who.getName();
+            }
             var _world = this._world,
                 waitingFor = this.waitingFor,
                 wait = this.wait[who],
                 info = _world[who],
+                what;
+            if(typeof item === 'string'){
+                what = item;
+            }else{
+                //crazy shit
                 what = item.data;
 
-            if(!what)
-                what = item.class && item.class.data;
-
-
+                if( !what )
+                    what = item.class && item.class.data;
+            }
+            if(what === who){
+                // sometimes subitems have the same type
+                return;
+            }
             if(_world[what] === void 0 || !_world[what].ready) {
                 (waitingFor[what] || (waitingFor[what] = [])).push(who);
-                if(wait.indexOf(what) === -1)
-                    wait.push(what);
+                typeof cb === 'function' && waitingFor[what].push(cb);
+                if(wait.indexOf(what) === -1){
+                    wait.push( new WaitingDependency(what, item) );
+                }
+            }else{
+                typeof cb === 'function' && cb();
             }
 
             (info.require[what] || (info.require[what] = [])).push(item);
@@ -570,26 +542,47 @@ module.exports = (function () {
         /**
          * takes ast
          */
-        add: function(ast){
-            var info = {
-                    require: {},
-                    exports: {},
-                    ast: ast,
-                    ready: false
-                },
-                name = ast.name.data;
+        add: function(ast, cfg){
+            var info = ast instanceof ClassMetadata ? ast : new ClassMetadata({
+                    name: ast.name,
+                    ast: ast
+                });
 
+            info.setNameSpace(ast.namespace || ast.getTag('ns'))
+
+            var name = info.getName(),
+                inspect = true;
+            cfg && Object.assign(info, cfg);
             this._world[name] = info;
 
             this.wait[name] = [];
+            if(!ast.ready){
+                if( ast.js ){
+                    var i;
+                    for( i in ast.public )
+                        this.addDependency( name, ast.public[i].type );
 
-            if(ast.js)
-                info.ready = true;
-            else
-                ast.extend
-                    .forEach(this.addDependency.bind(this, name));
+                    for( i in ast.private )
+                        this.addDependency( name, ast.private[i].type );
+                    /*ast.extend
+                        .forEach(this.addDependency.bind(this, name));*/
 
-            this.tryInspect(name);
+                    //info.ready = true;
+                }else{
+                    ast.extend
+                        .forEach( this.addDependency.bind( this, name ) );
+
+                    var _self = this;
+                    var notInWorld = this.wait[name].filter( function( name ){
+                        return !(name in _self._world);
+                    } );
+                    if(notInWorld.length){
+                        this.searchDeps && this.searchDeps( notInWorld );
+                        inspect = false;
+                    }
+                }
+            }
+            inspect && this.tryInspect(name);
 
         },
         addNative: function(info){
@@ -599,54 +592,53 @@ module.exports = (function () {
                 props = ctor.prototype._prop, i,
                 proto = ctor.prototype;
 
-            var obj = this.world[name] = this._world[name] = {
-                public: {},
-                private: {},
-                values: {},
-                require: {},//info.require,
-                extend: [],
+            var obj = this.world[name] = this._world[name] = new ClassMetadata({
                 name: name,
-                namespace: ns,
-                variables: {},
-                props: {},
-                tags: {ns: [{data: ns}]},
-                ready: true,
+                //ready: true,
                 js: true,
                 ast: {native: true}
-//                ast: ast
-            };
-            if(info.ctor.parent)
-                obj.ast = {extend: [{data: info.ctor.parent.name}]};
+            }).setNameSpace(ns);
+
+            this.wait[name] = [];
+
+            if(info.ctor.parent){
+                var parentName = info.ctor.parent.name;
+                obj.ast = { extend: [{ data: parentName}] };
+                var _self = this;
+                this.addDependency(name, parentName, function(){
+                    obj.__extend(parentName, _self.world[parentName]);
+                });
+
+            }
 
             if(props)
                 for( i in props){
-                    obj.public[i] = {type: 'Variant', defined: name };//props[i];
+                    obj.addPublic(i, {type: 'Variant', defined: name })
                 }
             for( i in proto ){
-                    if(i==='_prop' || i==='_method')
-                        continue;
-                    var origI = i;
-                    var prop = proto[i];
+                if(i==='_prop' || i==='_method')
+                    continue;
+                var prop = proto[i];
 
-                    if(i.indexOf('#')===0)
+                if(i.indexOf('#')===0)
+                    i = i.substr(1);
+                if(i.indexOf('_')===0){
+                    if(i.indexOf('__')!==0) {
                         i = i.substr(1);
-                    if(i.indexOf('_')===0){
-                        if(i.indexOf('__')!=0)
-                            i = i.substr(1);
-
-                        (obj.tags[i] || (obj.tags[i] = [])).push({value: prop});
-                    }else if(typeof prop === 'function'){
-                        obj.public[i] = {type: 'Function', defined: ns };
                     }
+                    obj.addTag(i, {data: prop});
+                }else if(typeof prop === 'function'){
+                    obj.addPublic(i, {type: 'Function', defined: ns });
+                }
             }
 
-            this.wait[name] = [];
+
 
             /*if(obj.ast.extend)
                 obj.ast.extend
                     .forEach(this.addDependency.bind(this, name));*/
-
-            this.loaded(name);
+            this.tryInspect(name);
+            //this.loaded(name);
 
 
             //debugger;
@@ -659,11 +651,16 @@ module.exports = (function () {
             return to;
         },
         tryCall: function(name, fnName, args, cb){
-            var info = this.world[name];
+            var info;
+            if(name instanceof ClassMetadata){
+               info = name;
+            }else{
+                info = this.world[name];
+            }
             if(!info)
                 return cb('no such class `'+ name +'`');
 
-            var after = info && info.ast && this.getTag(info.ast, fnName),
+            var after = info.findMethod(fnName),
                 result;
 
             if(!after)
@@ -683,7 +680,7 @@ module.exports = (function () {
         },
         getPropertyValue: function (item, obj, whos, sm) {
             //console.log(item);
-            var info = item.info || item,
+            var info = item.getValue(),
 
                 arr,
                 ohNoItSPipe = false,
@@ -694,28 +691,25 @@ module.exports = (function () {
                 debugger
             }
             if(info.type === 'FUNCTION'){
-                return buildFunction.call(this, item, obj, whos, sm);
+                var transform = new FunctionTransformer(item, obj, whos, this);
+                return transform.transform();//buildFunction.call(this, item, obj, whos, sm);
+            }
+            if( info.type === 'Function'){
+                //item.item._matchers.func({tokens: item.item.value,matched: item.item, item: item})
+                var transform = new FunctionTransformer(item.ast.value, obj, whos, this);
+
+                return transform.transform();//buildFunction.call(this, item.ast.value, obj, whos, sm);
             }
             if(info.type === 'PIPE'){
-                return 'function(){'+info.body.data+'}';
+                return 'function(){'+info.data+'}';
             }
 
+            var propName = item.getName();
 
-            var propName = info.defined || item.item.class.data;
+            var property = item.class;
+            var ast = item instanceof AST_Define ? item : item.ast;
 
-            var world = this.world[propName];
-            if(world) {
-                var property = world.public[item.name];
-            }
-            property = property || {type: 'Variant'}
-
-
-            if(!('value' in item.item)) {
-                global.console.log('No value in `'+ propName +'`')
-                return property.type==='Variant' ? '{}' : void 0;
-            }
-
-            arr = item.item.value;
+            arr =  ast.value;
             if(!Array.isArray(arr))arr = [arr];
             arr = arr.map(function (val, i, list) {
                 if(searchForPipes(val, i, list))
@@ -725,23 +719,22 @@ module.exports = (function () {
                     return val._data;
                 else
                     return val.data;
-
-
             });
             if(ohNoItSPipe){
-                var out = buildPipe.call(this, item.item.value, obj, whos, sm);
+                var out = buildPipe.call(this, ast.value, obj, whos, sm);
 
                 // HAIL TAUTOLOGY!
-                if(out === false)
-                    return new Error('Can not get value '+item.item.value[0].pointer);
-
+                if(out === false) {
+                    return false;
+                    return new Error('Can not get value ' + ast.value[0].pointer);
+                }
                 return out;
 
             }
 
             // typed property getter
             var error = false;
-            this.tryCall(property.type, '__compileValue', [arr, item.item.value], function(err, res){
+            this.tryCall(property, '__compileValue', [arr, ast.value], function(err, res){
                 error = err;
                 if(!err)
                     result = res;
@@ -752,15 +745,44 @@ module.exports = (function () {
             //global.console.log(error)
 
             //ok, lets guess
-            if(property.type !== 'Variant'){
+            var className;
+            if(property instanceof InstanceMetadata){
+                className = property.class.getName();
+            }else if(property instanceof ClassMetadata){
+                className = property.getName();
+            }
+            if(className !== 'Variant'){
+                var name = arr[0];
+                if(arr.length === 1){
+                    if(item instanceof AST_Event){
+                        if (name in obj.private || name in obj.public) {
+                            return (name in obj.private ? '__private' : '_self') + '.get(' + JSON.stringify(name) + ')';
+                        }
+                    }else {
+                        if (name in obj.private || name in obj.public) {
+                            return (name in obj.private ? '__private' : '_self') + '.ref(' + JSON.stringify(name) + ')';
+                        }
+                    }
+                }
+                if(name in this.world){
+                    if(!(name in obj.require)){
+                        obj.require[name] = [];
+                    }
+                    obj.require[name].push(item.ast);
+                    //obj.re
+                    this.addDependency(obj, name);
+                    return name;
+                }
                 var error = false;
-                this.tryCall('Variant', '__compileValue', [arr, item.item.value], function(err, res){
+                this.tryCall('Variant', '__compileValue', [arr, item.ast.value], function(err, res){
                     error = err;
                     if(!err)
                         result = res;
                 });
                 if(!error)
                     return result;
+            }else{
+
             }
             throw new Error('UNEXCEPTABLE VALUE! '+ arr.join(''))
             return JSON.stringify(arr.join(''));
@@ -768,36 +790,28 @@ module.exports = (function () {
         define: function(name){
             var info = this._world[name],
                 ast = info.ast, i, _i, extend,
-                mixed = this.world[name] = info.mixed = info.mixed || {
-                    public: {},
-                    private: {},
-                    values: {},
-                    require: info.require,
-                    extend: [],
-                    name: name,
-                    variables: {},
-                    props: {},
-                    ast: ast
-                },
+                mixed,
                 clsInfo,
                 items, item, itemName,
-                moreDependencies = false;
+                moreDependencies = false,
+                _self = this;
 
-            if(!ast.js){
+            mixed = this.world[name] = info.mixed = info.mixed || (
+                info instanceof ClassMetadata ?
+                    info :
+                    new ClassMetadata({
+                        require: info.require,
+                        name: name,
+                        ast: ast
+                    })
+                );
+            if(!mixed.js){
                 extend = ast.extend;
 
                 if(!info.isMixed) {
                     for (i = 0, _i = extend.length; i < _i; i++) {
                         clsInfo = this.world[extend[i].data];
-                        if (!clsInfo.public) {
-                            clsInfo.public = {};
-                        }
-                        if (!clsInfo.private) {
-                            clsInfo.private = {};
-                        }
-                        this.applyAST(mixed.public, clsInfo.public, {defined: extend[i].data});
-                        this.applyAST(mixed.private, clsInfo.private, {defined: extend[i].data});
-                        mixed.extend.push(extend[i].data);
+                        mixed.extend(clsInfo);
                     }
                     info.isMixed = true;
                 }
@@ -805,42 +819,59 @@ module.exports = (function () {
                     // if deps are resolved - try collect information about props\children
 
 
-                    //console.log(internals)
-                    /*delete mixed.instances;
-                    delete mixed.instances;*/
                     mixed.instances = {};
                     mixed.variables = {};
                     mixed.values = {};
                     mixed.events = {};
 
                     
-                    if(this.callMethod('__dig', mixed, mixed)===false) {
-                        if(this.wait[name].length)
-                            this.searchDeps && this.searchDeps(this.wait[name]);
+                    if(this.__dig(mixed, mixed)===false) {
+                        if(this._world[name]){
 
+                            if( this.wait[name].length ){
+                                // deps that are not in world yet
+                                var notInWorld = this.wait[name].filter( function( name ){
+                                    return !(name in _self._world);
+                                } );
+                                notInWorld.length && this.searchDeps && this.searchDeps( notInWorld );
+                            }
+                        }
                         
 
                         return false;
                     }
 
-                    this.applyAST(mixed.public, mixed.public, {defined: name});
-                    this.applyAST(mixed.private, mixed.private, {defined: name});
-
-                    this.applyAST(mixed.public, info.ast.public, {defined: name});
-                    this.applyAST(mixed.private, info.ast.private, {defined: name});
                     info.isInternalsGenerated = true;
                 }
                 // TODO if(no other deps)
-                //this.world[name] = mixed;
+                this.world[name] = mixed;
                 if(ast.tags){
                     mixed.tags = ast.tags;
                 }
-                mixed.namespace = this.getTag(ast, 'ns');
+                //mixed.setNameSpace(ast.getTag('ns'));
                 info.ready = true;
                 //debugger
             }else{
-                //debugger;
-                this.world[name] = info.ast;
+                for( i in info.private){
+                    if(!(info.private[i] instanceof InstanceMetadata)){
+                        info.private[i] = new InstanceMetadata( {
+                            class: this.world[info.private[i].type],
+                            name: i,
+                            isPublic: true
+                        } );
+                    }
+                }
+                for( i in info.public){
+                    if(!(info.public[i] instanceof InstanceMetadata)){
+                        info.public[i] = new InstanceMetadata( {
+                            class: this.world[info.public[i].type],
+                            name: i,
+                            isPublic: true
+                        } );
+                    }
+                }
+                this.world[name] = info;
+                info.ready = true;
             }
 
         },
@@ -853,7 +884,9 @@ module.exports = (function () {
             // dependences are resolved
 
             if(this.wait[name].length === 0){
-                console.log('LOADED', name);//, this._world[name])
+                console.combine(name, function(arr){
+                    console.log('LOADED', arr.sort().join(', '));
+                });//, this._world[name])
                 this.define(name);
 
             }else{
@@ -867,49 +900,48 @@ module.exports = (function () {
         compile: function (name, cfg) {
             return this.callMethod('__compile', this.world[name], cfg || {});
         },
-        findMethod: function(method, obj){
-            var i, _i, fn;
-
-            obj.public
-            obj.private
-            //if(obj.tags)
-              //  debugger;
-
-            if(!obj.extend)
-                return false;
-
-            for(i = 0, _i = obj.extend.length; i < _i; i++){
-                fn = this.findMethod(method, this.world[obj.extend[i]]);
-                if(fn)
-                    return fn;
-            }
-            return false;
-        },
         callMethod: function(method, obj){
-            var fn = this.findMethod(method, obj);
+            var fn = obj.findMethod(method);
             if(fn === false){
                 fn = prefab[method];
             }
             if(fn === false){
-                throw new Error('NO WAY. UNKNOWN METHOD');
+                throw new Error('NO WAY. UNKNOWN METHOD', method);
             }
             return fn.apply(this, Array.prototype.slice.call(arguments,1));
         },
         loaded: function(name){
             var i, _i, waitingForList = this.waitingFor[name], waitList,
+                waitingItem, callbacks = [],
                 j;
             if(waitingForList){
                 for(i = 0, _i = waitingForList.length; i < _i; i++){
                     // remove class from wait list
-                    waitList = this.wait[waitingForList[i]];
-                    for(j = waitList.length; j;)
-                        if(waitList[--j] === name)
-                            waitList.splice(j,1);
-                    if(waitList.length === 0)
-                        this.tryInspect(waitingForList[i]);
+                    waitingItem = waitingForList[i];
+                    if( typeof waitingItem === 'function' ){
+                        callbacks.push( waitingItem );
+                    }
+                }
+
+                for( i = 0, _i = callbacks.length; i < _i; i++){
+                    callbacks[i].call( this.world[name] );
+                }
+
+                for(i = 0, _i = waitingForList.length; i < _i; i++){
+                    // remove class from wait list
+                    waitingItem = waitingForList[i];
+                    if(typeof waitingItem !== 'function'){
+                        waitList = this.wait[waitingItem];
+                        for( j = waitList.length; j; )
+                            if( waitList[--j].toString() === name )
+                                waitList.splice( j, 1 );
+                        if( waitList.length === 0 )
+                            this.tryInspect( waitingItem );
+                    }
                 }
                 delete this.waitingFor[name];
             }
+
         },
         isInstanceOf: function (who, whosInstance) {
             if(who.data)
@@ -925,7 +957,7 @@ module.exports = (function () {
             if(!info.ast)
                 return false;
 
-            extend = info.ast.extend;
+            extend = info._extendList;
             if(!extend)
                 return false;
 
@@ -941,7 +973,214 @@ module.exports = (function () {
                     return true;
             }
             return false;
+        },
+        /*
+        @arg obj: inspecting object
+        @arg cls: class of defining object
+        @arg path:Array path to inspecting object
+
+         */
+        __dig: function(obj, cls, path) {
+            var ast = obj.ast,
+                i, _i, items,
+                moreDependencies = false,
+                prop, anything,
+
+                searchingFor, item;
+
+            path = path || [];
+
+            if(ast.type === 'DEFINE'){
+                items = obj.ast.items;
+
+                for (i = 0, _i = items.length; i < _i; i++) {
+
+                    anything = false;
+
+                    item = items[i];
+
+                    searchingFor = (item.class || item.name).getValue();
+                    /* we can define:
+                     Label: without name.
+                     Label with: name
+                     existed: prop
+
+                     so we check that class dependency is satisfied.*/
+
+                    // maybe we have property with that name
+
+                    if(!obj.findProperty(searchingFor) && !obj.getTag('anything')){
+                        this.addDependency(cls.getName(), item.class || item.name);
+                        if(!(searchingFor in this.world)){
+                            moreDependencies = true;
+                        }
+                    }
+                }
+
+                /*
+                 1) create named with not piped properties or inline pipes to properties that are already defined
+                 2) create unnamed with inline pipes
+                 3) create other pipes
+                 4) add items as children
+                 */
+
+                if (!obj.getName()){
+                    obj.setName(this.getUID(obj.class.getName()));
+                    obj.noName = true;
+                }
+
+                if (moreDependencies) {
+                    var objClass = obj._extendList[0];
+                    if(!objClass)
+                        objClass = obj.class.getName();
+
+                    //console.log(this.wait[cls.getName()])
+                    console.log('More deps for '+ obj.getName() + '<'+objClass+'> in `' + cls.getName() + '`: ' + this.wait[cls.getName()].join(', ')+' '+cls.ast.name.pointer);
+                    ///obj.findProperty(searchingFor)
+                    return false;
+                }
+
+                // now deps are loaded
+                var objectName = obj.name;
+                if(obj === cls) {
+                    objectName = '___this___';
+                }
+
+                for (var eventName in obj.ast.events) {
+                    obj.ast.events[eventName].forEach(function (event) {
+                        obj.addEvent(event.name.getValue(), event); // was event.value
+                    });
+                }
+                if(obj.value && obj.value.length){
+                    obj.addValue( 'value', new Property( {
+                        name: ['value'],
+                        ast: obj.ast,
+                        class: obj.findProperty('value'),
+                        value: obj.value
+                    } ) );
+                }
+                if(obj.cls && obj.cls.length){
+                    obj.addValue( 'cls', new Property( {
+                        name: ['cls'],
+                        ast: Object.assign( Object.create( obj.ast ), { value: obj.cls } ),
+                        class: obj.findProperty('cls'),
+                        value: obj.cls
+                    } ) );
+                }
+
+                items = obj.ast.items;
+
+                var anything = obj.getTag('anything');
+                for (i = 0, _i = items.length; i < _i; i++) {
+                    item = items[i];
+                    var propInMeta;
+
+                    searchingFor = (item.class || item.name).getValue();
+                    propInMeta = obj.findProperty(searchingFor);
+
+                    //var itemPath = path.slice(1).concat(searchingFor);
+                    if(!propInMeta && !(searchingFor in this.world)){
+                        if(anything){
+                            // logic of Variants. maybe extend with custom type casting later
+                            propInMeta = this.world.Variant;
+                        }
+                    }
+                    if (propInMeta) {
+                        // is property
+                        var val;
+                        if(!propInMeta.ast.existed || item.items.length){
+                            obj.addValue( searchingFor, new Property( {
+                                name: ['value'],
+                                ast: item, //was item
+                                class: propInMeta,
+                                value: item.value,
+                                existed: propInMeta.ast.existed
+                            } ) );
+                        }
+                        //cls.addItem(objectName, val); // join path?
+
+                        var childObjectName = objectName;
+                        if( item.cls && item.cls.value ){
+                            obj.addValue( searchingFor + '.cls', new Property( {
+                                class: this.world.String,
+                                name: [ 'cls' ],
+                                ast: Object.assign( Object.create( item ), { value: item.cls } ), //was item
+                                //info: item.findProperty('cls'),
+                                value: item.cls.value
+                            } ) );
+                        }
+                        if(item.items.length || propInMeta.ast.existed){
+                            var itemClass;
+                            if(propInMeta instanceof InstanceMetadata){
+                                itemClass = propInMeta.class;
+                            }else{
+                                if(propInMeta.getTag('anything')){
+                                    itemClass = this.world.Variant;
+                                }else{
+                                    throw new Error('Item has')
+                                }
+                            }
+
+                            var childItem = new InstanceMetadata({
+                                class: itemClass,
+                                ast: item,
+                                name: path.concat(searchingFor),
+                                defineAST: propInMeta,
+                                isPublic: item.isPublic,
+                                value: item.value,
+                                existed: propInMeta.ast.existed,
+                                unobservable: propInMeta.ast.unobservable
+                            });
+
+
+
+                            obj.addValue( searchingFor, childItem)
+
+                            if(this.__dig( childItem, cls, path.slice().concat( searchingFor ) ) === false){
+                                // more deps in nested node
+                                return false;
+                            }
+
+
+                        }
+                    }else if (searchingFor in this.world) { // is not known property. class name?
+
+                        var childItem = new InstanceMetadata({
+                            class: this.world[searchingFor],
+                            ast: item,
+                            isPublic: item.isPublic,
+                            value: item.value,
+                            cls: item.cls
+                        });
+
+                        if(childItem.class.getName() === 'Function'){
+                            childItem.type = 'inline';
+                        }
+
+                        if (!childItem.getName()){
+                            childItem.setName(this.getUID(childItem.class.getName()));
+                            childItem.noName = true;
+                        }
+
+                        if(this.__dig(childItem, cls, [childItem.getName()]) === false){
+                            return false;
+                        }
+
+                        cls.addItem((typeof objectName === 'string' ? objectName : (Array.isArray(objectName)?objectName.join('.'):objectName.data)), childItem); // TODO check if condition is needed
+
+                    }
+
+
+                }
+
+            }
         }
+
     };
+
+    Compiler.Property = Property;
+    Compiler.InstanceMetadata = InstanceMetadata;
+    Compiler.ClassMetadata = ClassMetadata;
+
     return Compiler;
 })();
