@@ -18,7 +18,8 @@ module.exports = (function () {
     var ShouldNotBeSetted = function(obj){
         this.obj = obj;
     };
-
+    var tools = require('./tools');
+    var primitives = tools.primitives;
     //var console = new (require('../../console'))('Compile');
     var setRecursive = function(obj, vals){
         for(var key in vals){
@@ -505,7 +506,12 @@ module.exports = (function () {
                         if(!isPipe) {
                             vals[propName] = propValue;// + sm(prop.item.semiToken);
                         }else {
-                            var pipePath = path.concat(propName);
+                            var pipePath;
+                            if(propName === 'value' && propInObject.class && (propInObject.class.getName() in primitives)){
+                                pipePath = path.slice();
+                            }else{
+                                pipePath = path.concat( propName );
+                            }
                             if(!isPublic){
                                 ctx.mainCls.privatesFlag = true;
                             }
