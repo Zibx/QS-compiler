@@ -507,11 +507,11 @@ module.exports = (function () {
                             vals[propName] = propValue;// + sm(prop.item.semiToken);
                         }else {
                             var pipePath;
-                            if(propName === 'value' && propInObject.class && (propInObject.class.getName() in primitives)){
+                            /*if(propName === 'value' && propInObject.class && (propInObject.class.getName() in primitives)){
                                 pipePath = path.slice();
-                            }else{
+                            }else{*/
                                 pipePath = path.concat( propName );
-                            }
+                            //}
                             if(!isPublic){
                                 ctx.mainCls.privatesFlag = true;
                             }
