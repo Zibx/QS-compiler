@@ -42,16 +42,10 @@ define UIComponent Page
                 }
     public Boolean fullScreen: true
 
-    @info: Function that shows the `next` Button
-    public Function showNext
-
-    @info: Function that enables the `next` Button
-    public Function enableNext
-
-    @info The `next` button caption
+    @info: The `next` button caption
     public Button next
 
-    @info The `back` button caption
+    @info: The `back` button caption
     public Button back
 
     @info: Function that hides the screen keyboard (or navigation buttons). A usage example is demonstrated in the `loaded` event section.
@@ -61,10 +55,10 @@ define UIComponent Page
     public Function showKeyboard
 
     @info: Default container for the `header` component. The header always remains static on top while the other Page content is scrolled.
-    public ContainerComponent header
+    public existed ContainerComponent header
 
     @info: Invisible container used as a hack for storing the global variables. Usable to place a hidden element on the Page.
-    public ContainerComponent global
+    public existed ContainerComponent global
 
     @info: The `loaded`, `firstLoaded`, `reloaded` and `afterShow` represent Page events and are fired when the `Page` is being loaded, loaded for the first time, reloaded or rendered.
     @example: Hide the navigation buttons if Page is loaded for the first time.
