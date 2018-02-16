@@ -14,6 +14,12 @@
 
 @ns: UI.Controls
 def UIComponent Border
-    @info The `margin` property works in a similar way with the CSS one. It sets the margin area on all four sides of a `Border` element.
+    @info: The `margin` property works in a similar way with the CSS one. It sets the margin area on all four sides of a `Border` element.
+    @example:
+        Border
+            margin: 40px 20px
+            background: rgba(255,255,255, 0.5)
+            IFrame frame: 'https://google.com:443'
     public String margin
+
     public String borderRadius
