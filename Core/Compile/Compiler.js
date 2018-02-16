@@ -446,8 +446,13 @@ module.exports = (function () {
     ];
     files.forEach(function(file){
         var parts = path.parse(file);
-        if(parts.ext === '.qs')
-            system.push(systemQS(parts.name))
+        if(parts.ext === '.qs'){
+            try{
+                system.push( systemQS( parts.name ) )
+            }catch(e){
+                throw new Error('Something wrong in '+parts.name)
+            }
+        }
     })
 
     var Compiler = function(cfg){
