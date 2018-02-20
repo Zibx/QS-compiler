@@ -1,36 +1,35 @@
-@info: "Droplist list in the form of a wheel that can be scrolled. For a good work needs at least one component Wheel and also needs to be called on the screen by it's method show()."
+@nested
+
+@info: The `WheelPicker` control includes one or more scrollable lists of distinct values, each of them is represented by a single [Wheel](UI.Controls.Wheel) component and always has one selectable value. `WheelPicker` is often used together with [Input](UI.Controls.Input) control that allows the picker to be displayed at the bottom of the screen instead of a screen keyboard when the user is editing a field or tapping a menu. By default, `WheelPicker` is hidden. Use `show()` and `hide()` methods to show and hide the picker.
+
 @ns: UI.Controls
 define UIComponent WheelPicker
-    @example: Set the label
+    @example: Set a label using the `WheelPicker` component.
         Button: {{w1}}
             .click: () {
                 wp1.show();
             }
-
         WheelPicker wp1
             label: 'chuuze da doge'
             Wheel w1
-                value: 'doge'
-                data: ['ovchare','none doge','a hundreeed dogez','any doge','orange doge']
+                value: 'any doge'
+                data: ['ovchare', 'none doge', 'a hundreeed dogez', 'any doge', 'orange doge']
 
-    @info: Label of WheelPicker
+    @info: `WheelPicker` label caption
     public String label
 
-    @example: Hide the component WheelPicker.
-    @info: Method hide() called when user doing tap somewhere on the screen outside the component.
+    @info: The `hide()` method is automatically called when a user taps somewhere on the screen within the component.
     public Function hide
 
-    @example: Show by click
+    @example: Display the `WheelPicker` component by clicking a button.
         Button: {{w1}}
             .click: () {
                 wp1.show();
             }
-
         WheelPicker wp1
             label: 'chuuze da doge'
             Wheel w1
-                value: 'doge'
-                data: ['ovchare','none doge','a hundreeed dogez','any doge','orange doge']
-
-    @info: Method shows the component on the screen.
+                value: 'any doge'
+                data: ['ovchare', 'none doge', 'a hundreeed dogez', 'any doge', 'orange doge']
+    @info: Method shows the `WheelPicker` component on the screen.
     public Function show
