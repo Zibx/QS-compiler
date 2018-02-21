@@ -1,9 +1,10 @@
-@example: Simple checkbox with label
-  CheckBox cb
-    caption: I"'"m afraid of cats
-    checked: true
+@nested
 
-@info: Checkbox field, one of the item selection components.
+@info: The `CheckBox` UI control serves to set binary attributes (**true** vs **false** or **1** vs **0**). The `CheckBox` behaves in a similar fashion to the [Switch](UI.Controls.Switch) control except that has a different view.  An initial value (true or false) can be assigned in the declaration.
+@example: An initially checked `CheckBox` with a text label.
+    CheckBox cb
+        caption: I"'"m afraid of cats
+        checked: true
 
 @ns: UI.Controls
 def UIComponent CheckBox
@@ -15,8 +16,9 @@ def UIComponent CheckBox
   @info: The currently selected value
   public Boolean value: false
 
-  @example: Label of checkbox
+  @example: The `Checkbox` label sample
     CheckBox
       label: Random box
-  @info: Label of checkbox
+
+  @info: The `Checkbox` label
   public String label

@@ -41,7 +41,7 @@ define UIComponent Input
     public String label
 
     @info: The picker object.
-    @example: A simple [Switch]((UI.Controls.Switch)) number picker.
+    @example: A simple binary number picker created using the [Switch](UI.Controls.Switch) control. Apart from true/false values, the [Switch](UI.Controls.Switch) can also return a binary number.
         def UIComponent Digital
           HBox
             padding: 20px
