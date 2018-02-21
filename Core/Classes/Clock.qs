@@ -1,7 +1,7 @@
 @nested
 
-@info: Although belonging to UI Controls, the `Clock` component has no view. It returns date and time in different formats and also contains directories (collections of `hours` and `minutes`) that can be used as a data source for visual controls.
-@example: Example of a [Wheel](UI.Controls.Wheel) control using
+@info: Although belonging to the UI Controls subtree, the `Clock` component has no view. It returns date and time in different formats and also contains directories (collections of `hours` and `minutes`) that can be used as a data source for visual controls.
+@example: Example of a [Wheel](UI.Controls.Wheel) component that uses `Clock` as the data source.
     def Page clocks
         Clock clock
             locale: "en-US"
@@ -19,7 +19,7 @@
 @ns: UI.Controls
 define UIComponent Switch
 
-    @info: Context-dependent collection of `Numbers` that contains hours directory. Represents 24 or 12 hours depending on the clock style.
+    @info: A context-dependent collection of `Numbers` that contains hours directory. Represents 24 or 12 hours depending on the clock style.
     public Array hours
 
     @info: Collection of `Numbers` that contains minutes directory. Contains 60 minutes.
