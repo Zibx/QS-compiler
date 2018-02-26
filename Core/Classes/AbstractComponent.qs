@@ -1,5 +1,5 @@
-@info: The base class for all components.
-  Normally, you will not declare elements of this component.
+@info: The `AbstractComponent` object is the basic component upon which all other QuokkaScript components are based. `AbstractComponent` is inherited from `QObject` and serves as a parent class to `AbstractDevice`, `AbstractService`, `UIComponent`. You will hardly ever use the `AbstractComponent` itself in your ordinary work, however, this article gives you the opportunity to figure out how QuokkaScript works under the hood. `AbstractComponent` is the first component in all QuokkaScript inheritance chain that implements handling with child objects. Put this another way, the `AbstractComponent` can contain other components.
+
 @ns: Core
 define QObject AbstractComponent
 
