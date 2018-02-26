@@ -4,19 +4,19 @@
 @example: `PhoneBox` vs [PhoneBox](UI.Controls.PhoneBox)
     def Page phoneBoxDemo
         header:
-Header: {{phoneBox1.clearValue}}
+            Header: {{phoneBox1.clearValue}}
 
-    Focus
-    PhoneBox phoneBox1          // +7##########
-        label: PhoneBox
-        layout: number
+        Focus
+        PhoneBox phoneBox1          // +7##########
+            label: PhoneBox
+            layout: number
 
-    PhoneTextBox phoneTextBox1
-        label: PhoneTextBox     // +7(###)###-##-##
-        layout: number
+        PhoneTextBox phoneTextBox1
+            label: PhoneTextBox     // +7(###)###-##-##
+            layout: number
 
-    Button next: Next field
-        disabled: false
+        Button next: Next field
+            disabled: false
 
 @ns: UI.Controls
 def TextBox PhoneBox
