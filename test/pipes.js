@@ -17,6 +17,7 @@ describe('Pipe setters', function() {
         console.log(result.js);
         it('should compile primiteve set', function(){
             console.log(main.values.time);
+            console.log(result.js);
             assert.equal(result.js.replace(/\s/g,'').indexOf(`this.set("time", new Pipe(this.ref('time'), function(time){return time;`.replace(/\s/g,''))>0,true);
         });
     });

@@ -77,6 +77,15 @@ module.exports = (function(){
         };
     };
     var extractors = {
+        'TemplateLiteral': function(node, options){
+            var newNode = Object.create(node),
+                _self = this;
+
+            newNode.expressions = newNode.expressions.map(function(item){
+                return doTransform.call(_self, item, options, node);
+            });
+            return newNode;
+        },
         'UpdateExpression': function(node, options){
             if(node.prefix){
                 return doTransform.call(this, node.argument, options, node);

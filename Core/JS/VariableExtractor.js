@@ -52,7 +52,9 @@ module.exports = (function () {
         };
     };
     var extractors = {
-
+        'TemplateLiteral': function(node, list, doNotExtract){
+            node.expressions.map(mapWrapper(this));
+        },
         'VariableDeclaration': function (node) {
             node.declarations.forEach(setter('kind', node.kind));
             node.declarations.map(mapWrapper(this));
