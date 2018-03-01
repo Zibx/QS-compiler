@@ -22,10 +22,6 @@ def Page main
         hideKeyboard();
     }
     Button next: Next
-        .click: (evt)->
-            if(evt.last){
-                NavigationManager.navigate('second')
-            }
         .last: ()->
             NavigationManager.navigate('second')
 
@@ -62,34 +58,26 @@ def Page second
     Header.medium: Hello, {{name}}! Your access level is {{role}}.
 ```
 
-## `home()` and `back()`
-`NavigationManager` also 
-
-**main.qs**
+## `home()`, `back()` and `load()`
+- The `NavigationManager.home()` method closes the current application and returns a user to the main screen.  
+- The `NavigationManager.back()` method loads the previous screen of the current app in a manner similar to the browsers's **Back** button.
+- A little bit more advanced usage can be reached with `NavigationManager.loads(anotherApplication)` method. It provides an opportunity to load one QuokkaScript application from another. A user can switch back to the previous app by pushing the `Back` button. 
 ```qs
 def Page main
-    TextBox myTextBox: John Doe
-        layout: en
-
+    Header: 'First Page'
     Button next: Next
         .click: ()->
-            NavigationManager.navigate('second', {data: {name: myTextBox}} )
+            NavigationManager.navigate('second')
 
 def Page second
-    public String name
-    Header.medium: Hello, {{name}}!
-
-    Button: home
+    Header.medium: 'Second Page'
+    Button: 'Close app and go home'
         .click: ()->
             NavigationManager.home();
-    Button: back
+    Button: 'Just go back'
         .click: ()->
             NavigationManager.back();
-    Button: LOAD                        // load 
-            .click: ()->
-                NavigationManager.load('completely_different_app');
+    Button: 'Load another app'
+        .click: ()->
+            NavigationManager.load('completely_different_app');
 ```
-
-## `load()`
-A little bit more advanced usage of 
-The `NavigationManager.loads(anotherApplication)` method provides an opportunity to load one QuokkaScript application from another. A user can switch back to the previous app by pushing the `Back` button. 
