@@ -19,8 +19,9 @@ describe('string templates', function() {
         it('use in js', function () {
             assert.include(result.js.replace(/\s*/g, ''), "console.log(`testit${__private.get(['s0','value'])}`);");
         });
-        it('use in js', function () {
-            assert.include(result.js.replace(/\s*/g, ''), "console.log(`testit${__private.get(['s0','value'])}`);");
+        it('use in qs values', function () {
+            console.log(result.ast.main.values.s)
+            assert.include(result.ast.main.values.s.value._val.replace(/\s*/g, ''), "`testit${s0_value>30?30:`${s0_value}`}`");
         });
 
     });

@@ -9,13 +9,14 @@ module.exports = (function(){
     var getData = function(item){
         return item.data;
     };
-    var quotes = {'\'': 1, '"': 1};
+    var quotes = {'\'': 1, '"': 1, '`': 1};
     // It is a hardcoded plain function for only one purpose
     // Fuck the beauty, it just do the job
-    var process = function (tokens) {
+    var preprocess;
+    var process = function (tokens, sub) {
 
         var i, _i, token, data, count, quoteType,
-            start, need, delta;
+            start, need, delta, stringTemplate;
 
         for (i = 0, _i = tokens.length; i < _i; i++) {
             token = tokens[i];
@@ -23,6 +24,7 @@ module.exports = (function(){
             data = token.data;
             if (quotes[data]) {
                 quoteType = data;
+                stringTemplate = quoteType === '`';
                 count = 1;
                 start = i;
 
@@ -56,15 +58,47 @@ module.exports = (function(){
                     var escapes = {};
                     for (i++; i < _i; i++) {
                         token = tokens[i];
+
+                        // TODO: check it. escaping
                         if(token.data === '\\') {
                             escapes[i-start+need-2] = true;
                             i++;
+                        }
+                        if(stringTemplate && token.data === '$'){
+
+                            var nextToken = tokens[i+1];
+
+                            if(nextToken && nextToken.data === '{'){
+                                var t = tokens.slice(i+1);
+                                if(!preprocess){
+                                    // circular dependency resolve
+                                    preprocess = require( '../Preprocess' );
+                                }
+                                var subT = preprocess.quotesAndLongComments(t, true);
+                                subT = preprocess.shortCommentsAndURLs(subT);
+                                subT = preprocess.braces(subT, true);
+                                if(subT[1]){
+                                    for(;;){
+                                        if(tokens[i].pointer === subT[1].pointer){
+                                            i--;
+                                            break;
+                                        }else{
+                                            i++
+                                        }
+                                    }
+
+                                    var t2 = tokens[i];
+                                    continue;
+                                }
+                            }
+
                         }
                         if (token.data === quoteType) {
                             count++;
                             if(count === need) {
                                 delta = i-start;
                                 tokens.splice(start, delta+1, {
+                                    stringTemplate: stringTemplate,
                                     type: 'Quote',
                                     tokens: tokens.slice(start+need, i+1-need),
                                     data: tokens.slice(start+need, i+1-need).filter(function(el,i){return !(i in escapes);}).map(getData).join(''),

@@ -463,9 +463,10 @@ module.exports = (function () {
                 throw new Error('Something wrong in '+parts.name)
             }
         }
-    })
+    });
 
     var Compiler = function(cfg){
+
         this.objectCounter = 0;
         typeof cfg === 'object' && Object.assign(this, cfg);
         

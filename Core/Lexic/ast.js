@@ -123,6 +123,20 @@ module.exports = (function(){
 
                 isPublic = newItem.isPublic = matched.scope && matched.scope.mapped === 'public';
 
+                if(matched.value){
+                    if(matched.value[0].type === 'Quote' && matched.value[0].stringTemplate){
+                        // TRANSFORM stringTemplates to pipes
+                        matched.value[0].type = 'PIPE';
+                        matched.value[0].data = matched.value[0]._data;
+                            /*= {
+                            type: 'PIPE',
+                            tokens: matched.value[0].tokens,
+                            pointer: matched.value[0].pointer,
+                            data: matched.value[0].data
+                        };*/
+                    }
+                }
+
                 if(matched.name) {
 
                     currentPropHolder = parent[isPublic?'public':'private'];
