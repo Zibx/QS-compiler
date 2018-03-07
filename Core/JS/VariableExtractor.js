@@ -364,7 +364,7 @@ module.exports = (function () {
             getFullUnDefined(scope, collector, undef);
         });
         for (i in undef) {
-            if (extractor.knownVars[i])
+            if (extractor.knownVars[i] && typeof extractor.knownVars[i] !== 'string')
                 delete undef[i];
         }
 
@@ -453,6 +453,7 @@ module.exports = (function () {
             setTimeout: 1,
             NavigationManager: 2,
             item: 2
+            //transaction: 'Transaction'
         }
     };
     return extractor;

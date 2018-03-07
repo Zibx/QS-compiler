@@ -11,7 +11,9 @@ var assert = require('chai').assert;
 var common = require('./toolchain/common'),
     compile = common.compile, compact = common.compactFn;
 
-describe('define and use statics', function() {
+describe('pure variables', function() {
+    // not observable as primitives. stored in real variables
+    // pure + public should cause error
     compile('test/qs/pure.qs', function (result) {
 
         console.log(result.js)

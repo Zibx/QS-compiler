@@ -901,7 +901,15 @@ module.exports = (function () {
 
             if(this.wait[name].length === 0){
                 console.combine(name, function(arr){
-                    console.log('LOADED', arr.sort().join(', '));
+                    var uniq = [], uniqHash = {};
+                    arr = arr.sort();
+                    arr.forEach(function(className){
+                        if(!(className in uniqHash)){
+                            uniqHash[className] = true;
+                            uniq.push(className)
+                        }
+                    });
+                    console.log('LOADED', uniq.join(', '));
                 });//, this._world[name])
                 this.define(name);
 
