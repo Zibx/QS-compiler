@@ -71,6 +71,7 @@ module.exports = (function () {
         try {
             var source = fs.readFileSync(fileName) + '';
         }catch(e){
+            console.log('No file', e);
             source = fileName;
         }
         var crafted = build(Object.assign({

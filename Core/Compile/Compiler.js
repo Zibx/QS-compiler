@@ -136,7 +136,7 @@ module.exports = (function () {
         }else{
             accessible = info.varParts;
         }
-        var ref = (info.varParts[0].name in cls.public ? 'this.ref(':'__private.ref(')+ '\'' + accessible.map(function (el) {
+        var ref = (cls.getPublic(info.varParts[0].name) ? 'this.ref(':'__private.ref(')+ '\'' + accessible.map(function (el) {
                 return el.name;
             }).join('.') + '\')';
 
@@ -495,6 +495,7 @@ module.exports = (function () {
     };
 
     Compiler.prototype = {
+        baseInited: false,
         _primitives: primitives,
         world: {},// known metadata
         _world: {},// known metadata with not full loaded
@@ -1120,7 +1121,9 @@ module.exports = (function () {
                                 value: item.value,
                                 existed: propInMeta.ast.existed
                             } ) );
+
                         }
+                        item.isPublic = propInMeta.isPublic;
                         //cls.addItem(objectName, val); // join path?
 
                         var childObjectName = objectName;

@@ -200,6 +200,16 @@ module.exports = (function(){
                 child = children[i];
 
                 if(isNotError(definition = matchers.define(child))){
+
+                    if(!definition.name){
+                        definition.name = new match.Match('name', {
+                            leaf: true,
+                            type: 'WORD',
+                            data: definition.extend[0].data + '_' + Math.random().toString(36).substr(3, 7),
+                            pointer: definition.extend[0].pointer
+                        });
+                    }
+
                     current = (new AST_Define(definition))
                         .addTags(tags.tags);
 

@@ -78,8 +78,9 @@ module.exports = (function () {
                         !!env && console.log(name, '<'+ env.class.getName() +'>', 'is in child item');
                         selfFlag = true;
 
+                        //if(env) {
                         implicit = true;
-
+                        //}
                     }
 
                     if(!env){

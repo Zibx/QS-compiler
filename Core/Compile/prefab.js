@@ -217,6 +217,11 @@ module.exports = (function () {
                 obj.instances[where].forEach(valueGatherer);
             }
 
+            // TODO: check. values in existed props were not setted
+            for(var where in obj.values){
+                valueGatherer(obj.values[where]);
+            }
+
 
             valueGatherer(Object.assign(Object.create(obj),{type: 'child', propsOnly: true, existed: true, isMain: true, isPublic: true}));
 
@@ -597,6 +602,9 @@ module.exports = (function () {
                     }
                 }
             }else{
+                if(!isPublic){
+                    ctx.mainCls.privatesFlag = true;
+                }
                 eventSubs.push(_tinyPadLeft +(isPublic?'this': '__private')+'.setAll('+
                     (obj.isMain?'':'\'' + obj.getName().join('.') + '\', ') + stringData + ')');
                 return new ShouldNotBeSetted(obj);

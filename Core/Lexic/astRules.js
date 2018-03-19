@@ -16,7 +16,9 @@ module.exports = (function () {
                 {type: 'COMMA', data: ','},
                 {type: 'WORD', put: '*extend'}
             ]},
-            {type: 'WORD', put: 'name'}
+            {type: '?', items: [
+                {type: 'WORD', put: 'name'}
+            ]}
         ],
         'DEFINE#': [
             {type: 'WORD', data: ['def', 'define', 'class']},
