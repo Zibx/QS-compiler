@@ -9,9 +9,10 @@ def QObject Lock
     public Function process
 
 @ns: Z_Qiwi
-def QObject Processor
+def AbstractComponent Processor
     public Event process
     public Function update
     public Function finish
+    public Function error
     public Function fail
     public Function transit
