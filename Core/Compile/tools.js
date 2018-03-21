@@ -37,18 +37,19 @@ module.exports = (function () {
         primitives: {
             'Number': true, 'String': true, 'Array': true, 'Boolean': true, 'Function': true
         },
-        getVarInfo: function (stack, obj, child, scope){
+        // child - объект внутри которого нам попалась переменная
+        // classObj - класс внутри которого объявлен этот объект
+        getVarInfo: function (stack, classObj, child, scope){
             var i, _i, out = [],
                 node, name,
                 env, lastEnv, context = false,
-                somePointer = obj.ast.name.pointer,
+                somePointer = classObj.ast.name.pointer,
                 fromWorld = false,
                 deeperEnv,
-                selfFlag = false,
+                selfFlag = false, // property is in child
                 implicit = false,
                 contextAddDelta = 0
             ;
-
             var stackList = [];
             for (i = 0, _i = stack.length; i < _i; i++){
                 node = stack[i];
@@ -60,6 +61,7 @@ module.exports = (function () {
                 stackList.push(name);
 
                 if( !env ){
+
                     if( node.type === 'ThisExpression' ){
                         name = child.getName();
                         selfFlag = true;
@@ -74,6 +76,7 @@ module.exports = (function () {
 
 
                     if(!env){
+                        // есть ли свойство с таким именем в объекте
                         env = child.findProperty( name );
                         !!env && console.log(name, '<'+ env.class.getName() +'>', 'is in child item');
                         selfFlag = true;
@@ -84,19 +87,22 @@ module.exports = (function () {
                     }
 
                     if(!env){
-                        env = obj.findProperty( name );
+                        // есть ли свойство с таким именем в классе
+                        env = classObj.findProperty( name );
                         !!env && console.log(name, '<'+ env.class.getName() +'>'+ (env.ast.unobservable ? ' (unobservable)':''), 'is in scope');
                     }
 
                     if(!env){
-                        if(name in obj.subItems){
-                            env = {class: obj.subItems[name]};
+                        // есть ли инстанс с таким именем в классе
+                        if(name in classObj.subItems){
+                            env = {class: classObj.subItems[name]};
 
                         }
                         !!env && console.log(name, '<'+ env.class.getName() +'>', 'is in sub items of child');
                     }
 
                     if(!env){
+                        // world содержит в себе список всех возможных Конструкторов Классов
                         if(this.world[name]){
                             env = this.world[name];
                             fromWorld = true;
@@ -194,10 +200,10 @@ module.exports = (function () {
                 if(env){
                     // and if Class has value property
                     env = env.class;
-                    out.push( { name: 'value', class: env, defined: obj, node: ASTtransformer.craft.Literal('value') } );
+                    out.push( { name: 'value', class: env, defined: classObj, node: ASTtransformer.craft.Literal('value') } );
                 }
             }
-            return new VarInfo({fromWorldFlag: fromWorld, implicitFlag: implicit, selfFlag: selfFlag, varParts: out, context: context, used: obj});
+            return new VarInfo({fromWorldFlag: fromWorld, implicitFlag: implicit, selfFlag: selfFlag, varParts: out, context: context, used: classObj});
         }
     };
     return tools;

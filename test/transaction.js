@@ -33,9 +33,9 @@ def Processor process
         
 
 def Page second
-    Header: Ваше ФИО: {{transaction.fio}}
+    Header: Your FIO: {{transaction.fio}}
 
-    Label: Возраст:
+    Label: Age:
     Slider age: 16
         from: 10
         to: 120
@@ -50,9 +50,9 @@ def Page send
     Label: {{transaction.plain()}}
     `, {main: 'main'}, function (result) {
         var main = result.ast.main;
-        it('should work as JSON', function(){
+        it('should compile', function(){
 
-            assert.equal(main.values.c1.items._val, '{\n  "nk1": "ololo",\n  "nk2": 5467\n}')
+            assert.equal(typeof main, 'object')
         });
     });
 });
