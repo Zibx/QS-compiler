@@ -7,13 +7,14 @@ def UIComponent Image
     @info: Set the image source. Must be a valid URL.
     @example: Basic `Image` example.
         Image
-            source: ../../img/aeroflot.png
+            source: ../../img/logo.png
     public String source
 
     @info: The `value` property can me used as a synonym for the `source` property.
     @example: Using value instead of source
         Image
-            value: img/aeroflot.png
+            value: img/logo.png
+        Image: img/short_syntax_demo.png
     public String value
 
     @info: The `stretch` property indicates the resizing method. The supported values are: `none` (default), `fill`, `uniform` and `uniformToFill`.
