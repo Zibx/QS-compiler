@@ -10,7 +10,7 @@
                 get_weather.execute();
 
 @ns: Core
-define QObject HTTPRequest
+define RunAtServerComponent HTTPRequest
 
     @info: Set the HTTP Request url.
     @example: A little more advanced version of the previous code sample with a focus on the `url` property.
