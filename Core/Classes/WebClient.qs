@@ -1,6 +1,6 @@
 @nested
 @info: The `WebClient` component in QuokkaScript is a more sophisticated and fancy child class of the [HTTPRequest](Network.HTTPRequest) module and also serves to perform interaction with servers. Being compared with its parent, the `WebClient` component has two major advantages. First, by default, it implements the reactive behaviour of the `url` property. That means, if the `url` string is changed, a new server request is instantly sent (this behaviour can be switched off after setting the `enabled` property to `false`). Secondly, the `WebClient` component automates the parsing of a server response in JSON or XML format (see the `content-type` property description). For these two reasons, we recommend you to use `WebClient` instead of the [HTTPRequest](Network.HTTPRequest) in most of your ordinary tasks.
-@example: The following example demonstrate usage of both `WebClient` advantages. Choose latitude and longitude with sliders and get an instant weather report for the chosen location.
+@example: The following example demonstrates usage of both `WebClient` advantages. Choose latitude and longitude with sliders and get an instant weather report for the chosen location.
     def Page main
         Header: LAT: {{lat}}
         Slider lat: 51.5074
@@ -32,11 +32,11 @@ define HTTPRequest WebClient
     @info: This value serves to specify the estimated server response format as `JSON` or `XML`. Such being the case, `WebClient` will attempt to deserialize such objects from the server response body and place the resulting object into the `response` property.
     public String content-type
 
-    @info: Parsed body of HTTP response.
+    @info: The parsed body of HTTP response.
     public QObject response
 
-    @info: Raw body of HTTP request.
+    @info: The raw body of HTTP request.
     public String rawRequest
 
-    @info: Raw body of HTTP response.
+    @info: The raw body of HTTP response.
     public String rawResponse
