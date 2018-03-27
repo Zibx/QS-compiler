@@ -1,5 +1,5 @@
 @nested
-@info: The `HTTPRequest` component in QuokkaScript serves to perform interaction with servers. You can retrieve data from a URL without having to do a full [Page](UI.Page) refresh. This enables a Web page to update just part of a page without disrupting what the user is doing. The `HTTPRequest` component is also a parent for the [WebClient](Core.WebClient) module. We recommend you to use [WebClient](Core.WebClient) instead of `HTTPRequest` for the majority of your ordinary tasks, because it provides more advantages (for example, an automated parsing of a server response in JSON format). **Attention:** as of the current version, `HTTPRequest` can be used to send or retrieve only JSON objects, XML support is pending.
+@info: The `HTTPRequest` component in QuokkaScript serves to perform interaction with servers. You can retrieve data from a URL without having to do a full [Page](UI.Page) refresh. This enables a Web page to update just part of a page without disrupting what the user is doing. The `HTTPRequest` component is also a parent for the [WebClient](Network.WebClient) module. We recommend you to use [WebClient](Network.WebClient) instead of `HTTPRequest` for the majority of your ordinary tasks because it provides more advantages (for example, an automated parsing of a server response in JSON format). **Attention:** as of the current version, `HTTPRequest` can be used to send or retrieve only JSON objects, XML support is pending.
 
 
 @example: A very basic `HTTPRequest` to demonstrate how to query a website on button press.
@@ -9,7 +9,7 @@
             .click: ()->
                 get_weather.execute();
 
-@ns: Core
+@ns: Network
 define RunAtServerComponent HTTPRequest
 
     @info: Set the HTTP Request url.
@@ -24,7 +24,7 @@ define RunAtServerComponent HTTPRequest
                 .click: ()->
                     get_weather.execute();
 
-    @info: Set the HTTP Request query string. Serialized object in JSON format is expected here.
+    @info: Set the HTTP Request query string. The serialized object in JSON format is expected here.
     @example: A little more advanced version of the previous code sample with a focus on the `queryString` property.
         def Page main
             public String api_key: 7221fd30a883cfd152be6cf097336582
@@ -58,7 +58,7 @@ define RunAtServerComponent HTTPRequest
     public String method
 
 
-    @info: Set the HTTP Request headers. Serialized object in JSON format is expected here.
+    @info: Set the HTTP Request headers. The serialized object in JSON format is expected here.
     @example: A variation of the previous code snipped with added user-agent and a Cookies value.
         def Page main
             HttpRequest get_weather
@@ -76,10 +76,9 @@ define RunAtServerComponent HTTPRequest
             Button: 'Get wether!'
                 .click: ()->
                     get_weather.execute();
-    public String method
     public String headers
 
-    @info: Set the HTTP Request body. Serialized object in JSON format is expected here.
+    @info: Set the HTTP Request body. The serialized object in JSON format is expected here.
     public String body
 
     @info: Execute the HTTP request.
