@@ -1,5 +1,5 @@
 @nested
-@info: The `HTTPRequest` component in QuokkaScript serves to perform interaction with servers. You can retrieve data from a URL without having to do a full [Page](UI.Page) refresh. This enables a Web page to update just part of a page without disrupting what the user is doing. The `HTTPRequest` component is also a parent for the [WebClient](Core.WebClient) module. We recommend you to use [WebClient](Core.WebClient) instead of `HTTPRequest` for the majority of your every-day task, because it provides more advantages (for example, an automated parsing of a server response in JSON format). **Attention:** as of the current version, `HTTPRequest` can be used to send or retrieve only JSON objects, XML support is pending.
+@info: The `HTTPRequest` component in QuokkaScript serves to perform interaction with servers. You can retrieve data from a URL without having to do a full [Page](UI.Page) refresh. This enables a Web page to update just part of a page without disrupting what the user is doing. The `HTTPRequest` component is also a parent for the [WebClient](Core.WebClient) module. We recommend you to use [WebClient](Core.WebClient) instead of `HTTPRequest` for the majority of your ordinary tasks, because it provides more advantages (for example, an automated parsing of a server response in JSON format). **Attention:** as of the current version, `HTTPRequest` can be used to send or retrieve only JSON objects, XML support is pending.
 
 
 @example: A very basic `HTTPRequest` to demonstrate how to query a website on button press.
@@ -80,7 +80,6 @@ define RunAtServerComponent HTTPRequest
     public String headers
 
     @info: Set the HTTP Request body. Serialized object in JSON format is expected here.
-    @example:
     public String body
 
     @info: Execute the HTTP request.
