@@ -6,21 +6,19 @@
 ;// QUOKKA 2017
 // By zibx on 5/5/17.
 
-    'use strict';
+'use strict';
 var assert = require('chai').assert;
-var common = require('./toolchain/common'),
+var common = require('../../toolchain/common'),
+    Path = require('path'),
     compile = common.compile, compact = common.compactFn;
 
-describe('pure variables', function() {
-    // not observable as primitives. stored in real variables
-    // pure + public should cause error
-    compile('test/qs/pure.qs', function (result) {
-
-        console.log(result.js)
+describe('bug_noPrivate', function() {
+    compile(Path.join(__dirname, 'bug_noPrivate.qs'), function (result) {
         var main = result.ast.main;
+        it('should be privates', function(){
+            console.log(result.js);
 
-        it('should compile fn call', function(){
-            assert.equal(main.values.b1.cls._val, '".aaa.bbb"');
+            assert.include(result.js, 'Symbol');
         });
     });
 });

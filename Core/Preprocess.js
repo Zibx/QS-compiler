@@ -15,23 +15,23 @@ module.exports = (function () {
 
     var preprocess = function (tokens, noAST, errorStorage) {
 
-        errorStorage = errorStorage || [];
+            errorStorage = errorStorage || [];
 
-        //var AST = lineSplitter(tokens);
-        tokens = quotesAndLongComments(tokens);//* +
-        tokens = shortCommentsAndURLs(tokens);
+            //var AST = lineSplitter(tokens);
+            tokens = quotesAndLongComments(tokens);//* +
+            tokens = shortCommentsAndURLs(tokens);
 
-        /*console.log(tokens.filter(function(item){
-            return item.type==='URI'
-        }).map(getData2));*/
+            /*console.log(tokens.filter(function(item){
+                return item.type==='URI'
+            }).map(getData2));*/
 
-        tokens = braces(tokens);
-        tokens = indentation(tokens);
+            tokens = braces(tokens);
+            tokens = indentation(tokens);
 
-        if(!noAST)
-            tokens = ast(tokens, errorStorage);
+            if(!noAST)
+                tokens = ast(tokens, errorStorage);
 
-        return tokens;
+            return tokens;
 
         };
 

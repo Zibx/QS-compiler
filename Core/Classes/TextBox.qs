@@ -79,3 +79,6 @@ def UIComponent TextBox
 
     @info: Make this input active
     public Function focus
+
+    @info: Make Input Text Capitalized (like this description)
+    public Boolean capitalize

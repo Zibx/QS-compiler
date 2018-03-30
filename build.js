@@ -287,6 +287,7 @@ module.exports = (function () {
                 compiler.add(item, {staticNS: true});
             });
         });
+        compiler.baseInited = true;
 
         lexes.forEach(function(lex){
             lex.forEach(function(item){

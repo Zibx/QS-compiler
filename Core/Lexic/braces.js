@@ -23,7 +23,7 @@ module.exports = (function(){
     };
     // It is a hardcoded plain function for only one purpose
     // Fuck the beauty, it just do the job
-    var process = function (tokens) {
+    var process = function (tokens, silent) {
         var i, _i, token, delta,
 
             stack = [], last = {wait: Infinity};
@@ -52,23 +52,31 @@ module.exports = (function(){
                         _i -= delta - 1;
                         //if(_i!== tokens.length)debugger;
                         last = stack[stack.length - 1];
+                        if(last === void 0 && silent){
+                            /*if(!silent)
+                                console.log('Closed more than opened');*/
+                            break;
+                        }
                     }else{
-
-                        throw new Error('Brace dismatch: opened - `'+ last.info +'` at '+ last.pointer +' income - `'+ token.data +'` at '+token.pointer)
+                        if(!silent)
+                            throw new Error('Brace dismatch: opened - `'+ last.info +'` at '+ last.pointer +' income - `'+ token.data +'` at '+token.pointer)
+                        else
+                            break;
                     }
                 }
             }
         }
-        if(stack.length)
-            throw new Error('Unclosed braces:\n'+stack.map(function(token){
-                var waiter = tokens[token.start].pointer;
-                return '\t'+token.info + ' at ('+ waiter.source + ':'+ waiter.row +':'+ waiter.col+')';
-            }).join('\n'));
+        if(stack.length){
+            if( !silent )
 
+                throw new Error( 'Unclosed braces:\n' + stack.map( function( token ){
+                        var waiter = tokens[token.start].pointer;
+                        return '\t' + token.info + ' at (' + waiter.source + ':' + waiter.row + ':' + waiter.col + ')';
+                    } ).join( '\n' ) );
+        }
 
         return tokens.map(function(token){
             var subToken;
-
             if(token.type === 'Brace' && token.info === '{' && token.tokens.length === 3){
                 subToken = token.tokens[1];
                 if(subToken.type === 'Brace' && subToken.info === '{'){

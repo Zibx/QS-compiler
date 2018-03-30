@@ -123,6 +123,20 @@ module.exports = (function(){
 
                 isPublic = newItem.isPublic = matched.scope && matched.scope.mapped === 'public';
 
+                if(matched.value){
+                    if(matched.value[0].type === 'Quote' && matched.value[0].stringTemplate){
+                        // TRANSFORM stringTemplates to pipes
+                        matched.value[0].type = 'PIPE';
+                        matched.value[0].data = matched.value[0]._data;
+                            /*= {
+                            type: 'PIPE',
+                            tokens: matched.value[0].tokens,
+                            pointer: matched.value[0].pointer,
+                            data: matched.value[0].data
+                        };*/
+                    }
+                }
+
                 if(matched.name) {
 
                     currentPropHolder = parent[isPublic?'public':'private'];
@@ -186,6 +200,16 @@ module.exports = (function(){
                 child = children[i];
 
                 if(isNotError(definition = matchers.define(child))){
+
+                    if(!definition.name){
+                        definition.name = new match.Match('name', {
+                            leaf: true,
+                            type: 'WORD',
+                            data: definition.extend[0].data + '_' + Math.random().toString(36).substr(3, 7),
+                            pointer: definition.extend[0].pointer
+                        });
+                    }
+
                     current = (new AST_Define(definition))
                         .addTags(tags.tags);
 

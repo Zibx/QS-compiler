@@ -100,7 +100,7 @@ describe('JS transformations', function() {
         compile('test/qs/functions.qs', function (result) {
             assert.equal(
                 compact(result.ast.Property.private.f0.value._js),
-                'var __private=this[_private],_self=this;var f;__private.set(["count"],__private.get(["count"])+1);if(__private.get(["count"])){__private.get(["count"])}for(var i=0;i<1;i=i+1)__private.get(["count"]);if(__private.get(["count"]))__private.get(["count"]);for(var i=0;i<1;i=i+1){__private.get(["count"])?__private.get(["count"]):__private.get(["count"])}'
+                'var __private=this[_private],_self=this;this.on("~destroy",function(){__private["~destroy"]()});var f;__private.set(["count"],__private.get(["count"])+1);if(__private.get(["count"])){__private.get(["count"])}for(var i=0;i<1;i=i+1)__private.get(["count"]);if(__private.get(["count"]))__private.get(["count"]);for(var i=0;i<1;i=i+1){__private.get(["count"])?__private.get(["count"]):__private.get(["count"])}'
             );
             done();
         });
@@ -109,7 +109,7 @@ describe('JS transformations', function() {
         compile('test/qs/functions.qs', function (result) {
             assert.equal(
                 compact(result.ast.Property.public.f1.value._js),
-                'var __private=this[_private],_self=this;var f;__private.set(["count"],__private.get(["count"])+1);if(__private.get(["count"])){__private.get(["count"])}for(var i=0;i<1;i=i+1)__private.get(["count"]);if(__private.get(["count"]))__private.get(["count"]);for(var i=0;i<1;i=i+1){__private.get(["count"])?__private.get(["count"]):__private.get(["count"])}'
+                'var __private=this[_private],_self=this;this.on("~destroy",function(){__private["~destroy"]()});var f;__private.set(["count"],__private.get(["count"])+1);if(__private.get(["count"])){__private.get(["count"])}for(var i=0;i<1;i=i+1)__private.get(["count"]);if(__private.get(["count"]))__private.get(["count"]);for(var i=0;i<1;i=i+1){__private.get(["count"])?__private.get(["count"]):__private.get(["count"])}'
             );
             done();
         });
@@ -136,7 +136,7 @@ describe('JS transformations', function() {
         compile('test/qs/functions.qs', function (result) {
             assert.equal(
                 compact(result.ast.Property.private.f4.value._js),
-                'var __private=this[_private],_self=this;var f;f=f+_self.get(["key"]);f=f+__private.get(["count"]);f+=_self.get(["key"]);f+=__private.get(["count"]);f*=_self.get(["key"]);f*=__private.get(["count"]);f/=_self.get(["key"]);f/=__private.get(["count"]);f-=_self.get(["key"]);f-=__private.get(["count"]);f|=_self.get(["key"]);f|=__private.get(["count"]);f&=_self.get(["key"]);f&=__private.get(["count"]);f^=_self.get(["key"]);f^=__private.get(["count"]);f%=_self.get(["key"]);f%=__private.get(["count"])'
+                'var __private=this[_private],_self=this;this.on("~destroy",function(){__private["~destroy"]()});var f;f=f+_self.get(["key"]);f=f+__private.get(["count"]);f+=_self.get(["key"]);f+=__private.get(["count"]);f*=_self.get(["key"]);f*=__private.get(["count"]);f/=_self.get(["key"]);f/=__private.get(["count"]);f-=_self.get(["key"]);f-=__private.get(["count"]);f|=_self.get(["key"]);f|=__private.get(["count"]);f&=_self.get(["key"]);f&=__private.get(["count"]);f^=_self.get(["key"]);f^=__private.get(["count"]);f%=_self.get(["key"]);f%=__private.get(["count"])'
             );
             done();
         });
@@ -145,7 +145,7 @@ describe('JS transformations', function() {
         compile('test/qs/functions.qs', function (result) {
             assert.equal(
                 compact(result.ast.Property.public.f5.value._js),
-                'var __private=this[_private],_self=this;var f;f=f+_self.get(["key"]);f=f+__private.get(["count"]);f+=_self.get(["key"]);f+=__private.get(["count"]);f*=_self.get(["key"]);f*=__private.get(["count"]);f/=_self.get(["key"]);f/=__private.get(["count"]);f-=_self.get(["key"]);f-=__private.get(["count"]);f|=_self.get(["key"]);f|=__private.get(["count"]);f&=_self.get(["key"]);f&=__private.get(["count"]);f^=_self.get(["key"]);f^=__private.get(["count"]);f%=_self.get(["key"]);f%=__private.get(["count"])'
+                'var __private=this[_private],_self=this;this.on("~destroy",function(){__private["~destroy"]()});var f;f=f+_self.get(["key"]);f=f+__private.get(["count"]);f+=_self.get(["key"]);f+=__private.get(["count"]);f*=_self.get(["key"]);f*=__private.get(["count"]);f/=_self.get(["key"]);f/=__private.get(["count"]);f-=_self.get(["key"]);f-=__private.get(["count"]);f|=_self.get(["key"]);f|=__private.get(["count"]);f&=_self.get(["key"]);f&=__private.get(["count"]);f^=_self.get(["key"]);f^=__private.get(["count"]);f%=_self.get(["key"]);f%=__private.get(["count"])'
             );
             done();
         });
@@ -155,7 +155,7 @@ describe('JS transformations', function() {
             console.log(result.js)
             assert.equal(
                 compact(result.ast.Property.private.f6.value._js),
-                'var __private=this[_private],_self=this;var f;_self.set(["key"],f+_self.get(["key"]));_self.set(["key"],_self.get(["key"])+f);_self.set(["key"],f);_self.set(["key"],_self.get(["key"]));_self.set(["key"],__private.get(["count"]));_self.set(["key"],f+__private.get(["count"]));_self.set(["key"],__private.get(["count"])+f);_self.set(["key"],__private.get(["count"])+_self.get(["key"]));_self.set(["key"],_self.get(["key"])+__private.get(["count"]));_self.set(["key"],_self.get(["key"])+f);_self.set(["key"],_self.get(["key"])+_self.get(["key"]));__private.set(["count"],f+_self.get(["key"]));__private.set(["count"],_self.get(["key"])+f);__private.set(["count"],f);__private.set(["count"],_self.get(["key"]));__private.set(["count"],__private.get(["count"]));__private.set(["count"],f+__private.get(["count"]));__private.set(["count"],__private.get(["count"])+f);__private.set(["count"],__private.get(["count"])+_self.get(["key"]));__private.set(["count"],__private.get(["count"])+__private.get(["count"]));__private.set(["count"],__private.get(["count"])+f);__private.set(["count"],__private.get(["count"])+_self.get(["key"]))'
+                'var __private=this[_private],_self=this;this.on("~destroy",function(){__private["~destroy"]()});var f;_self.set(["key"],f+_self.get(["key"]));_self.set(["key"],_self.get(["key"])+f);_self.set(["key"],f);_self.set(["key"],_self.get(["key"]));_self.set(["key"],__private.get(["count"]));_self.set(["key"],f+__private.get(["count"]));_self.set(["key"],__private.get(["count"])+f);_self.set(["key"],__private.get(["count"])+_self.get(["key"]));_self.set(["key"],_self.get(["key"])+__private.get(["count"]));_self.set(["key"],_self.get(["key"])+f);_self.set(["key"],_self.get(["key"])+_self.get(["key"]));__private.set(["count"],f+_self.get(["key"]));__private.set(["count"],_self.get(["key"])+f);__private.set(["count"],f);__private.set(["count"],_self.get(["key"]));__private.set(["count"],__private.get(["count"]));__private.set(["count"],f+__private.get(["count"]));__private.set(["count"],__private.get(["count"])+f);__private.set(["count"],__private.get(["count"])+_self.get(["key"]));__private.set(["count"],__private.get(["count"])+__private.get(["count"]));__private.set(["count"],__private.get(["count"])+f);__private.set(["count"],__private.get(["count"])+_self.get(["key"]))'
             );
             done();
         });
