@@ -1,5 +1,4 @@
 def Page main
-
     Slider mySlider: {{num}}
       from: 5
       to: 20
