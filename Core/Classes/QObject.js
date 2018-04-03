@@ -12,7 +12,8 @@ module.exports = (function () {
         _description: 'Quokka class',
         namespace: 'Core',
         public: {
-            value: {type: 'Variant'}
+            value: {type: 'Variant'},
+            log: {type: 'Function'}
         }
     };
     return Class;

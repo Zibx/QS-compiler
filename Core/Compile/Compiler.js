@@ -460,7 +460,7 @@ module.exports = (function () {
             try{
                 system.push( systemQS( parts.name ) )
             }catch(e){
-                throw new Error('Something wrong in '+parts.name)
+                throw new Error('Something wrong in '+parts.name +': '+ e)
             }
         }
     });

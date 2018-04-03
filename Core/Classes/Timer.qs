@@ -17,9 +17,10 @@ define AbstractComponent Timer
             Timer t1
                 interval: 100
                 enabled: {{enabledSwitch}}
-                .tick: ()->
-                    console.log('Ticks!', t1)
+                .tick: ()->{
+                    console.log("Ticks!",t1);
                     t1.enabled();
+                }
             Header: Timer ticks {{t1}} times
     public Number counter: 0
 

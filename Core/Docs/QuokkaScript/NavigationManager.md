@@ -61,14 +61,17 @@ def Page second
 ## `home()`, `back()` and `load()`
 - The `NavigationManager.home()` method closes the current application and returns a user to the main screen.  
 - The `NavigationManager.back()` method loads the previous screen of the current app in a manner similar to the browsers's **Back** button.
-- A little bit more advanced usage can be reached with `NavigationManager.loads(anotherApplication)` method. It provides an opportunity to load one QuokkaScript application from another. A user can switch back to the previous app by pushing the `Back` button. 
+- A little bit more advanced usage can be reached with `NavigationManager.loads(anotherApplication)` method. It provides an opportunity to load one QuokkaScript application from another. A user can switch back to the previous app by pushing the `Back` button.
+
 ```qs
 def Page main
     Header: 'First Page'
     Button next: Next
         .click: ()->
             NavigationManager.navigate('second')
+```
 
+```qs
 def Page second
     Header.medium: 'Second Page'
     Button: 'Close app and go home'

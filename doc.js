@@ -239,8 +239,8 @@ module.exports = (function () {
             if (item.ast && !item.ast.js) {
                 var collector = {};
                 out.push(collector);
-                collector.name = item.mixed.name;
-                collector.namespace = item.mixed.namespace;
+                collector.name = item.getName();
+                collector.namespace = item.namespace;
 
                 var info = getTag(item.ast, 'info');
                 if (info) {
