@@ -51,3 +51,9 @@ define AbstractComponent UIComponent
 
   @info: Return actual dimensions in pixels in format: {width: x, height: y}
   public Function getSize
+
+  @info: The grid-row CSS property is a shorthand property for grid-row-start and grid-row-end specifying a grid item’s size and location within the grid row by contributing a line, a span, or nothing (automatic) to its grid placement, thereby specifying the inline-start and inline-end edge of its grid area.
+  public String gridRow
+
+  @info: The grid-column CSS property is a shorthand property for grid-column-start and grid-column-end specifying a grid item's size and location within the grid row by contributing a line, a span, or nothing (automatic) to its grid placement, thereby specifying the inline-start and inline-end edge of its grid area.
+  public String gridColumn

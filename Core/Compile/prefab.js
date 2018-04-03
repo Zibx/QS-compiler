@@ -185,7 +185,9 @@ module.exports = (function () {
                         if( functionBody.body ){
                             if( functionBody.body.indexOf( '__private' ) > -1 ){ // not good. TODO: go to ast
                                 privateDefined = true;
-                                functionBody.body = 'var __private = this[_private], _self = this;\n' + functionBody.body;
+                                functionBody.body = 'var __private = this[_private], _self = this;\n' +
+                                    'this.on(\'~destroy\', function() {__private[\'~destroy\']();});'+
+                                    functionBody.body;
                             }else{
                                 functionBody.body = 'var _self = this;\n' + functionBody.body;
                             }
@@ -215,6 +217,11 @@ module.exports = (function () {
             ctor = parts.gathered;
             for(var where in obj.instances) {
                 obj.instances[where].forEach(valueGatherer);
+            }
+
+            // TODO: check. values in existed props were not setted
+            for(var where in obj.values){
+                valueGatherer(obj.values[where]);
             }
 
 
@@ -597,6 +604,9 @@ module.exports = (function () {
                     }
                 }
             }else{
+                if(!isPublic){
+                    ctx.mainCls.privatesFlag = true;
+                }
                 eventSubs.push(_tinyPadLeft +(isPublic?'this': '__private')+'.setAll('+
                     (obj.isMain?'':'\'' + obj.getName().join('.') + '\', ') + stringData + ')');
                 return new ShouldNotBeSetted(obj);

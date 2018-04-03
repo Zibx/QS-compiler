@@ -21,7 +21,7 @@ module.exports = (function () {
         '\n\r': 'NEWLINE',
         '\t': 'SPACE',
         ' ': 'SPACE',
-        '"\'': 'QUOTE',
+        '"\'`': 'QUOTE',
         '\\': 'ESCAPE',
         '.': 'DOT',
         ',': 'COMMA',

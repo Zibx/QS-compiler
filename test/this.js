@@ -58,11 +58,11 @@ describe('this', function() {
         });
 
         it('should compile main methods call in main object event', function(){
-            assert.equal(compactFn(main.events.___this___.onload[3]._js), '_self.showNext()');
+            assert.equal(compactFn(main.events.___this___.onload[3]._js), '_self.showKeyboard()');
         });
 
         it('should compile main methods call without `this` in main object event', function(){
-            assert.equal(compactFn(main.events.___this___.onload[4]._js), '_self.showNext()');
+            assert.equal(compactFn(main.events.___this___.onload[4]._js), '_self.showKeyboard()');
         });
 
         it('should compile this.value in pipe', function(){

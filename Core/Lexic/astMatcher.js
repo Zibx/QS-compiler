@@ -314,5 +314,6 @@ module.exports = function (matchers) {
             return true;
         }
     };
+    match.Match = Match;
     return match;
 };

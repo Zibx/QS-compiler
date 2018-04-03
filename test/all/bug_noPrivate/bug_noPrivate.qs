@@ -1,0 +1,3 @@
+def QObject main
+    .evt: ()->
+       ;

@@ -26,7 +26,7 @@
 
 
 @ns: UI.Controls
-def UIComponent ContainerComponent
+def Grid ContainerComponent
     @info: The `itemSource` property serves to receive a [Collection](Core.Structures.Collection) from any data source (external service API or database).
     public Array itemSource
 

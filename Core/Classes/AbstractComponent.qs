@@ -29,3 +29,5 @@ define QObject AbstractComponent
 
     @info: Unique identifier of the instance
     public String id
+
+    public Function fire

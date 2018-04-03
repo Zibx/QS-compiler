@@ -1,7 +1,7 @@
-# Simple Quokka Language SDK
+# Quokka Language SDK
 
-We would provide SDK for application writing and testing on 15 of March 2018.
+Build tool is available for major OS list:
 
-Stay tuned!
+<a href="https://downloads.quokka.pub/application_builder/win/latest.zip" class="ico-os ico-win"></a><a href="https://downloads.quokka.pub/application_builder/macos/latest.zip" class="ico-os ico-macos"></a><a href="https://downloads.quokka.pub/application_builder/linux/latest.zip" class="ico-os ico-linux"></a>
 
-Mac, Windows and Linux support.
+Just unzip and use this building tool for create awesome Quokka Applications for new age self service machines.

@@ -136,7 +136,7 @@ module.exports = (function () {
         }else{
             accessible = info.varParts;
         }
-        var ref = (info.varParts[0].name in cls.public ? 'this.ref(':'__private.ref(')+ '\'' + accessible.map(function (el) {
+        var ref = (cls.getPublic(info.varParts[0].name) ? 'this.ref(':'__private.ref(')+ '\'' + accessible.map(function (el) {
                 return el.name;
             }).join('.') + '\')';
 
@@ -463,9 +463,10 @@ module.exports = (function () {
                 throw new Error('Something wrong in '+parts.name)
             }
         }
-    })
+    });
 
     var Compiler = function(cfg){
+
         this.objectCounter = 0;
         typeof cfg === 'object' && Object.assign(this, cfg);
         
@@ -494,6 +495,7 @@ module.exports = (function () {
     };
 
     Compiler.prototype = {
+        baseInited: false,
         _primitives: primitives,
         world: {},// known metadata
         _world: {},// known metadata with not full loaded
@@ -900,7 +902,15 @@ module.exports = (function () {
 
             if(this.wait[name].length === 0){
                 console.combine(name, function(arr){
-                    console.log('LOADED', arr.sort().join(', '));
+                    var uniq = [], uniqHash = {};
+                    arr = arr.sort();
+                    arr.forEach(function(className){
+                        if(!(className in uniqHash)){
+                            uniqHash[className] = true;
+                            uniq.push(className)
+                        }
+                    });
+                    console.log('LOADED', uniq.join(', '));
                 });//, this._world[name])
                 this.define(name);
 
@@ -1111,7 +1121,9 @@ module.exports = (function () {
                                 value: item.value,
                                 existed: propInMeta.ast.existed
                             } ) );
+
                         }
+                        item.isPublic = propInMeta.isPublic;
                         //cls.addItem(objectName, val); // join path?
 
                         var childObjectName = objectName;

@@ -34,9 +34,9 @@ def Page main
   .onload: ()->
     s1 = 8
   .onload: ()->
-    this.showNext()
+    this.showKeyboard()
   .onload: ()->
-    showNext()
+    showKeyboard()
 
   Slider s2: 15
     from: {{this.value}}
