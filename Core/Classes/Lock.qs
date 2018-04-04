@@ -1,4 +1,4 @@
-@ns: Z_Qiwi
+@ns: Business
 @anything: true
 def QObject Lock
     public Function set
@@ -8,7 +8,7 @@ def QObject Lock
     public Function save
     public Function process
 
-@ns: Z_Qiwi
+@ns: Business
 def AbstractComponent Processor
     public Event process
     public Function update

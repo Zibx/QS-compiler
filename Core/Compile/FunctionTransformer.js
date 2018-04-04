@@ -21,7 +21,7 @@ module.exports = (function () {
         functionTransform: function (fnObj, cls, child) {
             var meta = cls.metadata;
             var _self = this;
-            var data =
+            var transformFnGet =
                 function (node, stack, scope, parent) {
                     var isPrivate = false;
                     var c0 = cls;

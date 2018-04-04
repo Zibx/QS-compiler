@@ -1,6 +1,6 @@
 @hidden: true
 @info: System demo class. Do NOT describe it
-@ns: Z_Qiwi
+@ns: Business
 define ContainerComponent TileStrip
   public Variant gridParams
   public String big

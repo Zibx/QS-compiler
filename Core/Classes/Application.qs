@@ -1,4 +1,4 @@
-@ns: Z_Qiwi
+@ns: Business
 @hidden
 @system
 @info: Application abstraction

@@ -1,4 +1,4 @@
-@ns: Z_Qiwi
+@ns: Business
 def QObject Applications
 	public String path
 	public String err
