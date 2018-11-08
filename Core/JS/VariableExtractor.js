@@ -119,13 +119,25 @@ module.exports = (function () {
                 if (!wasList && needList) {
                     list = list.reverse();
                     scope = (this.deepUsed[list[0].name] || (this.deepUsed[list[0].name] = {}));
-                    key = list.map(function (node) {
-                        if (node.type === 'Literal')
-                            return (node.value + '').replace(/\./g, '\\.');
-                        return (node.computed ? '__' : '') + node.name;
-                    }).join('.');
-                    node._id = counter++;
-                    (scope[key] || (scope[key] = [])).push(node);
+                    if(list[0].type === 'Identifier'){
+                        key = list.map( function( node ){
+                            if( node.type === 'Literal' )
+                                return (node.value + '').replace( /\./g, '\\.' );
+                            return (node.computed ? '__' : '') + node.name;
+                        } ).join( '.' );
+                        node._id = counter++;
+                        (scope[key] || (scope[key] = [])).push( node );
+                    }else if(list[0].type === 'ThisExpression'){
+                        key = list.map( function( node ){
+                            if( node.type === 'Literal' )
+                                return (node.value + '').replace( /\./g, '\\.' );
+                            return (node.computed ? '__' : '') + node.name;
+                        } ).join( '.' );
+                        node._id = counter++;
+                        (scope[key] || (scope[key] = [])).push( node );
+                    }else{
+                        console.log('Check this', list)
+                    }
                 }
 
             }

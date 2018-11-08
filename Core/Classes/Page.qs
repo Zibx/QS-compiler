@@ -68,5 +68,5 @@ define UIComponent Page
       }
   public Event loaded
 
-  public existed Lock transaction
+  //public existed Lock transaction
 

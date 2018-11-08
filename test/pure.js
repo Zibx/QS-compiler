@@ -20,7 +20,7 @@ describe('pure variables', function() {
         var main = result.ast.main;
 
         it('should compile fn call', function(){
-            assert.equal(main.values.b1.cls._val, '".aaa.bbb"');
+            assert.equal(main.values.b1.value._val, '".aaa.bbb"');
         });
     });
 });

@@ -234,7 +234,7 @@ module.exports = (function () {
         var env, cache = {},
             magicPrefix = '@~#',
             magicLength = magicPrefix.length,
-            postProduction = {},
+            postProduction = {}/*,
             replaceFn = function(what, position, str){
                 var shouldReplace = str.substr(position-magicLength, magicLength) !== magicPrefix;
                 shouldReplace = shouldReplace && position === pipeVar.loc.start
@@ -243,7 +243,7 @@ module.exports = (function () {
                     return magicPrefix + newVarName;
                 }else
                     return what;
-            };
+            }*/;
 
 
         var replacer = VariableExtractor.replacer(pipe.ast);
@@ -270,8 +270,11 @@ module.exports = (function () {
 
                     var mArg = accessor.name,
                         newVarAST = varDeepCap(pipeVar, accessor.accessible);
-                    /*var newVarName = escodegen.generate(newVarAST),
-                        oldVarName = escodegen.generate(pipeVar);*/
+                    var newVarName = escodegen.generate(newVarAST),
+                        oldVarName = escodegen.generate(pipeVar);
+
+                    console.log(newVarName, oldVarName)
+
                     var needReplace = !cache[accessor.name] || cache[accessor.name][0] !== pipeVar._id;
                     if (!cache[accessor.name]) {
                         cache[accessor.name] = [pipeVar._id];
@@ -280,19 +283,11 @@ module.exports = (function () {
                     }
                     if(needReplace ) {
                         replacer.add(pipeVar, newVarAST);
-                        /*var goodRegexName = oldVarName.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-                        fn = fn.replace(
-                            new RegExp(goodRegexName, 'g'),
-                            replaceFn
-                        );*/
                     }
                 }
             }
         }
 
-        /*for( i in postProduction ){
-            fn = fn.replace(new RegExp((magicPrefix+i).replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"), 'g'), i)
-        }*/
         pipe.fn = escodegen.generate(replacer.proceed());//fn;
         var parts = [];
         pipeSources.forEach(function (item) {

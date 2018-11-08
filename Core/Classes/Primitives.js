@@ -87,7 +87,8 @@ module.exports = (function () {
         },
         Number: {
             public: {
-                value: p('Number')
+                value: p('Number'),
+                toFixed: p('Function')
             },
             __compileValue: function(arr, value){
                 //tools.toString(value)

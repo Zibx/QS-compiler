@@ -57,6 +57,10 @@ describe('this', function() {
             assert.equal(compactFn(main.events.___this___.onload[2]._js), '__private.set(["s1","value"],8)')
         });
 
+        it('should set property value to `this` default property value. s1<Slider>.from = s1.value', function(){
+            assert.equal(compact(main.values.s1.from._val), 'new Pipe(__private.ref("s1.value"),function(s1_value){return s1_value})')
+        });
+
         it('should compile main methods call in main object event', function(){
             assert.equal(compactFn(main.events.___this___.onload[3]._js), '_self.showKeyboard()');
         });

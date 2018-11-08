@@ -16,13 +16,19 @@ module.exports = (function(){
     var process = function (tokens, sub) {
 
         var i, _i, token, data, count, quoteType,
-            start, need, delta, stringTemplate;
+            start, need, delta, stringTemplate, inTheMiddleOfWord;
 
-        for (i = 0, _i = tokens.length; i < _i; i++) {
+        _i = tokens.length;
+
+
+        for (i = 0; i < _i; i++) {
             token = tokens[i];
 
             data = token.data;
-            if (quotes[data]) {
+            inTheMiddleOfWord = i > 0 && i < _i - 1 &&
+                tokens[i - 1].type === 'WORD' && tokens[i + 1].type === 'WORD';
+
+            if (quotes[data] && !inTheMiddleOfWord) {
                 quoteType = data;
                 stringTemplate = quoteType === '`';
                 count = 1;
